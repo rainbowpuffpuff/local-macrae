@@ -219,3 +219,16 @@ test("operator routes (benchmark, forge, kill switch) need the real secret; read
   res = await call("/api/benchmark");
   assert.equal(res.status, 200);
 });
+
+test("with MACRAE_ADMIN_SECRET set, operator routes take X-Macrae-Admin and not the voice agent's secret", async () => {
+  const calls = stubFetch();
+  const env = { ...ENV, MACRAE_ADMIN_SECRET: "adm1n" };
+  let res = await call("/api/benchmark/dusk", { method: "POST", body: "{}", headers: { "X-Macrae-Secret": "s3cret" } }, env);
+  assert.equal(res.status, 403);
+  res = await call("/api/benchmark/dusk", { method: "POST", body: "{}", headers: { "X-Macrae-Admin": "adm1n" } }, env);
+  assert.equal(res.status, 200);
+  assert.equal(calls[0].headers.get("x-macrae-secret"), "s3cret");
+  res = await call("/api/admin/kill", { method: "POST", body: "{}", headers: { "X-Macrae-Admin": "adm1n" } }, env);
+  assert.equal(res.status, 200);
+  assert.equal(calls[1].headers.get("x-macrae-admin"), "s3cret"); // the container checks the shared secret
+});

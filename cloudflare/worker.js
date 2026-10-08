@@ -33,8 +33,15 @@ const CONTAINER_TIMEOUT_MS = 90_000;
 const VOICE_TIMEOUT_MS = 10_000;
 const PASS_HEADERS = ["content-type", "accept"];
 // Operator-only writes: the dusk/dawn benchmark and a hand-started forge start paid Modal runs, /api/admin/* is the
-// kill switch. The page never calls them; they need the shared secret, like /admin/* and the voice agent's tools.
+// kill switch. The page never calls them. They need the operator secret (below), like /admin/*.
 const OPERATOR_PATH = /^\/api\/(benchmark\/|capabilities\/forge$|admin\/)/;
+
+// The operator: X-Macrae-Admin = MACRAE_ADMIN_SECRET when that Worker secret is set (so the voice agent, which holds
+// MACRAE_TOOL_SECRET, can't start benchmarks), else X-Macrae-Secret = MACRAE_TOOL_SECRET.
+export function isOperator(req, env) {
+  if (env.MACRAE_ADMIN_SECRET) return sameSecret(req.headers.get("x-macrae-admin"), env.MACRAE_ADMIN_SECRET);
+  return sameSecret(req.headers.get("x-macrae-secret"), env.MACRAE_TOOL_SECRET);
+}
 // /api/live/{run}/{step}: the claude wrapper in the Modal sandbox posts the agent's stream-json here while it runs.
 // It authenticates with the run's own token (X-Macrae-Live), never the shared secret, which the Worker does not add.
 const LIVE_PATH = /^\/api\/live\/[^/]+\/[^/]+$/;
@@ -87,7 +94,7 @@ export async function proxy(req, env, url) {
   }
 
   const operator = req.method !== "GET" && OPERATOR_PATH.test(url.pathname);
-  if (operator && !sameSecret(req.headers.get("x-macrae-secret"), env.MACRAE_TOOL_SECRET)) {
+  if (operator && !isOperator(req, env)) {
     return json({ error: "this endpoint is for the operator" }, 403);
   }
 
@@ -103,7 +110,8 @@ export async function proxy(req, env, url) {
   }
   headers.set("X-Macrae-Secret", env.MACRAE_TOOL_SECRET);
   // the backend's admin routes (server/safety.py) take X-Macrae-Admin, which falls back to the shared secret
-  if (operator && url.pathname.startsWith("/api/admin/")) headers.set("X-Macrae-Admin", env.MACRAE_ADMIN_SECRET || env.MACRAE_TOOL_SECRET);
+  // (the container gets MACRAE_TOOL_SECRET, not the admin secret, so that is what it checks)
+  if (operator && url.pathname.startsWith("/api/admin/")) headers.set("X-Macrae-Admin", env.MACRAE_TOOL_SECRET);
   // Our public origin: the backend tells the Modal sandbox to post live agent output to <origin>/api/live/…
   headers.set("X-Macrae-Origin", url.origin);
   const ip = req.headers.get("cf-connecting-ip");
@@ -263,7 +271,7 @@ export async function signedUrl(req, env) {
 
 // ---------- /admin/* (deploy.sh: status and restart of the backend container) ----------
 export async function admin(req, env, url) {
-  if (!sameSecret(req.headers.get("x-macrae-secret"), env.MACRAE_TOOL_SECRET)) return json({ error: "forbidden" }, 403);
+  if (!isOperator(req, env) && !sameSecret(req.headers.get("x-macrae-secret"), env.MACRAE_TOOL_SECRET)) return json({ error: "forbidden" }, 403);
   if (!env.BACKEND || typeof env.BACKEND.idFromName !== "function") return json({ error: "no backend container on this worker" }, 404);
   const stub = backendStub(env);
   try {

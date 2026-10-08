@@ -55,6 +55,15 @@ worker_url() {
   [ -n "$u" ] || die "don't know the Worker's URL yet: deploy first (cloudflare/deploy.sh), or set MACRAE_PUBLIC_URL=https://…"
   printf '%s' "${u%/}"
 }
+# The operator's header for /admin/*: X-Macrae-Admin when MACRAE_ADMIN_SECRET is known (env or deploy/.env), else the
+# shared tool secret.
+op_header() {
+  local a="${MACRAE_ADMIN_SECRET:-}"
+  [ -n "$a" ] || a="$("$PY" "$REPO/deploy/envtool.py" get "$ENV_FILE" MACRAE_ADMIN_SECRET 2>/dev/null || true)"
+  if [ -n "$a" ]; then printf 'X-Macrae-Admin: %s' "$a"; return; fi
+  local s; s="$(tool_secret)" || return 1  # (errexit is off inside $(…))
+  printf 'X-Macrae-Secret: %s' "$s"
+}
 tool_secret() {
   local s="${MACRAE_TOOL_SECRET:-}"
   [ -n "$s" ] || s="$("$PY" "$REPO/deploy/envtool.py" get "$ENV_FILE" MACRAE_TOOL_SECRET)"
@@ -228,17 +237,17 @@ cmd_index() {
 
 cmd_restart() {
   need_python
-  local url secret; url="$(worker_url)"; secret="$(tool_secret)"
-  curl -fsS -X POST -H "X-Macrae-Secret: $secret" "$url/admin/restart" >&2 || die "restart failed (is MACRAE_TOOL_SECRET the Worker's value?)"
+  local url hdr; url="$(worker_url)"; hdr="$(op_header)"
+  curl -fsS -X POST -H "$hdr" "$url/admin/restart" >&2 || die "restart failed (is MACRAE_ADMIN_SECRET / MACRAE_TOOL_SECRET the Worker's value?)"
   echo >&2
   echo "It stops after running flows finish (up to ~14 min); the next request starts it again with the current secrets." >&2
 }
 
 cmd_status() {
   need_python
-  local url secret; url="$(worker_url)"; secret="$(tool_secret)"
+  local url hdr; url="$(worker_url)"; hdr="$(op_header)"
   echo "GET $url/api/health" >&2; curl -sS --max-time 100 "$url/api/health" >&2 || true; echo >&2
-  echo "GET $url/admin/status" >&2; curl -sS -H "X-Macrae-Secret: $secret" "$url/admin/status" >&2 || true; echo >&2
+  echo "GET $url/admin/status" >&2; curl -sS -H "$hdr" "$url/admin/status" >&2 || true; echo >&2
 }
 
 case "${1:-deploy}" in
