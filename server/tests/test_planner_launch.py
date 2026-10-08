@@ -237,3 +237,10 @@ def test_planning_run_is_not_called_crashed(env, monkeypatch):
     planner.save(d, {"status": "planning", "started": time.time() - 1000})
     os.utime(d, (old, old))
     assert runs.read_state(d.name)["status"] == "crashed"
+
+
+def test_the_planner_never_picks_the_sandbox_image():
+    """calc_image (and any *_image var) is not a knob: the image comes only from an installed capability."""
+    knobs = planner.tunable({"id": "small-calc", "inputs": [{"name": "ion"}]},
+                            {"ion": "Na+", "calc_image": "", "image": "", "n_points": 9, "lessons": ""})
+    assert knobs == {"n_points": 9}

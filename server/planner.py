@@ -113,8 +113,15 @@ def flow_outline(flow_file: Optional[Path]) -> tuple[list[dict], dict[str, Any]]
 def tunable(task: dict, flow_vars: dict) -> dict[str, Any]:
     """Flow vars the planner may set: not task inputs (the user chose those) and not engine plumbing."""
     inputs = {i.get("name") for i in task.get("inputs") or [] if isinstance(i, dict)}
-    return {k: v for k, v in flow_vars.items() if k not in inputs and k not in RESERVED_VARS
+    return {k: v for k, v in flow_vars.items() if k not in inputs and k not in RESERVED_VARS and not _image_var(k)
             and isinstance(v, (str, int, float)) and not isinstance(v, bool)}
+
+
+def _image_var(name: str) -> bool:
+    """The sandbox image is authority, not tuning: it comes only from an installed image capability (the installer
+    tested it and the policy accepted it), never from the planner. A dawn run once failed because the planner set
+    calc_image to a capability's name, which the engine then pulled as a registry image."""
+    return name == "image" or name.endswith("_image")
 
 
 def defaults(task: dict, steps: list[dict], reason: str) -> dict:
