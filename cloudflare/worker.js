@@ -32,6 +32,9 @@ const BACKEND_TIMEOUT_MS = 30_000;
 const CONTAINER_TIMEOUT_MS = 90_000;
 const VOICE_TIMEOUT_MS = 10_000;
 const PASS_HEADERS = ["content-type", "accept"];
+// Operator-only writes: the dusk/dawn benchmark and a hand-started forge start paid Modal runs, /api/admin/* is the
+// kill switch. The page never calls them; they need the shared secret, like /admin/* and the voice agent's tools.
+const OPERATOR_PATH = /^\/api\/(benchmark\/|capabilities\/forge$|admin\/)/;
 // /api/live/{run}/{step}: the claude wrapper in the Modal sandbox posts the agent's stream-json here while it runs.
 // It authenticates with the run's own token (X-Macrae-Live), never the shared secret, which the Worker does not add.
 const LIVE_PATH = /^\/api\/live\/[^/]+\/[^/]+$/;
@@ -83,6 +86,11 @@ export async function proxy(req, env, url) {
     return json({ error: "this endpoint is for the voice agent" }, 403);
   }
 
+  const operator = req.method !== "GET" && OPERATOR_PATH.test(url.pathname);
+  if (operator && !sameSecret(req.headers.get("x-macrae-secret"), env.MACRAE_TOOL_SECRET)) {
+    return json({ error: "this endpoint is for the operator" }, 403);
+  }
+
   if (req.method === "POST" && /^\/api\/tasks\/[^/]+\/start$/.test(url.pathname)) {
     const limited = await overLimit(env.START_LIMIT, req, "start");
     if (limited) return limited;
@@ -94,6 +102,8 @@ export async function proxy(req, env, url) {
     if (v) headers.set(h, v);
   }
   headers.set("X-Macrae-Secret", env.MACRAE_TOOL_SECRET);
+  // the backend's admin routes (server/safety.py) take X-Macrae-Admin, which falls back to the shared secret
+  if (operator && url.pathname.startsWith("/api/admin/")) headers.set("X-Macrae-Admin", env.MACRAE_ADMIN_SECRET || env.MACRAE_TOOL_SECRET);
   // Our public origin: the backend tells the Modal sandbox to post live agent output to <origin>/api/live/…
   headers.set("X-Macrae-Origin", url.origin);
   const ip = req.headers.get("cf-connecting-ip");

@@ -198,3 +198,24 @@ test("sameSecret", () => {
   assert.ok(!sameSecret(null, "abc"));
   assert.ok(!sameSecret("", ""));
 });
+
+test("operator routes (benchmark, forge, kill switch) need the real secret; reads stay public", async () => {
+  const calls = stubFetch();
+  for (const path of ["/api/benchmark/dusk", "/api/capabilities/forge", "/api/admin/kill"]) {
+    let res = await call(path, { method: "POST", body: "{}" });
+    assert.equal(res.status, 403, path);
+    res = await call(path, { method: "POST", body: "{}", headers: { "X-Macrae-Secret": "wrong" } });
+    assert.equal(res.status, 403, path);
+  }
+  assert.equal(calls.length, 0);
+  let res = await call("/api/admin/kill", { method: "POST", body: '{"on":true}', headers: { "X-Macrae-Secret": "s3cret" } });
+  assert.equal(res.status, 200);
+  assert.equal(calls[0].headers.get("x-macrae-admin"), "s3cret");
+  res = await call("/api/benchmark/dawn", { method: "POST", body: "{}", headers: { "X-Macrae-Secret": "s3cret" } });
+  assert.equal(res.status, 200);
+  assert.equal(calls[1].headers.get("x-macrae-admin"), null);
+  res = await call("/api/dawn-report");
+  assert.equal(res.status, 200);
+  res = await call("/api/benchmark");
+  assert.equal(res.status, 200);
+});
