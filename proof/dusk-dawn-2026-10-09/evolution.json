@@ -1,0 +1,1769 @@
+{
+    "by_task": {
+        "small-calc": [
+            {
+                "run_id": "20261008-190228-small-calc-229d",
+                "task_id": "small-calc",
+                "title": "Ion\u2013water binding, computed live",
+                "status": "ok",
+                "ok": true,
+                "reward": 1.0,
+                "wall_s": 354.8,
+                "total_usd": 0.2772,
+                "llm_usd": 0.2711,
+                "compute_usd": 0.006,
+                "tokens": {
+                    "in": 16,
+                    "out": 7079,
+                    "cache": 170634
+                },
+                "hardware": "",
+                "started": 1791486149.2200937,
+                "finished": 1791486504.002205,
+                "lessons_used": 0,
+                "lesson_ids": [],
+                "distilled": false,
+                "lessons_learned": 0
+            },
+            {
+                "run_id": "20261008-192909-small-calc-3935",
+                "task_id": "small-calc",
+                "title": "Ion\u2013water binding, computed live",
+                "status": "ok",
+                "ok": true,
+                "reward": 1.0,
+                "wall_s": 300.0,
+                "total_usd": 0.2469,
+                "llm_usd": 0.2418,
+                "compute_usd": 0.0051,
+                "tokens": {
+                    "in": 12,
+                    "out": 6268,
+                    "cache": 120220
+                },
+                "hardware": "",
+                "started": 1791487749.9808605,
+                "finished": 1791488050.0151055,
+                "lessons_used": 0,
+                "lesson_ids": [],
+                "distilled": false,
+                "lessons_learned": 0
+            },
+            {
+                "run_id": "20261008-225509-small-calc-b147",
+                "task_id": "small-calc",
+                "title": "Ion\u2013water binding, computed live",
+                "status": "cancelled",
+                "ok": false,
+                "reward": 0.0,
+                "wall_s": 80.9,
+                "total_usd": 0.0,
+                "llm_usd": 0.0,
+                "compute_usd": 0.0,
+                "tokens": {
+                    "in": 0,
+                    "out": 0,
+                    "cache": 0
+                },
+                "hardware": "cpu-8",
+                "started": 1791500117.0246723,
+                "finished": 1791500197.898711,
+                "lessons_used": 0,
+                "lesson_ids": [],
+                "distilled": true,
+                "lessons_learned": 0
+            },
+            {
+                "run_id": "20261008-225509-small-calc-39aa",
+                "task_id": "small-calc",
+                "title": "Ion\u2013water binding, computed live",
+                "status": "cancelled",
+                "ok": false,
+                "reward": 0.0,
+                "wall_s": 80.9,
+                "total_usd": 0.0,
+                "llm_usd": 0.0,
+                "compute_usd": 0.0,
+                "tokens": {
+                    "in": 0,
+                    "out": 0,
+                    "cache": 0
+                },
+                "hardware": "cpu-4",
+                "started": 1791500117.0375266,
+                "finished": 1791500197.8978746,
+                "lessons_used": 0,
+                "lesson_ids": [],
+                "distilled": true,
+                "lessons_learned": 0
+            },
+            {
+                "run_id": "20261008-225728-small-calc-aecb",
+                "task_id": "small-calc",
+                "title": "Ion\u2013water binding, computed live",
+                "status": "ok",
+                "ok": true,
+                "reward": 1.0,
+                "wall_s": 448.1,
+                "total_usd": 0.673,
+                "llm_usd": 0.6437,
+                "compute_usd": 0.0293,
+                "tokens": {
+                    "in": 36,
+                    "out": 16584,
+                    "cache": 592265
+                },
+                "hardware": "cpu-4",
+                "started": 1791500253.6557825,
+                "finished": 1791500701.7484818,
+                "lessons_used": 0,
+                "lesson_ids": [],
+                "distilled": true,
+                "lessons_learned": 10
+            },
+            {
+                "run_id": "20261008-225728-small-calc-3a78",
+                "task_id": "small-calc",
+                "title": "Ion\u2013water binding, computed live",
+                "status": "ok",
+                "ok": true,
+                "reward": 1.0,
+                "wall_s": 586.6,
+                "total_usd": 0.6097,
+                "llm_usd": 0.5705,
+                "compute_usd": 0.0392,
+                "tokens": {
+                    "in": 30,
+                    "out": 16129,
+                    "cache": 443693
+                },
+                "hardware": "cpu-4",
+                "started": 1791500255.1700978,
+                "finished": 1791500841.7600977,
+                "lessons_used": 0,
+                "lesson_ids": [],
+                "distilled": true,
+                "lessons_learned": 15
+            },
+            {
+                "run_id": "20261008-231734-small-calc-bd56",
+                "task_id": "small-calc",
+                "title": "Ion\u2013water binding, computed live",
+                "status": "failed",
+                "ok": false,
+                "reward": 0.0,
+                "wall_s": 80.4,
+                "total_usd": 0.0004,
+                "llm_usd": 0.0,
+                "compute_usd": 0.0004,
+                "tokens": {
+                    "in": 0,
+                    "out": 0,
+                    "cache": 0
+                },
+                "hardware": "cpu-2",
+                "started": 1791501460.7389731,
+                "finished": 1791501541.143136,
+                "lessons_used": 8,
+                "lesson_ids": [
+                    "Lb16920",
+                    "L7e6cd5",
+                    "L39a4ac",
+                    "L166b29",
+                    "Lfc513b",
+                    "L334754",
+                    "L956678",
+                    "Lbcb973"
+                ],
+                "distilled": true,
+                "lessons_learned": 0
+            },
+            {
+                "run_id": "20261008-231734-small-calc-30c4",
+                "task_id": "small-calc",
+                "title": "Ion\u2013water binding, computed live",
+                "status": "failed",
+                "ok": false,
+                "reward": 0.0,
+                "wall_s": 79.8,
+                "total_usd": 0.0003,
+                "llm_usd": 0.0,
+                "compute_usd": 0.0003,
+                "tokens": {
+                    "in": 0,
+                    "out": 0,
+                    "cache": 0
+                },
+                "hardware": "cpu-2",
+                "started": 1791501461.3556218,
+                "finished": 1791501541.1519153,
+                "lessons_used": 8,
+                "lesson_ids": [
+                    "Lb16920",
+                    "L7e6cd5",
+                    "L39a4ac",
+                    "L166b29",
+                    "Lfc513b",
+                    "L334754",
+                    "L956678",
+                    "Lbcb973"
+                ],
+                "distilled": true,
+                "lessons_learned": 0
+            },
+            {
+                "run_id": "20261008-232837-small-calc-ac7f",
+                "task_id": "small-calc",
+                "title": "Ion\u2013water binding, computed live",
+                "status": "ok",
+                "ok": true,
+                "reward": 1.0,
+                "wall_s": 345.6,
+                "total_usd": 0.5344,
+                "llm_usd": 0.5234,
+                "compute_usd": 0.011,
+                "tokens": {
+                    "in": 32,
+                    "out": 11846,
+                    "cache": 535542
+                },
+                "hardware": "cpu-2",
+                "started": 1791502128.2821102,
+                "finished": 1791502473.9174771,
+                "lessons_used": 8,
+                "lesson_ids": [
+                    "Ld51181",
+                    "La5854f",
+                    "Lb16920",
+                    "Lc94bd3",
+                    "L7e6cd5",
+                    "L39a4ac",
+                    "L623d85",
+                    "L2fc4e6"
+                ],
+                "distilled": true,
+                "lessons_learned": 15
+            },
+            {
+                "run_id": "20261008-232837-small-calc-764f",
+                "task_id": "small-calc",
+                "title": "Ion\u2013water binding, computed live",
+                "status": "ok",
+                "ok": true,
+                "reward": 1.0,
+                "wall_s": 344.2,
+                "total_usd": 0.4427,
+                "llm_usd": 0.4317,
+                "compute_usd": 0.0109,
+                "tokens": {
+                    "in": 22,
+                    "out": 10736,
+                    "cache": 317436
+                },
+                "hardware": "cpu-2",
+                "started": 1791502128.9793923,
+                "finished": 1791502473.1871495,
+                "lessons_used": 8,
+                "lesson_ids": [
+                    "Ld51181",
+                    "La5854f",
+                    "Lb16920",
+                    "Lc94bd3",
+                    "L7e6cd5",
+                    "L39a4ac",
+                    "L623d85",
+                    "L2fc4e6"
+                ],
+                "distilled": true,
+                "lessons_learned": 13
+            }
+        ],
+        "forge": [
+            {
+                "run_id": "20261008-202740-forge-2742",
+                "task_id": "forge",
+                "title": "Forge capability: small-calc-env",
+                "status": "failed",
+                "ok": false,
+                "reward": 0.5,
+                "wall_s": 517.6,
+                "total_usd": 0.3358,
+                "llm_usd": 0.3273,
+                "compute_usd": 0.0086,
+                "tokens": {
+                    "in": 18,
+                    "out": 9179,
+                    "cache": 197054
+                },
+                "hardware": "",
+                "started": 1791491261.1461544,
+                "finished": 1791491778.7365172,
+                "lessons_used": 0,
+                "lesson_ids": [],
+                "distilled": false,
+                "lessons_learned": 0
+            },
+            {
+                "run_id": "20261008-230435-forge-5ab4",
+                "task_id": "forge",
+                "title": "Forge capability: calc-image",
+                "status": "ok",
+                "ok": true,
+                "reward": 1.0,
+                "wall_s": 571.0,
+                "total_usd": 0.3551,
+                "llm_usd": 0.346,
+                "compute_usd": 0.0092,
+                "tokens": {
+                    "in": 24,
+                    "out": 9465,
+                    "cache": 265248
+                },
+                "hardware": "",
+                "started": 1791500676.4413767,
+                "finished": 1791501247.4550705,
+                "lessons_used": 0,
+                "lesson_ids": [],
+                "distilled": true,
+                "lessons_learned": 5
+            },
+            {
+                "run_id": "20261008-230517-forge-9fe0",
+                "task_id": "forge",
+                "title": "Forge capability: small-calc-env",
+                "status": "ok",
+                "ok": true,
+                "reward": 1.0,
+                "wall_s": 678.5,
+                "total_usd": 0.3161,
+                "llm_usd": 0.3068,
+                "compute_usd": 0.0093,
+                "tokens": {
+                    "in": 20,
+                    "out": 8235,
+                    "cache": 223022
+                },
+                "hardware": "",
+                "started": 1791500718.643975,
+                "finished": 1791501397.128831,
+                "lessons_used": 0,
+                "lesson_ids": [],
+                "distilled": true,
+                "lessons_learned": 7
+            }
+        ]
+    },
+    "lessons": {
+        "forge": [
+            {
+                "id": "L127a13",
+                "task_id": "forge",
+                "lesson": "`python3 -m venv` fails in the create sandbox because there is no ensurepip/pip (Ubuntu 26.04, Python 3.14, root, no sudo). Run `timeout 200 apt-get install -y -q python3.14-venv` first, then `python3 -m venv /opt/calc && /opt/calc/bin/pip install -q --no-cache-dir pyscf numpy matplotlib` (about 35 s).",
+                "kind": "avoid",
+                "evidence": [
+                    "20261008-230435-forge-5ab4/create/6",
+                    "20261008-230435-forge-5ab4/create/7",
+                    "20261008-230435-forge-5ab4/create/8",
+                    "20261008-230435-forge-5ab4/create/9",
+                    "20261008-230517-forge-9fe0/-/28"
+                ],
+                "created": 1791501277.6791315,
+                "updated": 1791501416.6139479,
+                "hits": 2,
+                "used": 0,
+                "used_ok": 0,
+                "confidence": 0.85,
+                "source": "claude",
+                "status": "active",
+                "runs": [
+                    "20261008-230435-forge-5ab4",
+                    "20261008-230517-forge-9fe0"
+                ],
+                "links": [
+                    {
+                        "run_id": "20261008-230435-forge-5ab4",
+                        "step": "create",
+                        "seq": 6
+                    },
+                    {
+                        "run_id": "20261008-230435-forge-5ab4",
+                        "step": "create",
+                        "seq": 7
+                    },
+                    {
+                        "run_id": "20261008-230435-forge-5ab4",
+                        "step": "create",
+                        "seq": 8
+                    },
+                    {
+                        "run_id": "20261008-230435-forge-5ab4",
+                        "step": "create",
+                        "seq": 9
+                    },
+                    {
+                        "run_id": "20261008-230517-forge-9fe0",
+                        "step": "",
+                        "seq": 28
+                    }
+                ]
+            },
+            {
+                "id": "Le01263",
+                "task_id": "forge",
+                "lesson": "The sandbox Python (3.14) differs from the target image (Ubuntu 24.04, Python 3.12). Write `pip freeze | grep -v '^setuptools' > requirements.txt`, then confirm that every pin has cp312 wheels with `pip download -d whl312 --only-binary=:all: --python-version 3.12 -r requirements.txt` (about 13 s).",
+                "kind": "do",
+                "evidence": [
+                    "20261008-230435-forge-5ab4/create/10",
+                    "20261008-230435-forge-5ab4/create/11",
+                    "20261008-230435-forge-5ab4/create/12",
+                    "20261008-230517-forge-9fe0/-/28"
+                ],
+                "created": 1791501277.6791315,
+                "updated": 1791501416.6139479,
+                "hits": 2,
+                "used": 0,
+                "used_ok": 0,
+                "confidence": 0.8,
+                "source": "claude",
+                "status": "active",
+                "runs": [
+                    "20261008-230435-forge-5ab4",
+                    "20261008-230517-forge-9fe0"
+                ],
+                "links": [
+                    {
+                        "run_id": "20261008-230435-forge-5ab4",
+                        "step": "create",
+                        "seq": 10
+                    },
+                    {
+                        "run_id": "20261008-230435-forge-5ab4",
+                        "step": "create",
+                        "seq": 11
+                    },
+                    {
+                        "run_id": "20261008-230435-forge-5ab4",
+                        "step": "create",
+                        "seq": 12
+                    },
+                    {
+                        "run_id": "20261008-230517-forge-9fe0",
+                        "step": "",
+                        "seq": 28
+                    }
+                ]
+            },
+            {
+                "id": "L274971",
+                "task_id": "forge",
+                "lesson": "For tests that do not depend on pyscf being trusted, use reference values from Szabo & Ostlund: H2 RHF/STO-3G at R=1.4 bohr gives -1.1167 Eh (delta 1e-4), plus an FCI check. Also check that the pins match the installed versions, and draw a PNG headlessly with MPLBACKEND=Agg and a temporary MPLCONFIGDIR. The whole suite runs in about 3 s.",
+                "kind": "do",
+                "evidence": [
+                    "20261008-230435-forge-5ab4/create/14",
+                    "20261008-230435-forge-5ab4/create/15",
+                    "20261008-230435-forge-5ab4/create/17",
+                    "20261008-230517-forge-9fe0/-/28"
+                ],
+                "created": 1791501277.6791315,
+                "updated": 1791501416.6139479,
+                "hits": 2,
+                "used": 0,
+                "used_ok": 0,
+                "confidence": 0.75,
+                "source": "claude",
+                "status": "active",
+                "runs": [
+                    "20261008-230435-forge-5ab4",
+                    "20261008-230517-forge-9fe0"
+                ],
+                "links": [
+                    {
+                        "run_id": "20261008-230435-forge-5ab4",
+                        "step": "create",
+                        "seq": 14
+                    },
+                    {
+                        "run_id": "20261008-230435-forge-5ab4",
+                        "step": "create",
+                        "seq": 15
+                    },
+                    {
+                        "run_id": "20261008-230435-forge-5ab4",
+                        "step": "create",
+                        "seq": 17
+                    },
+                    {
+                        "run_id": "20261008-230517-forge-9fe0",
+                        "step": "",
+                        "seq": 28
+                    }
+                ]
+            },
+            {
+                "id": "Ldbd6c3",
+                "task_id": "forge",
+                "lesson": "There is no bare `pip` command in the create sandbox (`pip: command not found`) and system python3 has no numpy. Do not probe with `pip download` or `pip --version`; use `/opt/calc/bin/pip` once the venv exists.",
+                "kind": "avoid",
+                "evidence": [
+                    "20261008-230517-forge-9fe0/create/6"
+                ],
+                "created": 1791501416.6139479,
+                "updated": 1791501416.6139479,
+                "hits": 1,
+                "used": 0,
+                "used_ok": 0,
+                "confidence": 0.8,
+                "source": "claude",
+                "status": "active",
+                "runs": [
+                    "20261008-230517-forge-9fe0"
+                ],
+                "links": [
+                    {
+                        "run_id": "20261008-230517-forge-9fe0",
+                        "step": "create",
+                        "seq": 6
+                    }
+                ]
+            },
+            {
+                "id": "Lac6751",
+                "task_id": "forge",
+                "lesson": "A layout that passed is check_env.py (versions, numpy eigenvalues [[2,1],[1,2]] = 1 and 3, scipy integral of exp(-x^2) = sqrt(pi), pyscf H2/He/H-UHF STO-3G against S&O within 2e-4, Agg PNG) plus test_check_env.py with negative cases (wrong pin detected; Dockerfile.fragment uses only RUN/ENV/WORKDIR/LABEL), with 2 manifest tests. pyscf computed H2 -1.116714, He -2.807784, H(UHF) -0.466582.",
+                "kind": "do",
+                "evidence": [
+                    "20261008-230517-forge-9fe0/create/12",
+                    "20261008-230517-forge-9fe0/create/13",
+                    "20261008-230517-forge-9fe0/create/20"
+                ],
+                "created": 1791501416.6139479,
+                "updated": 1791501416.6139479,
+                "hits": 1,
+                "used": 0,
+                "used_ok": 0,
+                "confidence": 0.7,
+                "source": "claude",
+                "status": "active",
+                "runs": [
+                    "20261008-230517-forge-9fe0"
+                ],
+                "links": [
+                    {
+                        "run_id": "20261008-230517-forge-9fe0",
+                        "step": "create",
+                        "seq": 12
+                    },
+                    {
+                        "run_id": "20261008-230517-forge-9fe0",
+                        "step": "create",
+                        "seq": 13
+                    },
+                    {
+                        "run_id": "20261008-230517-forge-9fe0",
+                        "step": "create",
+                        "seq": 20
+                    }
+                ]
+            },
+            {
+                "id": "L5f7ea9",
+                "task_id": "forge",
+                "lesson": "The capability needs these files: requirements.txt, Dockerfile.fragment, calc_smoke.py, test_calc_image.py, README.md and manifest.json. The manifest lists 2 tests, and `captest.py` must report 2/2 before you finish. Do not build the Docker image itself, because the independent test step verifies it.",
+                "kind": "do",
+                "evidence": [
+                    "20261008-230435-forge-5ab4/create/18",
+                    "20261008-230435-forge-5ab4/create/19",
+                    "20261008-230435-forge-5ab4/test/28"
+                ],
+                "created": 1791501277.6791315,
+                "updated": 1791501277.6791315,
+                "hits": 1,
+                "used": 0,
+                "used_ok": 0,
+                "confidence": 0.7,
+                "source": "claude",
+                "status": "active",
+                "runs": [
+                    "20261008-230435-forge-5ab4"
+                ],
+                "links": [
+                    {
+                        "run_id": "20261008-230435-forge-5ab4",
+                        "step": "create",
+                        "seq": 18
+                    },
+                    {
+                        "run_id": "20261008-230435-forge-5ab4",
+                        "step": "create",
+                        "seq": 19
+                    },
+                    {
+                        "run_id": "20261008-230435-forge-5ab4",
+                        "step": "test",
+                        "seq": 28
+                    }
+                ]
+            },
+            {
+                "id": "Lb8b080",
+                "task_id": "forge",
+                "lesson": "Fastest passing run so far: 9.5 min end to end (create 7.0 min, test 2.4 min; 12 tool calls, $0.36) on the default Modal sandbox. Plan time and budget from it.",
+                "kind": "setting",
+                "evidence": [
+                    "20261008-230435-forge-5ab4/test/26"
+                ],
+                "created": 1791501277.6791315,
+                "updated": 1791501277.6791315,
+                "hits": 1,
+                "used": 0,
+                "used_ok": 0,
+                "confidence": 0.7,
+                "source": "rules",
+                "status": "active",
+                "runs": [
+                    "20261008-230435-forge-5ab4"
+                ],
+                "links": [
+                    {
+                        "run_id": "20261008-230435-forge-5ab4",
+                        "step": "test",
+                        "seq": 26
+                    }
+                ]
+            },
+            {
+                "id": "L2d814f",
+                "task_id": "forge",
+                "lesson": "Unpinned `pip install pyscf numpy matplotlib scipy` in the venv took 31 s and resolved pyscf==2.14.0, numpy==2.5.3, scipy==1.18.1, matplotlib==3.11.2. Freeze these, then append `setuptools==84.0.0` explicitly to requirements.txt, because the grep step strips it.",
+                "kind": "do",
+                "evidence": [
+                    "20261008-230517-forge-9fe0/create/8",
+                    "20261008-230517-forge-9fe0/create/11"
+                ],
+                "created": 1791501416.6139479,
+                "updated": 1791501416.6139479,
+                "hits": 1,
+                "used": 0,
+                "used_ok": 0,
+                "confidence": 0.6,
+                "source": "claude",
+                "status": "active",
+                "runs": [
+                    "20261008-230517-forge-9fe0"
+                ],
+                "links": [
+                    {
+                        "run_id": "20261008-230517-forge-9fe0",
+                        "step": "create",
+                        "seq": 8
+                    },
+                    {
+                        "run_id": "20261008-230517-forge-9fe0",
+                        "step": "create",
+                        "seq": 11
+                    }
+                ]
+            },
+            {
+                "id": "L1496e8",
+                "task_id": "forge",
+                "lesson": "Timing for this run: about 2 min waiting for a Claude account, create 7.3 min (agent 5.1 min, 9 tool calls), and the fresh-sandbox test 4.0 min with no agent. Expect about 11 min end to end and about $0.32.",
+                "kind": "setting",
+                "evidence": [
+                    "20261008-230517-forge-9fe0/create/3",
+                    "20261008-230517-forge-9fe0/test/23"
+                ],
+                "created": 1791501416.6139479,
+                "updated": 1791501416.6139479,
+                "hits": 1,
+                "used": 0,
+                "used_ok": 0,
+                "confidence": 0.6,
+                "source": "claude",
+                "status": "active",
+                "runs": [
+                    "20261008-230517-forge-9fe0"
+                ],
+                "links": [
+                    {
+                        "run_id": "20261008-230517-forge-9fe0",
+                        "step": "create",
+                        "seq": 3
+                    },
+                    {
+                        "run_id": "20261008-230517-forge-9fe0",
+                        "step": "test",
+                        "seq": 23
+                    }
+                ]
+            }
+        ],
+        "small-calc": [
+            {
+                "id": "La5854f",
+                "task_id": "small-calc",
+                "lesson": "Reuse run_calc.py's structure (reads element, charge, ecc_scaling, water_model_charges from task.json) so the same script works for any ion. Launch it immediately after the install; it finishes in ~27 s, so draft the manuscript afterward and fill numbers from result.json.",
+                "kind": "tool",
+                "evidence": [
+                    "20261008-225728-small-calc-3a78/calc/13",
+                    "20261008-232837-small-calc-764f/calc/38",
+                    "20261008-232837-small-calc-ac7f/calc/40"
+                ],
+                "created": 1791500856.3272128,
+                "updated": 1791502487.868102,
+                "hits": 3,
+                "used": 2,
+                "used_ok": 2,
+                "confidence": 0.7,
+                "source": "claude",
+                "status": "active",
+                "runs": [
+                    "20261008-225728-small-calc-3a78",
+                    "20261008-232837-small-calc-764f",
+                    "20261008-232837-small-calc-ac7f"
+                ],
+                "links": [
+                    {
+                        "run_id": "20261008-225728-small-calc-3a78",
+                        "step": "calc",
+                        "seq": 13
+                    },
+                    {
+                        "run_id": "20261008-232837-small-calc-764f",
+                        "step": "calc",
+                        "seq": 38
+                    },
+                    {
+                        "run_id": "20261008-232837-small-calc-ac7f",
+                        "step": "calc",
+                        "seq": 40
+                    }
+                ]
+            },
+            {
+                "id": "Ld51181",
+                "task_id": "small-calc",
+                "lesson": "For counterpoise in PySCF, label ghost atoms `ghost-Na`/`ghost-O` and pass an explicit basis dict `{label: gto.basis.load('def2-tzvp', sym)}`; this worked first try for the 5-SCF CP calculation (6.9 s).",
+                "kind": "do",
+                "evidence": [
+                    "20261008-225728-small-calc-3a78/calc/13",
+                    "20261008-232837-small-calc-764f/calc/38"
+                ],
+                "created": 1791500856.3272128,
+                "updated": 1791502484.1640606,
+                "hits": 2,
+                "used": 2,
+                "used_ok": 2,
+                "confidence": 0.75,
+                "source": "claude",
+                "status": "active",
+                "runs": [
+                    "20261008-225728-small-calc-3a78",
+                    "20261008-232837-small-calc-764f"
+                ],
+                "links": [
+                    {
+                        "run_id": "20261008-225728-small-calc-3a78",
+                        "step": "calc",
+                        "seq": 13
+                    },
+                    {
+                        "run_id": "20261008-232837-small-calc-764f",
+                        "step": "calc",
+                        "seq": 38
+                    }
+                ]
+            },
+            {
+                "id": "Lc94bd3",
+                "task_id": "small-calc",
+                "lesson": "Don't present the pointwise ratio E_DFT/E_Coulomb(full) as an 'effective scaling factor' supporting 0.75: it varies from 0.07 at 1.7 \u00c5 to 1.28 at 3.0 \u00c5. Note in the methods that the task's water geometry (0.9572 \u00c5/104.52\u00b0) is the experimental/TIP3P one, not SPC/E (1.0 \u00c5/109.47\u00b0), even though SPC/E charges are used.",
+                "kind": "avoid",
+                "evidence": [
+                    "20261008-225728-small-calc-3a78/calc/13",
+                    "20261008-232837-small-calc-764f/calc/38"
+                ],
+                "created": 1791500856.3272128,
+                "updated": 1791502484.1640606,
+                "hits": 2,
+                "used": 2,
+                "used_ok": 2,
+                "confidence": 0.6,
+                "source": "claude",
+                "status": "active",
+                "runs": [
+                    "20261008-225728-small-calc-3a78",
+                    "20261008-232837-small-calc-764f"
+                ],
+                "links": [
+                    {
+                        "run_id": "20261008-225728-small-calc-3a78",
+                        "step": "calc",
+                        "seq": 13
+                    },
+                    {
+                        "run_id": "20261008-232837-small-calc-764f",
+                        "step": "calc",
+                        "seq": 38
+                    }
+                ]
+            },
+            {
+                "id": "Le7ec15",
+                "task_id": "small-calc",
+                "lesson": "After copying /app/small-calc/run_calc.py, change `ax.legend(fontsize=8, loc=\"lower right\")` to `loc=\"upper right\"` with sed BEFORE the first launch. The lower-right legend hides the minimum and the star in fig1.png, and fixing it afterwards cost a second ~34 s run.",
+                "kind": "avoid",
+                "evidence": [
+                    "20261008-232837-small-calc-ac7f/calc/26",
+                    "20261008-232837-small-calc-ac7f/calc/27"
+                ],
+                "created": 1791502487.868102,
+                "updated": 1791502487.868102,
+                "hits": 1,
+                "used": 0,
+                "used_ok": 0,
+                "confidence": 0.85,
+                "source": "claude",
+                "status": "active",
+                "runs": [
+                    "20261008-232837-small-calc-ac7f"
+                ],
+                "links": [
+                    {
+                        "run_id": "20261008-232837-small-calc-ac7f",
+                        "step": "calc",
+                        "seq": 26
+                    },
+                    {
+                        "run_id": "20261008-232837-small-calc-ac7f",
+                        "step": "calc",
+                        "seq": 27
+                    }
+                ]
+            },
+            {
+                "id": "L623d85",
+                "task_id": "small-calc",
+                "lesson": "From the agent's notes-to-self: Machine has 1 CPU core (`nproc` = 1): DFT will be slow-ish, keep the scan to def2-SVP and only one TZVP point.",
+                "kind": "avoid",
+                "evidence": [
+                    "20261008-225728-small-calc-3a78/calc/13"
+                ],
+                "created": 1791500856.3272128,
+                "updated": 1791500856.3272128,
+                "hits": 1,
+                "used": 2,
+                "used_ok": 2,
+                "confidence": 0.55,
+                "source": "notes",
+                "status": "active",
+                "runs": [
+                    "20261008-225728-small-calc-3a78"
+                ],
+                "links": [
+                    {
+                        "run_id": "20261008-225728-small-calc-3a78",
+                        "step": "calc",
+                        "seq": 13
+                    }
+                ]
+            },
+            {
+                "id": "L2fc4e6",
+                "task_id": "small-calc",
+                "lesson": "From the agent's notes-to-self: `python3 -m venv /opt/calc`: FAILED \"ensurepip is not available\" (Python 3.14, Ubuntu). Fix: `apt-get update -qq && apt-get install -y -qq python3-venv`, then re-run venv + `pip install -q pyscf numpy matplotlib` \u2192 PySCF 2.14.0, numpy 2.5.3, matplotlib 3.11.2. The whole chain took 28 s in one background nohup.",
+                "kind": "avoid",
+                "evidence": [
+                    "20261008-225728-small-calc-3a78/calc/13"
+                ],
+                "created": 1791500856.3272128,
+                "updated": 1791500856.3272128,
+                "hits": 1,
+                "used": 2,
+                "used_ok": 2,
+                "confidence": 0.55,
+                "source": "notes",
+                "status": "active",
+                "runs": [
+                    "20261008-225728-small-calc-3a78"
+                ],
+                "links": [
+                    {
+                        "run_id": "20261008-225728-small-calc-3a78",
+                        "step": "calc",
+                        "seq": 13
+                    }
+                ]
+            },
+            {
+                "id": "L62c97f",
+                "task_id": "small-calc",
+                "lesson": "First check the environment with `/opt/calc/bin/python -c \"import pyscf, numpy, matplotlib\"`. With the small-calc-env image it is preinstalled (PySCF 2.14.0), so skip the apt/venv/pip steps entirely and go straight to `cp /app/small-calc/run_calc.py . && mkdir -p results && nohup /opt/calc/bin/python run_calc.py > output.log 2>&1 &`.",
+                "kind": "do",
+                "evidence": [
+                    "20261008-232837-small-calc-764f/calc/13",
+                    "20261008-232837-small-calc-764f/calc/18",
+                    "20261008-232837-small-calc-764f/calc/21"
+                ],
+                "created": 1791502484.1640606,
+                "updated": 1791502484.1640606,
+                "hits": 1,
+                "used": 0,
+                "used_ok": 0,
+                "confidence": 0.8,
+                "source": "claude",
+                "status": "active",
+                "runs": [
+                    "20261008-232837-small-calc-764f"
+                ],
+                "links": [
+                    {
+                        "run_id": "20261008-232837-small-calc-764f",
+                        "step": "calc",
+                        "seq": 13
+                    },
+                    {
+                        "run_id": "20261008-232837-small-calc-764f",
+                        "step": "calc",
+                        "seq": 18
+                    },
+                    {
+                        "run_id": "20261008-232837-small-calc-764f",
+                        "step": "calc",
+                        "seq": 21
+                    }
+                ]
+            },
+            {
+                "id": "Lbcae1d",
+                "task_id": "small-calc",
+                "lesson": "Check `/opt/calc/bin/python -c \"import pyscf, numpy, matplotlib\"` first (0.7 s). In this image (small-calc-env v1) PySCF 2.14.0, numpy 2.5.3 and matplotlib 3.11.2 were preinstalled, so skip apt, venv and pip entirely when the import works.",
+                "kind": "do",
+                "evidence": [
+                    "20261008-232837-small-calc-ac7f/calc/15",
+                    "20261008-232837-small-calc-ac7f/calc/17"
+                ],
+                "created": 1791502487.868102,
+                "updated": 1791502487.868102,
+                "hits": 1,
+                "used": 0,
+                "used_ok": 0,
+                "confidence": 0.75,
+                "source": "claude",
+                "status": "active",
+                "runs": [
+                    "20261008-232837-small-calc-ac7f"
+                ],
+                "links": [
+                    {
+                        "run_id": "20261008-232837-small-calc-ac7f",
+                        "step": "calc",
+                        "seq": 15
+                    },
+                    {
+                        "run_id": "20261008-232837-small-calc-ac7f",
+                        "step": "calc",
+                        "seq": 17
+                    }
+                ]
+            },
+            {
+                "id": "Lf3b82e",
+                "task_id": "small-calc",
+                "lesson": "Reference values for Na+ (B3LYP): r_min 2.2 \u00c5 on the SVP grid; CP def2-TZVP \u221225.46 kcal/mol (uncorrected \u221226.05, BSSE 0.59); def2-SVP overbinds at \u221232.23; Coulomb at r_min full \u221230.44 vs ECC(0.75) \u221222.83 kcal/mol. The DFT/Coulomb(full) ratios were 0.073, 1.059, 1.279 and 0.836, nearly the same as for K+, but recompute them from result.json rather than copying them.",
+                "kind": "do",
+                "evidence": [
+                    "20261008-232837-small-calc-764f/calc/24",
+                    "20261008-232837-small-calc-764f/calc/34",
+                    "20261008-232837-small-calc-764f/calc/35"
+                ],
+                "created": 1791502484.1640606,
+                "updated": 1791502484.1640606,
+                "hits": 1,
+                "used": 0,
+                "used_ok": 0,
+                "confidence": 0.75,
+                "source": "claude",
+                "status": "active",
+                "runs": [
+                    "20261008-232837-small-calc-764f"
+                ],
+                "links": [
+                    {
+                        "run_id": "20261008-232837-small-calc-764f",
+                        "step": "calc",
+                        "seq": 24
+                    },
+                    {
+                        "run_id": "20261008-232837-small-calc-764f",
+                        "step": "calc",
+                        "seq": 34
+                    },
+                    {
+                        "run_id": "20261008-232837-small-calc-764f",
+                        "step": "calc",
+                        "seq": 35
+                    }
+                ]
+            },
+            {
+                "id": "L166b29",
+                "task_id": "small-calc",
+                "lesson": "Before finishing, run these checks: `grep -c TBD results/manuscript.md`, then count abstract words with an awk extraction (159 words passed), then confirm that every [n] citation is in the reference list. The check accepted 4 display equations, 1 figure and citations [1,3,5,6].",
+                "kind": "do",
+                "evidence": [
+                    "20261008-225728-small-calc-aecb/calc/41",
+                    "20261008-225728-small-calc-aecb/calc/42",
+                    "20261008-225728-small-calc-3a78/calc/13",
+                    "20261008-232837-small-calc-764f/calc/38",
+                    "20261008-232837-small-calc-ac7f/calc/40"
+                ],
+                "created": 1791500717.7526755,
+                "updated": 1791502487.868102,
+                "hits": 4,
+                "used": 2,
+                "used_ok": 0,
+                "confidence": 0.7,
+                "source": "claude",
+                "status": "active",
+                "runs": [
+                    "20261008-225728-small-calc-aecb",
+                    "20261008-225728-small-calc-3a78",
+                    "20261008-232837-small-calc-764f",
+                    "20261008-232837-small-calc-ac7f"
+                ],
+                "links": [
+                    {
+                        "run_id": "20261008-225728-small-calc-aecb",
+                        "step": "calc",
+                        "seq": 41
+                    },
+                    {
+                        "run_id": "20261008-225728-small-calc-aecb",
+                        "step": "calc",
+                        "seq": 42
+                    },
+                    {
+                        "run_id": "20261008-225728-small-calc-3a78",
+                        "step": "calc",
+                        "seq": 13
+                    },
+                    {
+                        "run_id": "20261008-232837-small-calc-764f",
+                        "step": "calc",
+                        "seq": 38
+                    },
+                    {
+                        "run_id": "20261008-232837-small-calc-ac7f",
+                        "step": "calc",
+                        "seq": 40
+                    }
+                ]
+            },
+            {
+                "id": "L2fcacf",
+                "task_id": "small-calc",
+                "lesson": "Don't `cat result.json` while the script is still running: that poll exited non-zero and was reported as a tool failure. Use `sleep 12; tail output.log` and then read result.json once the run is done. The full script takes ~34 s (17-point SVP scan ~25 s plus CP TZVP ~8 s).",
+                "kind": "avoid",
+                "evidence": [
+                    "20261008-232837-small-calc-ac7f/calc/24",
+                    "20261008-232837-small-calc-ac7f/calc/25"
+                ],
+                "created": 1791502487.868102,
+                "updated": 1791502487.868102,
+                "hits": 1,
+                "used": 0,
+                "used_ok": 0,
+                "confidence": 0.6,
+                "source": "claude",
+                "status": "active",
+                "runs": [
+                    "20261008-232837-small-calc-ac7f"
+                ],
+                "links": [
+                    {
+                        "run_id": "20261008-232837-small-calc-ac7f",
+                        "step": "calc",
+                        "seq": 24
+                    },
+                    {
+                        "run_id": "20261008-232837-small-calc-ac7f",
+                        "step": "calc",
+                        "seq": 25
+                    }
+                ]
+            },
+            {
+                "id": "Lfe1da8",
+                "task_id": "small-calc",
+                "lesson": "run_calc.py finishes in about 21 s (17-point scan ~15 s, 5-SCF CP def2-TZVP 5.7 s), so it is done before the first poll. Launch it, write the manuscript draft with placeholders, then fill in the numbers. Before finishing, verify the quoted ratios and the citation-to-quote mapping with a short python check against result.json.",
+                "kind": "setting",
+                "evidence": [
+                    "20261008-232837-small-calc-764f/calc/25",
+                    "20261008-232837-small-calc-764f/calc/23",
+                    "20261008-232837-small-calc-764f/calc/34"
+                ],
+                "created": 1791502484.1640606,
+                "updated": 1791502484.1640606,
+                "hits": 1,
+                "used": 0,
+                "used_ok": 0,
+                "confidence": 0.7,
+                "source": "claude",
+                "status": "active",
+                "runs": [
+                    "20261008-232837-small-calc-764f"
+                ],
+                "links": [
+                    {
+                        "run_id": "20261008-232837-small-calc-764f",
+                        "step": "calc",
+                        "seq": 25
+                    },
+                    {
+                        "run_id": "20261008-232837-small-calc-764f",
+                        "step": "calc",
+                        "seq": 23
+                    },
+                    {
+                        "run_id": "20261008-232837-small-calc-764f",
+                        "step": "calc",
+                        "seq": 34
+                    }
+                ]
+            },
+            {
+                "id": "Lef0127",
+                "task_id": "small-calc",
+                "lesson": "From the agent's notes-to-self: Reusing /app/small-calc/run_calc.py (passed earlier checks) as the base for calc/run_calc.py: `cp` plus a one-line docstring fix, launched with nohup into output.log. It worked first try, no failed commands this run.",
+                "kind": "avoid",
+                "evidence": [
+                    "20261008-232837-small-calc-ac7f/calc/39"
+                ],
+                "created": 1791502487.868102,
+                "updated": 1791502487.868102,
+                "hits": 1,
+                "used": 0,
+                "used_ok": 0,
+                "confidence": 0.55,
+                "source": "notes",
+                "status": "active",
+                "runs": [
+                    "20261008-232837-small-calc-ac7f"
+                ],
+                "links": [
+                    {
+                        "run_id": "20261008-232837-small-calc-ac7f",
+                        "step": "calc",
+                        "seq": 39
+                    }
+                ]
+            },
+            {
+                "id": "L4d6831",
+                "task_id": "small-calc",
+                "lesson": "From the agent's notes-to-self: No failed commands this run.",
+                "kind": "avoid",
+                "evidence": [
+                    "20261008-232837-small-calc-764f/calc/37"
+                ],
+                "created": 1791502484.1640606,
+                "updated": 1791502484.1640606,
+                "hits": 1,
+                "used": 0,
+                "used_ok": 0,
+                "confidence": 0.55,
+                "source": "notes",
+                "status": "active",
+                "runs": [
+                    "20261008-232837-small-calc-764f"
+                ],
+                "links": [
+                    {
+                        "run_id": "20261008-232837-small-calc-764f",
+                        "step": "calc",
+                        "seq": 37
+                    }
+                ]
+            },
+            {
+                "id": "Lfc513b",
+                "task_id": "small-calc",
+                "lesson": "The full B3LYP/def2-SVP 17-point scan plus CP def2-TZVP at the minimum takes only 27 s on this machine (nproc=1, about 1 s per scan point). Write the manuscript draft before or while launching, and consider spending spare budget on CP def2-TZVP at every scan point (about 2 min) or a finer grid near 2.6 \u00c5.",
+                "kind": "setting",
+                "evidence": [
+                    "20261008-225728-small-calc-aecb/calc/28",
+                    "20261008-225728-small-calc-aecb/calc/31",
+                    "20261008-225728-small-calc-3a78/calc/13",
+                    "20261008-232837-small-calc-ac7f/calc/40"
+                ],
+                "created": 1791500717.7526755,
+                "updated": 1791502487.868102,
+                "hits": 3,
+                "used": 2,
+                "used_ok": 0,
+                "confidence": 0.75,
+                "source": "claude",
+                "status": "active",
+                "runs": [
+                    "20261008-225728-small-calc-aecb",
+                    "20261008-225728-small-calc-3a78",
+                    "20261008-232837-small-calc-ac7f"
+                ],
+                "links": [
+                    {
+                        "run_id": "20261008-225728-small-calc-aecb",
+                        "step": "calc",
+                        "seq": 28
+                    },
+                    {
+                        "run_id": "20261008-225728-small-calc-aecb",
+                        "step": "calc",
+                        "seq": 31
+                    },
+                    {
+                        "run_id": "20261008-225728-small-calc-3a78",
+                        "step": "calc",
+                        "seq": 13
+                    },
+                    {
+                        "run_id": "20261008-232837-small-calc-ac7f",
+                        "step": "calc",
+                        "seq": 40
+                    }
+                ]
+            },
+            {
+                "id": "L06367c",
+                "task_id": "small-calc",
+                "lesson": "From the agent's notes-to-self: `python3 -m venv /opt/calc`: failed \"ensurepip is not available\" (system Python is 3.14.4). Fix: `apt-get update -qq && apt-get install -y -qq python3-venv python3.14-venv` (4 s), then re-ran venv + pip in background.",
+                "kind": "avoid",
+                "evidence": [
+                    "20261008-225728-small-calc-aecb/calc/43"
+                ],
+                "created": 1791500717.7526755,
+                "updated": 1791500717.7526755,
+                "hits": 1,
+                "used": 0,
+                "used_ok": 0,
+                "confidence": 0.55,
+                "source": "notes",
+                "status": "active",
+                "runs": [
+                    "20261008-225728-small-calc-aecb"
+                ],
+                "links": [
+                    {
+                        "run_id": "20261008-225728-small-calc-aecb",
+                        "step": "calc",
+                        "seq": 43
+                    }
+                ]
+            },
+            {
+                "id": "L9ee1e6",
+                "task_id": "small-calc",
+                "lesson": "In the Discussion, state that comparing SPC/E point charges in vacuum with DFT is not a test of ECC. Agreement at one distance comes from cancelling effects, and the curve shapes differ: DFT is more attractive than full charges beyond 2.6 \u00c5 (e.g. at 3.3 \u00c5, SVP \u221217.98 vs Coulomb full \u221214.20 kcal/mol).",
+                "kind": "do",
+                "evidence": [
+                    "20261008-232837-small-calc-ac7f/calc/24",
+                    "20261008-232837-small-calc-ac7f/calc/40"
+                ],
+                "created": 1791502487.868102,
+                "updated": 1791502487.868102,
+                "hits": 1,
+                "used": 0,
+                "used_ok": 0,
+                "confidence": 0.6,
+                "source": "claude",
+                "status": "active",
+                "runs": [
+                    "20261008-232837-small-calc-ac7f"
+                ],
+                "links": [
+                    {
+                        "run_id": "20261008-232837-small-calc-ac7f",
+                        "step": "calc",
+                        "seq": 24
+                    },
+                    {
+                        "run_id": "20261008-232837-small-calc-ac7f",
+                        "step": "calc",
+                        "seq": 40
+                    }
+                ]
+            },
+            {
+                "id": "Lbcb973",
+                "task_id": "small-calc",
+                "lesson": "From the agent's notes-to-self: `run_calc.py` (B3LYP/def2-SVP scan, 17 pts + CP def2-TZVP at min + Coulomb + fig1 + result.json in one script): ran first time, 27.2 s wall.",
+                "kind": "do",
+                "evidence": [
+                    "20261008-225728-small-calc-aecb/calc/43",
+                    "20261008-225728-small-calc-3a78/calc/13",
+                    "20261008-232837-small-calc-764f/calc/38",
+                    "20261008-232837-small-calc-ac7f/calc/40"
+                ],
+                "created": 1791500717.7526755,
+                "updated": 1791502487.868102,
+                "hits": 4,
+                "used": 2,
+                "used_ok": 0,
+                "confidence": 0.55,
+                "source": "notes",
+                "status": "active",
+                "runs": [
+                    "20261008-225728-small-calc-aecb",
+                    "20261008-225728-small-calc-3a78",
+                    "20261008-232837-small-calc-764f",
+                    "20261008-232837-small-calc-ac7f"
+                ],
+                "links": [
+                    {
+                        "run_id": "20261008-225728-small-calc-aecb",
+                        "step": "calc",
+                        "seq": 43
+                    },
+                    {
+                        "run_id": "20261008-225728-small-calc-3a78",
+                        "step": "calc",
+                        "seq": 13
+                    },
+                    {
+                        "run_id": "20261008-232837-small-calc-764f",
+                        "step": "calc",
+                        "seq": 38
+                    },
+                    {
+                        "run_id": "20261008-232837-small-calc-ac7f",
+                        "step": "calc",
+                        "seq": 40
+                    }
+                ]
+            },
+            {
+                "id": "Lbcbf9e",
+                "task_id": "small-calc",
+                "lesson": "From the agent's notes-to-self: `/opt/calc/bin/python -c \"import pyscf, numpy, matplotlib\"`: works, PySCF 2.14.0, numpy 2.5.3, matplotlib 3.11.2 preinstalled (0.7 s). No install needed.",
+                "kind": "do",
+                "evidence": [
+                    "20261008-232837-small-calc-ac7f/calc/39"
+                ],
+                "created": 1791502487.868102,
+                "updated": 1791502487.868102,
+                "hits": 1,
+                "used": 0,
+                "used_ok": 0,
+                "confidence": 0.55,
+                "source": "notes",
+                "status": "active",
+                "runs": [
+                    "20261008-232837-small-calc-ac7f"
+                ],
+                "links": [
+                    {
+                        "run_id": "20261008-232837-small-calc-ac7f",
+                        "step": "calc",
+                        "seq": 39
+                    }
+                ]
+            },
+            {
+                "id": "L914580",
+                "task_id": "small-calc",
+                "lesson": "From the agent's notes-to-self: Run 1: r_min 2.6 \u00c5, CP B3LYP/def2-TZVP \u221217.92 kcal/mol (unc. \u221218.712, BSSE 0.793), SVP \u221223.901, Coulomb full \u221222.300 / ECC \u221216.725. Same as the earlier runs' reference values.",
+                "kind": "do",
+                "evidence": [
+                    "20261008-232837-small-calc-ac7f/calc/39"
+                ],
+                "created": 1791502487.868102,
+                "updated": 1791502487.868102,
+                "hits": 1,
+                "used": 0,
+                "used_ok": 0,
+                "confidence": 0.55,
+                "source": "notes",
+                "status": "active",
+                "runs": [
+                    "20261008-232837-small-calc-ac7f"
+                ],
+                "links": [
+                    {
+                        "run_id": "20261008-232837-small-calc-ac7f",
+                        "step": "calc",
+                        "seq": 39
+                    }
+                ]
+            },
+            {
+                "id": "Lbdd0ee",
+                "task_id": "small-calc",
+                "lesson": "From the agent's notes-to-self: The figure legend (loc=\"lower right\") covered the minimum and the star. I moved it to \"upper right\" and re-ran (33.5 s). result.json was identical apart from timings (checked with a diff).",
+                "kind": "do",
+                "evidence": [
+                    "20261008-232837-small-calc-ac7f/calc/39"
+                ],
+                "created": 1791502487.868102,
+                "updated": 1791502487.868102,
+                "hits": 1,
+                "used": 0,
+                "used_ok": 0,
+                "confidence": 0.55,
+                "source": "notes",
+                "status": "active",
+                "runs": [
+                    "20261008-232837-small-calc-ac7f"
+                ],
+                "links": [
+                    {
+                        "run_id": "20261008-232837-small-calc-ac7f",
+                        "step": "calc",
+                        "seq": 39
+                    }
+                ]
+            },
+            {
+                "id": "La3f32a",
+                "task_id": "small-calc",
+                "lesson": "From the agent's notes-to-self: Whole run_calc.py: 34.1 s wall (run 1), 33.5 s (run 2). 1 CPU core.",
+                "kind": "do",
+                "evidence": [
+                    "20261008-232837-small-calc-ac7f/calc/39"
+                ],
+                "created": 1791502487.868102,
+                "updated": 1791502487.868102,
+                "hits": 1,
+                "used": 0,
+                "used_ok": 0,
+                "confidence": 0.55,
+                "source": "notes",
+                "status": "active",
+                "runs": [
+                    "20261008-232837-small-calc-ac7f"
+                ],
+                "links": [
+                    {
+                        "run_id": "20261008-232837-small-calc-ac7f",
+                        "step": "calc",
+                        "seq": 39
+                    }
+                ]
+            },
+            {
+                "id": "L4f5b64",
+                "task_id": "small-calc",
+                "lesson": "From the agent's notes-to-self: Env check `/opt/calc/bin/python -c \"import pyscf, numpy, matplotlib\"`: worked first try (PySCF 2.14.0, numpy 2.5.3, matplotlib 3.11.2). Preinstalled image \u2014 no apt/pip/venv needed (0 s install). nproc = 1.",
+                "kind": "do",
+                "evidence": [
+                    "20261008-232837-small-calc-764f/calc/37"
+                ],
+                "created": 1791502484.1640606,
+                "updated": 1791502484.1640606,
+                "hits": 1,
+                "used": 0,
+                "used_ok": 0,
+                "confidence": 0.55,
+                "source": "notes",
+                "status": "active",
+                "runs": [
+                    "20261008-232837-small-calc-764f"
+                ],
+                "links": [
+                    {
+                        "run_id": "20261008-232837-small-calc-764f",
+                        "step": "calc",
+                        "seq": 37
+                    }
+                ]
+            },
+            {
+                "id": "Lb1e243",
+                "task_id": "small-calc",
+                "lesson": "From the agent's notes-to-self: `cp /app/small-calc/run_calc.py calc/` unchanged (reads element/charge/ecc_scaling/water charges from task.json), launched with nohup \u2192 output.log. Ran without errors, 21.4 s wall.",
+                "kind": "do",
+                "evidence": [
+                    "20261008-232837-small-calc-764f/calc/37"
+                ],
+                "created": 1791502484.1640606,
+                "updated": 1791502484.1640606,
+                "hits": 1,
+                "used": 0,
+                "used_ok": 0,
+                "confidence": 0.55,
+                "source": "notes",
+                "status": "active",
+                "runs": [
+                    "20261008-232837-small-calc-764f"
+                ],
+                "links": [
+                    {
+                        "run_id": "20261008-232837-small-calc-764f",
+                        "step": "calc",
+                        "seq": 37
+                    }
+                ]
+            },
+            {
+                "id": "L84d04b",
+                "task_id": "small-calc",
+                "lesson": "From the agent's notes-to-self: Drafted manuscript with Write while it ran; the run had already finished by the first poll.",
+                "kind": "do",
+                "evidence": [
+                    "20261008-232837-small-calc-764f/calc/37"
+                ],
+                "created": 1791502484.1640606,
+                "updated": 1791502484.1640606,
+                "hits": 1,
+                "used": 0,
+                "used_ok": 0,
+                "confidence": 0.55,
+                "source": "notes",
+                "status": "active",
+                "runs": [
+                    "20261008-232837-small-calc-764f"
+                ],
+                "links": [
+                    {
+                        "run_id": "20261008-232837-small-calc-764f",
+                        "step": "calc",
+                        "seq": 37
+                    }
+                ]
+            },
+            {
+                "id": "L739a3a",
+                "task_id": "small-calc",
+                "lesson": "From the agent's notes-to-self: Results: r_min 2.2 \u00c5 (SVP grid); CP B3LYP/def2-TZVP \u221225.457 kcal/mol (uncorrected \u221226.049, BSSE 0.592); SVP at min \u221232.227 (overbinds ~6.8); Coulomb full \u221230.44, ECC \u221222.83.",
+                "kind": "do",
+                "evidence": [
+                    "20261008-232837-small-calc-764f/calc/37"
+                ],
+                "created": 1791502484.1640606,
+                "updated": 1791502484.1640606,
+                "hits": 1,
+                "used": 0,
+                "used_ok": 0,
+                "confidence": 0.55,
+                "source": "notes",
+                "status": "active",
+                "runs": [
+                    "20261008-232837-small-calc-764f"
+                ],
+                "links": [
+                    {
+                        "run_id": "20261008-232837-small-calc-764f",
+                        "step": "calc",
+                        "seq": 37
+                    }
+                ]
+            },
+            {
+                "id": "L2bb949",
+                "task_id": "small-calc",
+                "lesson": "From the agent's notes-to-self: run_calc.py (B3LYP/def2-SVP scan 1.7\u20133.3 \u00c5, CP def2-TZVP at the minimum, Coulomb full/ECC, fig1, result.json written by the script itself): worked first try, 26.9 s wall.",
+                "kind": "do",
+                "evidence": [
+                    "20261008-225728-small-calc-3a78/calc/13"
+                ],
+                "created": 1791500856.3272128,
+                "updated": 1791500856.3272128,
+                "hits": 1,
+                "used": 0,
+                "used_ok": 0,
+                "confidence": 0.55,
+                "source": "notes",
+                "status": "active",
+                "runs": [
+                    "20261008-225728-small-calc-3a78"
+                ],
+                "links": [
+                    {
+                        "run_id": "20261008-225728-small-calc-3a78",
+                        "step": "calc",
+                        "seq": 13
+                    }
+                ]
+            },
+            {
+                "id": "L887b25",
+                "task_id": "small-calc",
+                "lesson": "From the agent's notes-to-self: PySCF ghost atoms: label `ghost-Na` / `ghost-O` with an explicit basis dict `{label: gto.basis.load('def2-tzvp', sym)}` works.",
+                "kind": "do",
+                "evidence": [
+                    "20261008-225728-small-calc-3a78/calc/13"
+                ],
+                "created": 1791500856.3272128,
+                "updated": 1791500856.3272128,
+                "hits": 1,
+                "used": 0,
+                "used_ok": 0,
+                "confidence": 0.55,
+                "source": "notes",
+                "status": "active",
+                "runs": [
+                    "20261008-225728-small-calc-3a78"
+                ],
+                "links": [
+                    {
+                        "run_id": "20261008-225728-small-calc-3a78",
+                        "step": "calc",
+                        "seq": 13
+                    }
+                ]
+            },
+            {
+                "id": "L22e710",
+                "task_id": "small-calc",
+                "lesson": "From the agent's notes-to-self: Checked PySCF ghost-atom syntax before launching: `ghost-K` in the atom string plus `basis='def2-svp'` works (PySCF 2.14.0).",
+                "kind": "do",
+                "evidence": [
+                    "20261008-225728-small-calc-aecb/calc/43"
+                ],
+                "created": 1791500717.7526755,
+                "updated": 1791500717.7526755,
+                "hits": 1,
+                "used": 0,
+                "used_ok": 0,
+                "confidence": 0.55,
+                "source": "notes",
+                "status": "active",
+                "runs": [
+                    "20261008-225728-small-calc-aecb"
+                ],
+                "links": [
+                    {
+                        "run_id": "20261008-225728-small-calc-aecb",
+                        "step": "calc",
+                        "seq": 43
+                    }
+                ]
+            },
+            {
+                "id": "L956678",
+                "task_id": "small-calc",
+                "lesson": "From the agent's notes-to-self: Machine has 1 CPU core (`nproc` = 1): keep the DFT workload small.",
+                "kind": "do",
+                "evidence": [
+                    "20261008-225728-small-calc-aecb/calc/43",
+                    "20261008-225728-small-calc-3a78/calc/13",
+                    "20261008-232837-small-calc-ac7f/calc/40"
+                ],
+                "created": 1791500717.7526755,
+                "updated": 1791502487.868102,
+                "hits": 3,
+                "used": 2,
+                "used_ok": 0,
+                "confidence": 0.55,
+                "source": "notes",
+                "status": "active",
+                "runs": [
+                    "20261008-225728-small-calc-aecb",
+                    "20261008-225728-small-calc-3a78",
+                    "20261008-232837-small-calc-ac7f"
+                ],
+                "links": [
+                    {
+                        "run_id": "20261008-225728-small-calc-aecb",
+                        "step": "calc",
+                        "seq": 43
+                    },
+                    {
+                        "run_id": "20261008-225728-small-calc-3a78",
+                        "step": "calc",
+                        "seq": 13
+                    },
+                    {
+                        "run_id": "20261008-232837-small-calc-ac7f",
+                        "step": "calc",
+                        "seq": 40
+                    }
+                ]
+            },
+            {
+                "id": "L334754",
+                "task_id": "small-calc",
+                "lesson": "From the agent's notes-to-self: `/opt/calc/bin/python -c \"import pyscf, numpy, matplotlib\"`: failed, /opt/calc does not exist \u2192 environment not preinstalled; started venv + pip install in background (install.log).",
+                "kind": "avoid",
+                "evidence": [
+                    "20261008-225728-small-calc-aecb/calc/43",
+                    "20261008-225728-small-calc-3a78/calc/13"
+                ],
+                "created": 1791500717.7526755,
+                "updated": 1791500856.3272128,
+                "hits": 2,
+                "used": 2,
+                "used_ok": 0,
+                "confidence": 0.55,
+                "source": "notes",
+                "status": "active",
+                "runs": [
+                    "20261008-225728-small-calc-aecb",
+                    "20261008-225728-small-calc-3a78"
+                ],
+                "links": [
+                    {
+                        "run_id": "20261008-225728-small-calc-aecb",
+                        "step": "calc",
+                        "seq": 43
+                    },
+                    {
+                        "run_id": "20261008-225728-small-calc-3a78",
+                        "step": "calc",
+                        "seq": 13
+                    }
+                ]
+            }
+        ]
+    },
+    "tools": {
+        "forge": [
+            {
+                "name": "calc_smoke.py",
+                "description": "CLI smoke check for /opt/calc. It checks that the pinned versions match requirements.txt, runs H2 RHF/STO-3G against -1.1167 Eh, and draws a PNG with Agg. It supports --json and --plot.",
+                "runs": [
+                    "20261008-230435-forge-5ab4"
+                ]
+            },
+            {
+                "name": "captest.py",
+                "description": "Provided harness that runs the manifest tests with the policy environment allowlist and writes test_report.json with file sha256s; it is supplied by the backend, not written by the agent.",
+                "runs": [
+                    "20261008-230517-forge-9fe0"
+                ]
+            },
+            {
+                "name": "check_env.py",
+                "description": "Checks the /opt/calc environment: pinned versions, numpy/scipy analytic checks, pyscf STO-3G energies against Szabo & Ostlund, Agg PNG; supports --quick and --json.",
+                "runs": [
+                    "20261008-230517-forge-9fe0"
+                ]
+            },
+            {
+                "name": "test_calc_image.py",
+                "description": "Unittest suite (11 tests, about 3 s) covering pins, mismatch detection, H2 RHF and FCI against Szabo & Ostlund, and headless plotting. Run it with /opt/calc/bin/python.",
+                "runs": [
+                    "20261008-230435-forge-5ab4"
+                ]
+            },
+            {
+                "name": "test_check_env.py",
+                "description": "unittest suite for check_env and the capability files (pin format, allowed Dockerfile.fragment directives, negative pin-mismatch case).",
+                "runs": [
+                    "20261008-230517-forge-9fe0"
+                ]
+            }
+        ],
+        "small-calc": [
+            {
+                "name": "run_calc.py",
+                "description": "Ion\u2013water B3LYP/def2-SVP distance scan (1.7\u20133.3 \u00c5, 17 pts), CP-corrected B3LYP/def2-TZVP at the minimum, point-charge Coulomb full vs ECC-scaled energies; writes results/fig1.png and result.json, parameters read from task.json.",
+                "runs": [
+                    "20261008-225728-small-calc-3a78",
+                    "20261008-225728-small-calc-aecb"
+                ]
+            }
+        ]
+    },
+    "generated": 1791502505.1218736,
+    "available": true
+}

@@ -1,0 +1,94 @@
+{
+    "id": "20261008-232837-dawn-0ac3",
+    "mode": "dawn",
+    "status": "done",
+    "started": 1791502117.8534136,
+    "finished": 1791502473.9174771,
+    "snapshot": "20261008-232837-dawn-0ac3.json",
+    "capabilities": [
+        {
+            "name": "calc-image",
+            "version": 1,
+            "kind": "image",
+            "sha256": "80c76119343cee650f1b9626df4e7f625fff3cd311e721ad9f97611820f0f0de"
+        },
+        {
+            "name": "small-calc-env",
+            "version": 1,
+            "kind": "image",
+            "sha256": "0d5596973e6bc9565603a52a77113a87a76446f9a0a3b307d1da953ac45ad089"
+        }
+    ],
+    "lessons_active": 26,
+    "tasks": [
+        {
+            "label": "small-calc Na+",
+            "task_id": "small-calc",
+            "run_id": "20261008-232837-small-calc-764f",
+            "status": "ok",
+            "ok": true,
+            "reward": 1.0,
+            "wall_s": 344.2,
+            "setup_s": 115.6,
+            "install_s": 0.0,
+            "llm_usd": 0.443566,
+            "compute_usd": 0.032872,
+            "total_usd": 0.476438,
+            "errors": 0,
+            "error_titles": [],
+            "capabilities_used": [
+                "small-calc-env"
+            ],
+            "lessons_used": 8,
+            "links": {
+                "run": "/api/runs/20261008-232837-small-calc-764f",
+                "events": "/api/runs/20261008-232837-small-calc-764f/events",
+                "trace": "/api/runs/20261008-232837-small-calc-764f/trace"
+            },
+            "started": 1791502128.9793923,
+            "finished": 1791502473.1871495
+        },
+        {
+            "label": "small-calc K+",
+            "task_id": "small-calc",
+            "run_id": "20261008-232837-small-calc-ac7f",
+            "status": "ok",
+            "ok": true,
+            "reward": 1.0,
+            "wall_s": 345.6,
+            "setup_s": 120.5,
+            "install_s": 0.0,
+            "llm_usd": 0.534905,
+            "compute_usd": 0.033119,
+            "total_usd": 0.568024,
+            "errors": 0,
+            "error_titles": [],
+            "capabilities_used": [
+                "small-calc-env"
+            ],
+            "lessons_used": 8,
+            "links": {
+                "run": "/api/runs/20261008-232837-small-calc-ac7f",
+                "events": "/api/runs/20261008-232837-small-calc-ac7f/events",
+                "trace": "/api/runs/20261008-232837-small-calc-ac7f/trace"
+            },
+            "started": 1791502128.2821102,
+            "finished": 1791502473.9174771
+        }
+    ],
+    "totals": {
+        "n": 2,
+        "done": 2,
+        "ok": 2,
+        "ok_rate": 1.0,
+        "reward_mean": 1.0,
+        "wall_s": 689.8,
+        "setup_s": 236.1,
+        "install_s": 0.0,
+        "llm_usd": 0.9785,
+        "compute_usd": 0.066,
+        "total_usd": 1.0445,
+        "errors": 0,
+        "capabilities_used": 1
+    }
+}

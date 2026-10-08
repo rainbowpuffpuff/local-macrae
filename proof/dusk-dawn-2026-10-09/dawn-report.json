@@ -1,0 +1,365 @@
+{
+    "dusk": {
+        "id": "20261008-225728-dusk-f086",
+        "mode": "dusk",
+        "status": "done",
+        "started": 1791500248.211205,
+        "finished": 1791500841.7600977,
+        "snapshot": "20261008-225728-dusk-f086.json",
+        "capabilities": [],
+        "lessons_active": 0,
+        "tasks": [
+            {
+                "label": "small-calc Na+",
+                "task_id": "small-calc",
+                "run_id": "20261008-225728-small-calc-3a78",
+                "status": "ok",
+                "ok": true,
+                "reward": 1.0,
+                "wall_s": 586.6,
+                "setup_s": 298.2,
+                "install_s": 16.6,
+                "llm_usd": 0.57828,
+                "compute_usd": 0.117918,
+                "total_usd": 0.696198,
+                "errors": 0,
+                "error_titles": [],
+                "capabilities_used": [],
+                "lessons_used": 0,
+                "links": {
+                    "run": "/api/runs/20261008-225728-small-calc-3a78",
+                    "events": "/api/runs/20261008-225728-small-calc-3a78/events",
+                    "trace": "/api/runs/20261008-225728-small-calc-3a78/trace"
+                },
+                "started": 1791500255.1700978,
+                "finished": 1791500841.7600977
+            },
+            {
+                "label": "small-calc K+",
+                "task_id": "small-calc",
+                "run_id": "20261008-225728-small-calc-aecb",
+                "status": "ok",
+                "ok": true,
+                "reward": 1.0,
+                "wall_s": 448.1,
+                "setup_s": 206.9,
+                "install_s": 26.6,
+                "llm_usd": 0.651391,
+                "compute_usd": 0.088259,
+                "total_usd": 0.73965,
+                "errors": 0,
+                "error_titles": [],
+                "capabilities_used": [],
+                "lessons_used": 0,
+                "links": {
+                    "run": "/api/runs/20261008-225728-small-calc-aecb",
+                    "events": "/api/runs/20261008-225728-small-calc-aecb/events",
+                    "trace": "/api/runs/20261008-225728-small-calc-aecb/trace"
+                },
+                "started": 1791500253.6557825,
+                "finished": 1791500701.7484818
+            }
+        ],
+        "totals": {
+            "n": 2,
+            "done": 2,
+            "ok": 2,
+            "ok_rate": 1.0,
+            "reward_mean": 1.0,
+            "wall_s": 1034.7,
+            "setup_s": 505.1,
+            "install_s": 43.2,
+            "llm_usd": 1.2297,
+            "compute_usd": 0.2062,
+            "total_usd": 1.4358,
+            "errors": 0,
+            "capabilities_used": 0
+        }
+    },
+    "dawn": {
+        "id": "20261008-232837-dawn-0ac3",
+        "mode": "dawn",
+        "status": "done",
+        "started": 1791502117.8534136,
+        "finished": 1791502473.9174771,
+        "snapshot": "20261008-232837-dawn-0ac3.json",
+        "capabilities": [
+            {
+                "name": "calc-image",
+                "version": 1,
+                "kind": "image",
+                "sha256": "80c76119343cee650f1b9626df4e7f625fff3cd311e721ad9f97611820f0f0de"
+            },
+            {
+                "name": "small-calc-env",
+                "version": 1,
+                "kind": "image",
+                "sha256": "0d5596973e6bc9565603a52a77113a87a76446f9a0a3b307d1da953ac45ad089"
+            }
+        ],
+        "lessons_active": 26,
+        "tasks": [
+            {
+                "label": "small-calc Na+",
+                "task_id": "small-calc",
+                "run_id": "20261008-232837-small-calc-764f",
+                "status": "ok",
+                "ok": true,
+                "reward": 1.0,
+                "wall_s": 344.2,
+                "setup_s": 115.6,
+                "install_s": 0.0,
+                "llm_usd": 0.443566,
+                "compute_usd": 0.032872,
+                "total_usd": 0.476438,
+                "errors": 0,
+                "error_titles": [],
+                "capabilities_used": [
+                    "small-calc-env"
+                ],
+                "lessons_used": 8,
+                "links": {
+                    "run": "/api/runs/20261008-232837-small-calc-764f",
+                    "events": "/api/runs/20261008-232837-small-calc-764f/events",
+                    "trace": "/api/runs/20261008-232837-small-calc-764f/trace"
+                },
+                "started": 1791502128.9793923,
+                "finished": 1791502473.1871495
+            },
+            {
+                "label": "small-calc K+",
+                "task_id": "small-calc",
+                "run_id": "20261008-232837-small-calc-ac7f",
+                "status": "ok",
+                "ok": true,
+                "reward": 1.0,
+                "wall_s": 345.6,
+                "setup_s": 120.5,
+                "install_s": 0.0,
+                "llm_usd": 0.534905,
+                "compute_usd": 0.033119,
+                "total_usd": 0.568024,
+                "errors": 0,
+                "error_titles": [],
+                "capabilities_used": [
+                    "small-calc-env"
+                ],
+                "lessons_used": 8,
+                "links": {
+                    "run": "/api/runs/20261008-232837-small-calc-ac7f",
+                    "events": "/api/runs/20261008-232837-small-calc-ac7f/events",
+                    "trace": "/api/runs/20261008-232837-small-calc-ac7f/trace"
+                },
+                "started": 1791502128.2821102,
+                "finished": 1791502473.9174771
+            }
+        ],
+        "totals": {
+            "n": 2,
+            "done": 2,
+            "ok": 2,
+            "ok_rate": 1.0,
+            "reward_mean": 1.0,
+            "wall_s": 689.8,
+            "setup_s": 236.1,
+            "install_s": 0.0,
+            "llm_usd": 0.9785,
+            "compute_usd": 0.066,
+            "total_usd": 1.0445,
+            "errors": 0,
+            "capabilities_used": 1
+        }
+    },
+    "delta": {
+        "wall_s": {
+            "dusk": 1034.7,
+            "dawn": 689.8,
+            "delta": -344.9,
+            "pct": -33.3,
+            "better": true
+        },
+        "setup_s": {
+            "dusk": 505.1,
+            "dawn": 236.1,
+            "delta": -269.0,
+            "pct": -53.3,
+            "better": true
+        },
+        "llm_usd": {
+            "dusk": 1.2297,
+            "dawn": 0.9785,
+            "delta": -0.2512,
+            "pct": -20.4,
+            "better": true
+        },
+        "compute_usd": {
+            "dusk": 0.2062,
+            "dawn": 0.066,
+            "delta": -0.1402,
+            "pct": -68.0,
+            "better": true
+        },
+        "total_usd": {
+            "dusk": 1.4358,
+            "dawn": 1.0445,
+            "delta": -0.3913,
+            "pct": -27.3,
+            "better": true
+        },
+        "errors": {
+            "dusk": 0,
+            "dawn": 0,
+            "delta": 0,
+            "pct": null,
+            "better": null
+        },
+        "ok": {
+            "dusk": 2,
+            "dawn": 2,
+            "delta": 0,
+            "pct": 0.0,
+            "better": null
+        },
+        "ok_rate": {
+            "dusk": 1.0,
+            "dawn": 1.0,
+            "delta": 0.0,
+            "pct": 0.0,
+            "better": null
+        },
+        "reward_mean": {
+            "dusk": 1.0,
+            "dawn": 1.0,
+            "delta": 0.0,
+            "pct": 0.0,
+            "better": null
+        },
+        "capabilities_used": {
+            "dusk": 0,
+            "dawn": 1,
+            "delta": 1,
+            "pct": null,
+            "better": true
+        },
+        "by_task": {
+            "small-calc Na+": {
+                "wall_s": {
+                    "dusk": 586.6,
+                    "dawn": 344.2,
+                    "delta": -242.4,
+                    "pct": -41.3,
+                    "better": true
+                },
+                "setup_s": {
+                    "dusk": 298.2,
+                    "dawn": 115.6,
+                    "delta": -182.6,
+                    "pct": -61.2,
+                    "better": true
+                },
+                "total_usd": {
+                    "dusk": 0.696198,
+                    "dawn": 0.476438,
+                    "delta": -0.2198,
+                    "pct": -31.6,
+                    "better": true
+                },
+                "errors": {
+                    "dusk": 0,
+                    "dawn": 0,
+                    "delta": 0,
+                    "pct": null,
+                    "better": null
+                },
+                "ok": {
+                    "dusk": true,
+                    "dawn": true
+                }
+            },
+            "small-calc K+": {
+                "wall_s": {
+                    "dusk": 448.1,
+                    "dawn": 345.6,
+                    "delta": -102.5,
+                    "pct": -22.9,
+                    "better": true
+                },
+                "setup_s": {
+                    "dusk": 206.9,
+                    "dawn": 120.5,
+                    "delta": -86.4,
+                    "pct": -41.8,
+                    "better": true
+                },
+                "total_usd": {
+                    "dusk": 0.73965,
+                    "dawn": 0.568024,
+                    "delta": -0.1716,
+                    "pct": -23.2,
+                    "better": true
+                },
+                "errors": {
+                    "dusk": 0,
+                    "dawn": 0,
+                    "delta": 0,
+                    "pct": null,
+                    "better": null
+                },
+                "ok": {
+                    "dusk": true,
+                    "dawn": true
+                }
+            }
+        },
+        "better": [
+            "wall_s",
+            "setup_s",
+            "llm_usd",
+            "compute_usd",
+            "total_usd",
+            "capabilities_used"
+        ],
+        "worse": []
+    },
+    "capabilities_installed_between": [
+        {
+            "name": "calc-image",
+            "version": 1,
+            "kind": "image",
+            "t": 1791501247.442,
+            "sha256": "80c76119343cee650f1b9626df4e7f625fff3cd311e721ad9f97611820f0f0de",
+            "purpose": "Sandbox image with a prebuilt venv at /opt/calc holding pinned pyscf, numpy, scipy and matplotlib (Agg backend), so small quantum-chemistry/numerics tasks skip apt python3-venv and pip installs.",
+            "forge_run": "20261008-230435-forge-5ab4",
+            "gap_run": "20261008-232837-small-calc-ac7f",
+            "why": "installed python3-venv (apt) + venv with pyscf numpy matplotlib in /opt/calc, 28 s total\\\"\\nnohup /opt/calc/bin/python run_c\","
+        },
+        {
+            "name": "small-calc-env",
+            "version": 1,
+            "kind": "image",
+            "t": 1791501397.115,
+            "sha256": "0d5596973e6bc9565603a52a77113a87a76446f9a0a3b307d1da953ac45ad089",
+            "purpose": "Sandbox image with a ready Python venv at /opt/calc holding pinned pyscf, numpy, scipy and matplotlib (Agg), so small quantum-chemistry / numerical calculations start without apt or pip installs.",
+            "forge_run": "20261008-230517-forge-9fe0",
+            "gap_run": "20261008-225728-small-calc-3a78",
+            "why": "the agent spent 17 s installing packages (python3-venv, pyscf, numpy, matplotlib) and the venv could not be created (ensurepip is not available): bake them, pinned, into this task's sandbox image"
+        }
+    ],
+    "runs": [
+        {
+            "label": "small-calc Na+",
+            "task_id": "small-calc",
+            "dusk": "20261008-225728-small-calc-3a78",
+            "dawn": "20261008-232837-small-calc-764f"
+        },
+        {
+            "label": "small-calc K+",
+            "task_id": "small-calc",
+            "dusk": "20261008-225728-small-calc-aecb",
+            "dawn": "20261008-232837-small-calc-ac7f"
+        }
+    ],
+    "ready": true,
+    "generated": 1791502489.765337,
+    "frozen": "report-20261008-225728-dusk-f086-20261008-232837-dawn-0ac3.json"
+}

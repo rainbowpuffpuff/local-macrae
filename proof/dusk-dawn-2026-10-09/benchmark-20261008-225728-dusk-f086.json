@@ -1,0 +1,77 @@
+{
+    "id": "20261008-225728-dusk-f086",
+    "mode": "dusk",
+    "status": "done",
+    "started": 1791500248.211205,
+    "finished": 1791500841.7600977,
+    "snapshot": "20261008-225728-dusk-f086.json",
+    "capabilities": [],
+    "lessons_active": 0,
+    "tasks": [
+        {
+            "label": "small-calc Na+",
+            "task_id": "small-calc",
+            "run_id": "20261008-225728-small-calc-3a78",
+            "status": "ok",
+            "ok": true,
+            "reward": 1.0,
+            "wall_s": 586.6,
+            "setup_s": 298.2,
+            "install_s": 16.6,
+            "llm_usd": 0.57828,
+            "compute_usd": 0.117918,
+            "total_usd": 0.696198,
+            "errors": 0,
+            "error_titles": [],
+            "capabilities_used": [],
+            "lessons_used": 0,
+            "links": {
+                "run": "/api/runs/20261008-225728-small-calc-3a78",
+                "events": "/api/runs/20261008-225728-small-calc-3a78/events",
+                "trace": "/api/runs/20261008-225728-small-calc-3a78/trace"
+            },
+            "started": 1791500255.1700978,
+            "finished": 1791500841.7600977
+        },
+        {
+            "label": "small-calc K+",
+            "task_id": "small-calc",
+            "run_id": "20261008-225728-small-calc-aecb",
+            "status": "ok",
+            "ok": true,
+            "reward": 1.0,
+            "wall_s": 448.1,
+            "setup_s": 206.9,
+            "install_s": 26.6,
+            "llm_usd": 0.651391,
+            "compute_usd": 0.088259,
+            "total_usd": 0.73965,
+            "errors": 0,
+            "error_titles": [],
+            "capabilities_used": [],
+            "lessons_used": 0,
+            "links": {
+                "run": "/api/runs/20261008-225728-small-calc-aecb",
+                "events": "/api/runs/20261008-225728-small-calc-aecb/events",
+                "trace": "/api/runs/20261008-225728-small-calc-aecb/trace"
+            },
+            "started": 1791500253.6557825,
+            "finished": 1791500701.7484818
+        }
+    ],
+    "totals": {
+        "n": 2,
+        "done": 2,
+        "ok": 2,
+        "ok_rate": 1.0,
+        "reward_mean": 1.0,
+        "wall_s": 1034.7,
+        "setup_s": 505.1,
+        "install_s": 43.2,
+        "llm_usd": 1.2297,
+        "compute_usd": 0.2062,
+        "total_usd": 1.4358,
+        "errors": 0,
+        "capabilities_used": 0
+    }
+}

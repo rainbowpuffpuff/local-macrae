@@ -1,0 +1,429 @@
+{
+    "capabilities": [
+        {
+            "name": "small-calc-env",
+            "kind": "image",
+            "version": 1,
+            "purpose": "Sandbox image with a ready Python venv at /opt/calc holding pinned pyscf, numpy, scipy and matplotlib (Agg), so small quantum-chemistry / numerical calculations start without apt or pip installs.",
+            "entrypoint": "check_env.py",
+            "inputs": [],
+            "outputs": [
+                {
+                    "name": "stdout",
+                    "type": "text|json",
+                    "description": "per-check OK/FAIL (versions, numpy, scipy, pyscf reference energies, PNG plot); exit 0 if all pass"
+                }
+            ],
+            "applies_to": [
+                "small-calc"
+            ],
+            "requirements": [],
+            "sha256": "0d5596973e6bc9565603a52a77113a87a76446f9a0a3b307d1da953ac45ad089",
+            "created_by": {
+                "run_id": "20261008-230517-forge-9fe0",
+                "step": "create"
+            },
+            "gap": {
+                "run_id": "20261008-225728-small-calc-aecb",
+                "step": "calc",
+                "why": "the agent spent 27 s installing packages (pyscf, numpy, matplotlib, python3-venv, python3.14-venv), apt.log, 2>&1, into) and the venv could not be created (ensurepip is not available): bake them, pinned, into this task's sandbox image",
+                "task_id": "small-calc",
+                "kind": "image"
+            },
+            "created": 1791501157.0538938,
+            "tested": 1791501397.1124814,
+            "installed": 1791501397.1134684,
+            "last_used": 1791502143.192,
+            "uses": 2,
+            "policy_sha256": "9f87477a128dc7fd4cd5183ca6381337faccd56744de9abd6e09ff33fc6a5eeb",
+            "versions": [
+                {
+                    "version": 1,
+                    "sha256": "0d5596973e6bc9565603a52a77113a87a76446f9a0a3b307d1da953ac45ad089",
+                    "installed": 1791501397.1134684,
+                    "run_id": "20261008-230517-forge-9fe0"
+                }
+            ],
+            "image": {
+                "fragment": "Dockerfile.fragment",
+                "requirements": "requirements.txt",
+                "smoke": "/opt/calc/bin/python /opt/macrae-cap/small-calc-env/check_env.py --quick"
+            },
+            "usage": "/opt/calc/bin/python your_script.py   (verify the image: /opt/calc/bin/python /opt/macrae-cap/small-calc-env/check_env.py --json)",
+            "files": [
+                {
+                    "path": "check_env.py",
+                    "sha256": "42808732c2413c7127f405a6b86117179a5b788081828b8d97dedee1df3414c3",
+                    "bytes": 4702
+                },
+                {
+                    "path": "test_check_env.py",
+                    "sha256": "36a6edcaeed830e6f8eaab2fbe29de67776708b1a06a224f24fb46e5d47a20a9",
+                    "bytes": 3934
+                },
+                {
+                    "path": "requirements.txt",
+                    "sha256": "c6e6f86491b5c2526da7d9afdab7aceeb15d5c28afbe0eb22a2ff19f9f16838a",
+                    "bytes": 249
+                },
+                {
+                    "path": "Dockerfile.fragment",
+                    "sha256": "b9bfdc8404029a9e5a398948ee68c02d86c7491df8f5dfcc47186f741b8bd928",
+                    "bytes": 284
+                }
+            ],
+            "tests": {
+                "n": 2,
+                "passed": true,
+                "names": [
+                    "pins, analytic numpy/scipy, Szabo-Ostlund STO-3G energies, H2 minimum 1.346 bohr, PNG, CLI",
+                    "quick smoke check"
+                ],
+                "run_id": "20261008-230517-forge-9fe0",
+                "job": "test-a1",
+                "seconds": 11.2,
+                "setup_s": 199.2
+            }
+        },
+        {
+            "name": "calc-image",
+            "kind": "image",
+            "version": 1,
+            "purpose": "Sandbox image with a prebuilt venv at /opt/calc holding pinned pyscf, numpy, scipy and matplotlib (Agg backend), so small quantum-chemistry/numerics tasks skip apt python3-venv and pip installs.",
+            "entrypoint": "calc_smoke.py",
+            "inputs": [],
+            "outputs": [
+                {
+                    "name": "stdout",
+                    "type": "text|json",
+                    "description": "calc_smoke.py: H2 RHF/STO-3G energy vs reference, PNG check, version-pin check; exit 0 = environment OK"
+                }
+            ],
+            "applies_to": [
+                "small-calc"
+            ],
+            "requirements": [],
+            "sha256": "80c76119343cee650f1b9626df4e7f625fff3cd311e721ad9f97611820f0f0de",
+            "created_by": {
+                "run_id": "20261008-230435-forge-5ab4",
+                "step": "create"
+            },
+            "gap": {
+                "run_id": "20261008-225728-small-calc-aecb",
+                "step": "calc",
+                "why": "python3-venv via apt (4 s) + pip install pyscf numpy matplotlib into /opt/calc (20 s)\"; /opt/calc/bin/python -c",
+                "task_id": "small-calc",
+                "kind": "image"
+            },
+            "created": 1791501099.961957,
+            "tested": 1791501247.4401016,
+            "installed": 1791501247.4412062,
+            "last_used": null,
+            "uses": 0,
+            "policy_sha256": "9f87477a128dc7fd4cd5183ca6381337faccd56744de9abd6e09ff33fc6a5eeb",
+            "versions": [
+                {
+                    "version": 1,
+                    "sha256": "80c76119343cee650f1b9626df4e7f625fff3cd311e721ad9f97611820f0f0de",
+                    "installed": 1791501247.4412062,
+                    "run_id": "20261008-230435-forge-5ab4"
+                }
+            ],
+            "image": {
+                "fragment": "Dockerfile.fragment",
+                "requirements": "requirements.txt",
+                "smoke": "/opt/calc/bin/python /opt/macrae-cap/calc-image/calc_smoke.py"
+            },
+            "usage": "/opt/calc/bin/python your_script.py   (check: /opt/calc/bin/python /opt/macrae-cap/calc-image/calc_smoke.py --json)",
+            "files": [
+                {
+                    "path": "requirements.txt",
+                    "sha256": "18d44c005bcd76f598f394a01c89f6a3f3ffd3fd2c1076852a8beab89da8102a",
+                    "bytes": 230
+                },
+                {
+                    "path": "Dockerfile.fragment",
+                    "sha256": "514ca83429c28ea8bc7dfa21014f870905597c6d27c5090eb32209f6538bab64",
+                    "bytes": 246
+                },
+                {
+                    "path": "calc_smoke.py",
+                    "sha256": "a5df1251c3b8ed0d7075b1f67020fd3b8aa00f10ac9e4e88aabf2988ef12a38c",
+                    "bytes": 3884
+                },
+                {
+                    "path": "test_calc_image.py",
+                    "sha256": "7427b188784e439e54321e5c1a9825b51585b2b2e1d9bea030156ba189535fe7",
+                    "bytes": 4660
+                },
+                {
+                    "path": "README.md",
+                    "sha256": "9f7489be9818447b13a8fd7315dcee96cd59e0b9bb2f5208013e24a5a4209d5a",
+                    "bytes": 895
+                }
+            ],
+            "tests": {
+                "n": 2,
+                "passed": true,
+                "names": [
+                    "pins installed; H2 RHF/FCI STO-3G vs Szabo-Ostlund; H atom -> -0.5; dissociation; analytic numerics; PNG",
+                    "smoke script exits 0"
+                ],
+                "run_id": "20261008-230435-forge-5ab4",
+                "job": "test-a1",
+                "seconds": 13.1,
+                "setup_s": 103.9
+            }
+        }
+    ],
+    "ledger": [
+        {
+            "t": 1791500537.019,
+            "event": "gap",
+            "name": "calc-image",
+            "run_id": "20261008-225728-small-calc-aecb",
+            "step": "calc",
+            "why": "python3-venv via apt (4 s) + pip install pyscf numpy matplotlib into /opt/calc (20 s)\"; /opt/calc/bin/python -c",
+            "task_id": "small-calc",
+            "source": "agent",
+            "iso": "2026-10-08T23:02:17.019000Z"
+        },
+        {
+            "t": 1791500650.747,
+            "event": "gap",
+            "name": "calc-image",
+            "run_id": "20261008-225728-small-calc-3a78",
+            "step": "calc",
+            "why": "installed python3-venv (apt) + venv with pyscf numpy matplotlib in /opt/calc, 28 s total",
+            "task_id": "small-calc",
+            "source": "agent",
+            "iso": "2026-10-08T23:04:10.747000Z"
+        },
+        {
+            "t": 1791500717.816,
+            "event": "gap",
+            "name": "small-calc-env",
+            "run_id": "20261008-225728-small-calc-aecb",
+            "step": "calc",
+            "kind": "image",
+            "why": "the agent spent 27 s installing packages (pyscf, numpy, matplotlib, python3-venv, python3.14-venv), apt.log, 2>&1, into) and the venv could not be created (ensurepip is not available): bake them, pinned, into this task's sandbox image",
+            "task_id": "small-calc",
+            "source": "trace",
+            "iso": "2026-10-08T23:05:17.816000Z"
+        },
+        {
+            "t": 1791500856.397,
+            "event": "gap",
+            "name": "small-calc-env",
+            "run_id": "20261008-225728-small-calc-3a78",
+            "step": "calc",
+            "kind": "image",
+            "why": "the agent spent 17 s installing packages (python3-venv, pyscf, numpy, matplotlib) and the venv could not be created (ensurepip is not available): bake them, pinned, into this task's sandbox image",
+            "task_id": "small-calc",
+            "source": "trace",
+            "iso": "2026-10-08T23:07:36.397000Z"
+        },
+        {
+            "t": 1791501100.23,
+            "event": "create",
+            "name": "calc-image",
+            "run_id": "20261008-230435-forge-5ab4",
+            "step": "create",
+            "kind": "image",
+            "sha256": "80c76119343cee650f1b9626df4e7f625fff3cd311e721ad9f97611820f0f0de",
+            "purpose": "Sandbox image with a prebuilt venv at /opt/calc holding pinned pyscf, numpy, scipy and matplotlib (Agg backend), so small quantum-chemistry/numerics tasks skip apt python3-venv and pip installs.",
+            "iso": "2026-10-08T23:11:40.230000Z"
+        },
+        {
+            "t": 1791501157.326,
+            "event": "create",
+            "name": "small-calc-env",
+            "run_id": "20261008-230517-forge-9fe0",
+            "step": "create",
+            "kind": "image",
+            "sha256": "0d5596973e6bc9565603a52a77113a87a76446f9a0a3b307d1da953ac45ad089",
+            "purpose": "Sandbox image with a ready Python venv at /opt/calc holding pinned pyscf, numpy, scipy and matplotlib (Agg), so small quantum-chemistry / numerical calculations start without apt or pip installs.",
+            "iso": "2026-10-08T23:12:37.326000Z"
+        },
+        {
+            "t": 1791501247.438,
+            "event": "test",
+            "name": "calc-image",
+            "run_id": "20261008-230435-forge-5ab4",
+            "step": "test",
+            "sha256": "80c76119343cee650f1b9626df4e7f625fff3cd311e721ad9f97611820f0f0de",
+            "passed": true,
+            "n_tests": 3,
+            "n_passed": 3,
+            "seconds": 13.1,
+            "setup_s": 103.9,
+            "job": "test-a1",
+            "iso": "2026-10-08T23:14:07.438000Z"
+        },
+        {
+            "t": 1791501247.442,
+            "event": "install",
+            "name": "calc-image",
+            "run_id": "20261008-230435-forge-5ab4",
+            "step": "install",
+            "version": 1,
+            "kind": "image",
+            "sha256": "80c76119343cee650f1b9626df4e7f625fff3cd311e721ad9f97611820f0f0de",
+            "purpose": "Sandbox image with a prebuilt venv at /opt/calc holding pinned pyscf, numpy, scipy and matplotlib (Agg backend), so small quantum-chemistry/numerics tasks skip apt python3-venv and pip installs.",
+            "iso": "2026-10-08T23:14:07.442000Z"
+        },
+        {
+            "t": 1791501397.06,
+            "event": "test",
+            "name": "small-calc-env",
+            "run_id": "20261008-230517-forge-9fe0",
+            "step": "test",
+            "sha256": "0d5596973e6bc9565603a52a77113a87a76446f9a0a3b307d1da953ac45ad089",
+            "passed": true,
+            "n_tests": 3,
+            "n_passed": 3,
+            "seconds": 11.2,
+            "setup_s": 199.2,
+            "job": "test-a1",
+            "iso": "2026-10-08T23:16:37.060000Z"
+        },
+        {
+            "t": 1791501397.115,
+            "event": "install",
+            "name": "small-calc-env",
+            "run_id": "20261008-230517-forge-9fe0",
+            "step": "install",
+            "version": 1,
+            "kind": "image",
+            "sha256": "0d5596973e6bc9565603a52a77113a87a76446f9a0a3b307d1da953ac45ad089",
+            "purpose": "Sandbox image with a ready Python venv at /opt/calc holding pinned pyscf, numpy, scipy and matplotlib (Agg), so small quantum-chemistry / numerical calculations start without apt or pip installs.",
+            "iso": "2026-10-08T23:16:37.115000Z"
+        },
+        {
+            "t": 1791502143.192,
+            "event": "use",
+            "name": "small-calc-env",
+            "run_id": "20261008-232837-small-calc-ac7f",
+            "step": "calc",
+            "version": "1",
+            "kind": "image",
+            "task_id": "small-calc",
+            "iso": "2026-10-08T23:29:03.192000Z"
+        },
+        {
+            "t": 1791502143.386,
+            "event": "use",
+            "name": "small-calc-env",
+            "run_id": "20261008-232837-small-calc-764f",
+            "step": "calc",
+            "version": "1",
+            "kind": "image",
+            "task_id": "small-calc",
+            "iso": "2026-10-08T23:29:03.386000Z"
+        },
+        {
+            "t": 1791502287.764,
+            "event": "gap",
+            "name": "calc-image",
+            "run_id": "20261008-232837-small-calc-ac7f",
+            "step": "calc",
+            "why": "installed python3-venv (apt) + venv with pyscf numpy matplotlib in /opt/calc, 28 s total\\\"\\nnohup /opt/calc/bin/python run_c\",",
+            "task_id": "small-calc",
+            "source": "agent",
+            "iso": "2026-10-08T23:31:27.764000Z"
+        }
+    ],
+    "dusk": "2026-10-08T23:02:17.019000Z",
+    "dawn": "2026-10-08T23:35:04.966061Z",
+    "window": {
+        "since": "2026-10-08T22:57:27.211205Z",
+        "events": 13
+    },
+    "authority": {
+        "runs_in": "harbor-sandbox",
+        "rules": [
+            "Capabilities run only inside the Harbor sandbox (Modal), never on the backend.",
+            "They get no secrets: only an allowlist of plain environment variables.",
+            "Tools get no network; image builds may reach only the package indexes on the policy list.",
+            "No capability can write the registry; only the installer adds to it, after its tests pass.",
+            "Each tool call is limited to 15 min, a test suite to 10 min, an image build to 20 min.",
+            "These limits are constants in the backend's code; no capability can change them."
+        ],
+        "env_allowlist": [
+            "CUDA_VISIBLE_DEVICES",
+            "GMX_MAXBACKUP",
+            "HOME",
+            "LANG",
+            "LC_ALL",
+            "MKL_NUM_THREADS",
+            "MPLBACKEND",
+            "MPLCONFIGDIR",
+            "NUMEXPR_MAX_THREADS",
+            "OMP_NUM_THREADS",
+            "OPENBLAS_NUM_THREADS",
+            "PATH",
+            "PWD",
+            "PYTHONHASHSEED",
+            "PYTHONPATH",
+            "PYTHONUNBUFFERED",
+            "TERM",
+            "TMPDIR",
+            "TZ",
+            "USER"
+        ],
+        "network": {
+            "tool": [],
+            "writing": [],
+            "image": [
+                "archive.ubuntu.com",
+                "conda-forge.org",
+                "conda.anaconda.org",
+                "deb.debian.org",
+                "files.pythonhosted.org",
+                "pypi.org",
+                "repo.anaconda.com",
+                "security.ubuntu.com"
+            ]
+        },
+        "registry_write": false,
+        "max_runtime_s": 900,
+        "max_test_runtime_s": 600,
+        "max_build_s": 1200,
+        "max_files": 24,
+        "max_file_bytes": 262144,
+        "max_total_bytes": 1048576,
+        "kinds": [
+            "image",
+            "tool",
+            "writing"
+        ],
+        "policy_sha256": "9f87477a128dc7fd4cd5183ca6381337faccd56744de9abd6e09ff33fc6a5eeb",
+        "source": "server/policy.py"
+    },
+    "forges": [
+        {
+            "name": "small-calc-env",
+            "run_id": "20261008-230517-forge-9fe0",
+            "t": 1791500717.8179588,
+            "kind": "image",
+            "gap_run": "20261008-225728-small-calc-aecb",
+            "status": "ok"
+        },
+        {
+            "name": "calc-image",
+            "run_id": "20261008-230435-forge-5ab4",
+            "t": 1791500675.6145308,
+            "kind": "image",
+            "gap_run": "20261008-225728-small-calc-aecb",
+            "status": "ok"
+        }
+    ],
+    "counts": {
+        "gap": 5,
+        "create": 2,
+        "test": 2,
+        "install": 2,
+        "use": 2,
+        "rejected": 0
+    }
+}

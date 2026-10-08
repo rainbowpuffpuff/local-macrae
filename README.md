@@ -32,7 +32,7 @@ policy that the agent cannot change.
 
 ## Status: what works, what is proven, what is not
 
-Checked on the live site on 2026-10-09 (UTC+2) after the last deploy, unless a line says otherwise.
+Checked on the live site on 2026-10-09 between 00:30 and 01:40 (UTC+2), unless a line says otherwise.
 
 | | what | how it was checked |
 |---|---|---|
@@ -45,12 +45,12 @@ Checked on the live site on 2026-10-09 (UTC+2) after the last deploy, unless a l
 | ✅ live | **Public without login**: per-IP / per-session / global rate limits, daily spend cap ($20), kill switch, inputs never reach a shell, paper text fenced as untrusted data for the LLM; benchmark, forge and kill switch need an operator secret | `/api/safety`; a `POST /api/benchmark/dusk` without the secret gets 403 |
 | ✅ live | **Downloadable proof**: `trace.zip` (Harbor trajectories, logs, events, costs) and a self-contained HTML report for every run | buttons in the run view; `GET /api/runs/{id}/trace.zip`, `/report.html` |
 | 🟡 built, tested | **Methods card** task (an agent writes a methods summary of a group paper where every claim is cited) | end-to-end test with a fake Harbor; not re-run live after the last deploy |
-| 🟡 built, tested | Full capability lifecycle gap → create → test (fresh sandbox) → install → use; the pinned `calc-image` capability | 500+ tests, see below; live result in [Proof](#proof-dusk--dawn) |
+| ✅ live | **The Frankenstein loop, end to end**: gap found in the traces → forge creates a pinned environment and its tests → tests pass in a fresh sandbox → policy accepts → installed → used by the next runs: **27 % cheaper, 33 % faster, same answers** | dusk → dawn benchmark on the live site, see [Proof](#proof-dusk--dawn) |
 | ✅ on the page | The capability ledger with the Authority card, the dusk → dawn comparison (Evolution tab), and the manuscript a finished run wrote | `web/frankenstein.js`, `web/manuscript.js`; node tests on the real live payloads |
 | ❌ not built | The two BFF research tasks (Bayesian charge scaling for acetate; Ca²⁺–acetate binding with error bars) | scouted in `research/scout/`, ideas approved, not built |
 
 Tests: `make test` runs every module's pytest, the Worker's and the page's node tests. At the final commit:
-**Python 514 passed, 3 skipped · Worker 44 passed · page 87 passed** (Harbor, Modal and Claude are faked in tests;
+**Python 515 passed, 3 skipped · Worker 44 passed · page 87 passed** (Harbor, Modal and Claude are faked in tests;
 the live runs are the real check).
 
 ### Known gaps
@@ -61,8 +61,14 @@ the live runs are the real check).
   silently dropped (see [How it was built](#how-it-was-built)). Fixed in the final integration: `until` can only add a
   requirement (`agent_runner/flows.py`, test `test_a_rate_limited_attempt_never_passes_its_until`); the standalone
   agent-runner repo still needs the same fix.
-- Lessons and capabilities are kept in R2 since this deploy (`state/evolve/`); the lessons learned before it were
-  lost when the container restarted, and are kept as a snapshot in `proof/live-before-final-deploy/`.
+- Lessons and capabilities are kept in R2 since this deploy (`state/evolve/`; checked: the 2 capabilities and 26
+  lessons survived the last container restart). The lessons learned before it were lost when the container
+  restarted, and are kept as a snapshot in `proof/live-before-final-deploy/`.
+- The planner could set any flow variable, including the sandbox image; found by the failed first dawn and fixed
+  (`server/planner.py`: `*_image` variables are not tunable).
+- Two forges built the same kind of capability under two names (`calc-image` from the agent's own gap line,
+  `small-calc-env` from the trace analysis); both were installed and the newer one is used. Gaps aren't
+  de-duplicated by meaning yet.
 - The manuscript is shown when a run has finished; it is not replayed edit by edit while the run goes, although
   the API serves the full edit stream (`GET /api/runs/{id}/manuscript`).
 - The gap recogniser that reads traces sometimes lists shell fragments as package names (`2>&1`, `tail` in the
@@ -89,7 +95,38 @@ The first verified run (Harbor → Modal, started from a laptop the same day) fo
 no lessons, no capabilities) and at *dawn* (everything learned since). `GET /api/dawn-report` gives the comparison;
 the page shows it in **Evolution → Dusk → Dawn**.
 
-<!-- PROOF-DUSK-DAWN -->
+| | dusk: nothing learned | dawn: everything learned | change |
+|---|---|---|---|
+| runs passed their check (reward 1) | 2 / 2 | 2 / 2 | same |
+| errors | 0 | 0 | same |
+| wall time, both runs | 1035 s | 690 s | **−33 %** |
+| setup time (before the calculation) | 505 s | 236 s | **−53 %** |
+| time installing packages | 43 s | 0 s | gone |
+| LLM $ | $1.23 | $0.98 | −20 % |
+| compute $ (Modal) | $0.21 | $0.07 | −68 % |
+| **total $** | **$1.44** | **$1.04** | **−27 %** |
+| what the run had | nothing | the installed `small-calc-env` image + 8 lessons | |
+
+Per task: Na⁺ 587 s → 344 s (−41 %), $0.70 → $0.48; K⁺ 448 s → 346 s (−23 %), $0.74 → $0.57. The science did not
+change: Na⁺–water −25.46 kcal/mol and K⁺–water −17.92 kcal/mol (B3LYP/def2-TZVP, counterpoise) at dusk and at dawn.
+
+What happened in between, all on the live site and all in the ledger:
+
+1. Both dusk traces showed the same gap: no pip in the sandbox's Python (`ensurepip` missing), so the agent
+   installed `python3-venv` and PySCF by hand each time. One agent also said so itself (`CAPABILITY_GAP: calc-image`).
+2. Macrae started two forges by itself. Each wrote a pinned environment (a Dockerfile fragment + `requirements.txt`)
+   and its tests (H₂ RHF/FCI in STO-3G against the textbook values, the H atom at −0.5 Ha, a dissociation curve, a
+   PNG plot), passed them in a fresh sandbox, and was accepted by the fixed policy: `calc-image` and `small-calc-env`
+   installed (create → test → install).
+3. The first dawn attempt (`20261008-231734-dawn-ca92`) **failed** before any agent started: the planner had set
+   the flow variable `calc_image` to the capability's name and the engine pulled it as a Docker image. Fixed by
+   taking the sandbox image away from the planner (it is authority, not tuning), redeployed, and dawn ran again
+   (`20261008-232837-dawn-0ac3`): the numbers above.
+
+Caveats: one run per ion per side, so this is a demonstration, not a statistic; dawn also had 8 distilled lessons,
+so the gain is the capability and the lessons together; Modal image caching helps the second build of any image.
+Raw payloads: [`proof/dusk-dawn-2026-10-09/`](proof/dusk-dawn-2026-10-09/) (`dawn-report.json`, the three benchmark
+records, the capability ledger and the lessons).
 
 ## The group
 

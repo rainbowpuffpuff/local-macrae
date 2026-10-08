@@ -247,19 +247,24 @@
       budget before each run, and <b>lessons</b> distilled from every trace (12 from the first runs).</td><td class="when">v2</td></tr>
     <tr><td><span class="pill ok">live</span></td><td><b>Authority holds</b>: the first forge built a pinned environment,
       but its tests failed in a fresh sandbox, so the installer <b>rejected</b> it and recorded why.</td><td class="when">v3</td></tr>
-    <tr><td><span class="pill ok">live</span></td><td><b>Dusk benchmark</b> (<code>20261008-225728-dusk-f086</code>, nothing
-      learned): both runs passed their checks, reward 1, 0 errors. Na<sup>+</sup>: 587 s wall, 298 s setup, $0.70.
-      K<sup>+</sup>: 448 s wall, 207 s setup, $0.74. Both traces showed the environment gap (no pip / ensurepip,
-      PySCF reinstalled), and Macrae started two forges by itself (<code>calc-image</code> and
-      <code>small-calc-env</code>). <b><span id="dawn-result">dawn: running</span></b></td><td class="when">final</td></tr>
+    <tr><td><span class="pill ok">live</span></td><td><b>Dusk → dawn, the Frankenstein loop end to end.</b> Dusk
+      (<code>20261008-225728-dusk-f086</code>, nothing learned): both runs passed, reward 1, 0 errors; both traces showed
+      the environment gap (no pip / ensurepip, PySCF reinstalled every run). Macrae started two forges by itself; each
+      wrote a pinned environment and its tests (H<sub>2</sub> RHF/FCI against textbook values, H atom −0.5 Ha), passed
+      them in a fresh sandbox and was installed (<code>calc-image</code>, <code>small-calc-env</code>). Dawn
+      (<code>20261008-232837-dawn-0ac3</code>, the image + 8 lessons): both passed again, same answers
+      (Na<sup>+</sup>–water −25.46, K<sup>+</sup>–water −17.92 kcal/mol). <b><span id="dawn-result">Wall time 1035 → 690 s
+      (−33 %), setup 505 → 236 s (−53 %), installs 43 → 0 s, cost $1.44 → $1.04 (−27 %).</span></b> The first dawn
+      attempt failed at the image build (the planner had set the image variable); the planner may no longer touch it.
+      One run per ion per side: a demonstration, not a statistic.</td><td class="when">final</td></tr>
     <tr><td><span class="pill ok">live</span></td><td><b>Public without login</b>: rate limits, a daily spend cap, a kill
       switch, inputs that never reach a shell; the benchmark, forge and kill-switch routes need the operator secret.
       <b>Downloadable proof</b>: a trace zip and an offline HTML report for every run.</td><td class="when">w4</td></tr>
     <tr><td><span class="pill ok">live</span></td><td><b>Frankenstein on the page</b>: the capability ledger, installed
       capabilities and the fixed Authority card, the dusk → dawn table (Evolution tab), and the manuscript a finished
       run wrote.</td><td class="when">final</td></tr>
-    <tr><td><span class="pill wait">tested</span></td><td><b>Methods card</b> task, and the full capability lifecycle
-      (gap → create → test → install → use): end-to-end tests with a fake Harbor.</td><td class="when">v1, v3</td></tr>
+    <tr><td><span class="pill wait">tested</span></td><td><b>Methods card</b> task: end-to-end tests with a fake Harbor,
+      not re-run live after the last deploy.</td><td class="when">v1</td></tr>
     <tr><td><span class="pill wait">not built</span></td><td><b>The two BFF research tasks</b> (<a href="#bff">section 6</a>):
       scouted and approved, not built.</td><td class="when">—</td></tr>
     <tr><td><span class="pill wait">owner</span></td><td><b>Paper PDFs</b> stay private: they are indexed on the server
