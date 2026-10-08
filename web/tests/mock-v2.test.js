@@ -101,3 +101,29 @@ test("the v1 shapes stay: every event has the contract's keys; seq has no gaps",
   });
   assert.equal((await h.get("/api/evolution")).status, 200);
 });
+
+test("v3: capabilities and the dawn report are the live site's by default, an illustrative finished one on request", async () => {
+  const { normalizeCapabilities, capabilitiesHTML, dawnReportHTML } = await import("../frankenstein.js");
+  const h = harness();
+  const caps = (await h.get("/api/capabilities")).body;
+  assert.ok(caps.ledger.length >= 1 && caps.authority.rules.length >= 1);
+  assert.match(capabilitiesHTML(normalizeCapabilities(caps)), /Authority: fixed/);
+  const live = (await h.get("/api/dawn-report")).body;
+  assert.equal(live.ready, false);
+  assert.match(dawnReportHTML(live), /No comparison yet/);
+  const ready = (await harness({ dawn: "ready" }).get("/api/dawn-report")).body;
+  assert.equal(ready.ready, true);
+  assert.equal(ready.dawn.tasks.length, 2);
+  assert.match(dawnReportHTML(ready), /Installed between dusk and dawn/);
+});
+
+test("v3: a finished small-calc run has the demo manuscript and its figure; a running one has none", async () => {
+  const h = harness();
+  const id = h.mock.start("small-calc", { ion: "Na+" });
+  h.tick(2);
+  assert.equal((await h.get(`/api/runs/${id}/manuscript`)).body.content, null);
+  h.tick(10_000);
+  const done = (await h.get(`/api/runs/${id}/manuscript`)).body;
+  assert.equal(done.path, "results/manuscript.md");
+  assert.match(done.content, /^# How strongly does Na⁺ bind/);
+});

@@ -722,7 +722,8 @@ function blockHTML(b, ctx) {
       if (fig && path && ctx.runId) {
         const n = ++ctx.figure;
         const marks = (joined.match(MARKS) || []).join("");
-        const caption = fig[1] || fig[3] || "";
+        // the research protocol asks for ![Figure 1. caption](fig1.png): don't number it twice
+        const caption = (fig[1] || fig[3] || "").replace(/^\s*(?:fig\.?|figure)\s*\d+\s*[.:]\s*/i, "");
         return `<figure class="ms-fig" data-path="${esc(path)}"><div class="ms-fig-frame"><img src="${esc(artifactUrl(ctx.runId, path, ctx.version))}" alt="${esc(caption)}" loading="lazy"></div><figcaption><b>Figure ${n}.</b> ${inlineHTML(caption, ctx)}${marksHTML(marks)}</figcaption></figure>`;
       }
       return `<p>${inlineHTML(joined.replace(/\n/g, " "), ctx)}</p>`;

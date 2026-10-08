@@ -11,6 +11,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='#0b1029'/%3E%3Cg transform='translate(16 16) rotate(-22)' fill='none'%3E%3Cellipse rx='13' ry='6.4' stroke='#4f5bb4' stroke-width='1.1'/%3E%3Cellipse rx='8.4' ry='4.1' stroke='#7d8af0' stroke-width='1.2'/%3E%3C/g%3E%3Ccircle cx='5.6' cy='21.2' r='1.4' fill='#8b97ff'/%3E%3Ccircle cx='26.6' cy='10.9' r='1.4' fill='#8b97ff'/%3E%3Ccircle cx='10.3' cy='13.2' r='1.3' fill='#e9a676'/%3E%3Ccircle cx='21.6' cy='18.9' r='1.3' fill='#e9a676'/%3E%3Ccircle cx='16' cy='16' r='3.6' fill='none' stroke='#c98a2c' stroke-width='.9'/%3E%3Ccircle cx='16' cy='16' r='2.4' fill='#ffb847'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="costs.css">
+<link rel="stylesheet" href="frankenstein.css">
 <script src="theme.js"></script>
 </head>
 <body>
@@ -127,6 +128,10 @@
           <ol class="timeline" id="timeline" aria-label="What the agent did"></ol>
           <div class="working" id="run-working" hidden><span class="spinner"></span><span class="thinking">Working…</span></div>
           <div class="run-end" id="run-end" hidden></div>
+          <details class="sources ms-box" id="run-ms" hidden>
+            <summary><span>Manuscript it wrote</span><span class="count" id="run-ms-stats"></span></summary>
+            <div class="ms-body" id="run-ms-body"></div>
+          </details>
           <details class="sources" id="run-sources" hidden open>
             <summary><span>Papers it cited</span><span class="count" id="run-sources-count">0</span></summary>
             <div class="cite-list" id="run-sources-list"></div>
@@ -145,6 +150,16 @@
           <div class="p-sec-head"><h3 id="h-evo">Run over run</h3><button type="button" class="linklike" id="evo-refresh">Refresh</button></div>
           <p class="evo-intro">After every run Jarvis reads its own trace and writes down what to do differently. The next run starts with those lessons. Here is whether it is getting faster, cheaper and more reliable.</p>
           <div class="evo" id="evo"><div class="task skeleton"></div></div>
+        </section>
+        <section class="p-sec" id="sec-caps" aria-labelledby="h-caps">
+          <div class="p-sec-head"><h3 id="h-caps">Capabilities</h3></div>
+          <p class="evo-intro">When a run's trace shows something missing, Jarvis builds it, tests it in a fresh sandbox, and installs it only if the tests pass and the fixed policy accepts it. Later runs get it.</p>
+          <div class="frank" id="caps"><div class="task skeleton"></div></div>
+        </section>
+        <section class="p-sec" id="sec-dawn" aria-labelledby="h-dawn">
+          <div class="p-sec-head"><h3 id="h-dawn">Dusk → Dawn</h3></div>
+          <p class="evo-intro">The same benchmark tasks run twice: at dusk with nothing learned, at dawn with every lesson and capability. Each number links to its run.</p>
+          <div class="frank" id="dawn"><div class="task skeleton"></div></div>
         </section>
       </div>
     </div>

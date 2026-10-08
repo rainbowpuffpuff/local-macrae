@@ -9,6 +9,8 @@ import {
 import { taskIcon, citeHTML, messageHTML, eventHTML, stepHTML } from "./render.js";
 import { planFromEvents, planHeadline, planCardHTML, runCosts, liveCosts, monotonic, costMeterHTML, byStepHTML, formatUsd, currentPhase } from "./live.js";
 import { normalizeEvolution, evolutionTaskHTML } from "./evolution.js";
+import { normalizeCapabilities, capabilitiesHTML, dawnReportHTML } from "./frankenstein.js";
+import { renderBlocks, manuscriptStats } from "./manuscript.js";
 import { Voice, preloadSdk } from "./voice.js";
 import { setTraceLinks } from "./traces.js";
 import { createCostUI } from "./cost_ui.js";
@@ -46,6 +48,7 @@ const S = {
   lastTyped: null,
   tab: "runs", // the panel's tab: "runs" (tasks, current run, recent runs) or "evolution"
   evo: { raw: null, groups: null, error: "", loading: false, at: 0, lessons: -1 },
+  frank: { caps: null, capsError: "", dawn: null, dawnError: "" }, // GET /api/capabilities, /api/dawn-report
   lessonWatch: new Map(), // run id → {title, until}: runs from this page whose distilled lessons Jarvis should mention
 };
 let runGen = 0;
@@ -469,10 +472,44 @@ function loadEvolution() {
     }
     if (S.tab === "evolution") safe(renderEvolution);
   })();
+  if (S.tab === "evolution") safe(loadFrankenstein); // background refreshes only need the lessons
   return evoInFlight;
 }
 
+// Capabilities and dusk → dawn: each section loads and fails on its own, so one missing route never blanks the tab.
+let frankInFlight = null;
+function loadFrankenstein() {
+  if (frankInFlight) return frankInFlight;
+  const why = (err) => (err.offline ? "offline" : err.status === 404 ? "missing" : err.message);
+  frankInFlight = Promise.all([
+    api("/api/capabilities").then((d) => { S.frank.caps = normalizeCapabilities(d); S.frank.capsError = ""; }, (err) => { S.frank.capsError = why(err); }),
+    api("/api/dawn-report").then((d) => { S.frank.dawn = d; S.frank.dawnError = ""; }, (err) => { S.frank.dawnError = why(err); }),
+  ]).finally(() => {
+    frankInFlight = null;
+    if (S.tab === "evolution") safe(renderFrankenstein);
+  });
+  return frankInFlight;
+}
+
+function frankErrorHTML(error, route, what) {
+  return `<div class="empty-card">${
+    error === "offline" ? `<b>Jarvis is offline</b><p>${esc(what)} come back with the backend.</p>`
+    : error === "missing" ? `<b>Not on this backend</b><p><code>${esc(route)}</code> isn't there yet.</p>`
+    : `<b>Couldn't load ${esc(what.toLowerCase())}</b><p>${esc(error || "No answer.")}</p>`
+  }</div>`;
+}
+
+function renderFrankenstein() {
+  const f = S.frank;
+  if (!f.caps && !f.capsError && !f.dawn && !f.dawnError) return void loadFrankenstein(); // renders when it lands
+  if (f.caps) $("#caps").innerHTML = capabilitiesHTML(f.caps);
+  else if (f.capsError) $("#caps").innerHTML = frankErrorHTML(f.capsError, "GET /api/capabilities", "Capabilities");
+  if (f.dawn) $("#dawn").innerHTML = dawnReportHTML(f.dawn);
+  else if (f.dawnError) $("#dawn").innerHTML = frankErrorHTML(f.dawnError, "GET /api/dawn-report", "Benchmark results");
+}
+
 function renderEvolution() {
+  safe(renderFrankenstein);
   const box = $("#evo");
   const g = S.evo.groups;
   if (!g) {
@@ -526,6 +563,8 @@ function openRun(id, { seq } = {}) {
   $("#run-steps").innerHTML = "";
   $("#timeline").innerHTML = "";
   $("#run-end").hidden = true;
+  $("#run-ms").hidden = true;
+  $("#run-ms-body").innerHTML = "";
   $("#run-notice").hidden = true;
   $("#run-sources").hidden = true;
   $("#run-working").hidden = false;
@@ -665,6 +704,7 @@ async function finishRun(gen) {
       ? `<span>✅</span><span><b>Finished${took !== null ? ` in ${esc(formatDuration(took))}` : ""}${costs ? ` for ${esc(formatUsd(costs.total))}` : ""}.</b> ${esc([plural(s.papers, "paper"), plural(s.calc, "calculation"), plural(s.write, "file")].join(" · "))}</span>`
       : `<span>⚠️</span><span><b>${esc(st.label)}.</b> ${esc(lastError ? truncate(lastError.title, 160) : "The run did not finish.")}</span>`;
   end.hidden = false;
+  safe(loadManuscript, r);
   if (!r.told) {
     r.told = true;
     voice.context(`Run ${r.id} (${h.title}) finished with status ${h.status}. ${plural(s.papers, "paper")} read, ${plural(s.calc, "calculation")}.${spent ? ` It cost ${spent}.` : ""}`);
@@ -1032,6 +1072,58 @@ $("#thread").addEventListener("click", (e) => {
       setTimeout(() => card.classList.remove("flash"), 1500);
     }
   }
+});
+
+// ---------- the manuscript a finished run wrote (GET /api/runs/{id}/manuscript, web/manuscript.js) ----------
+// The final text, rendered with its math, figures and [n] citations. Runs without a manuscript keep it hidden.
+let katexLoad = null;
+function loadKatex() {
+  if (window.katex) return Promise.resolve(window.katex);
+  katexLoad ||= new Promise((ok, fail) => {
+    const css = document.createElement("link");
+    css.rel = "stylesheet";
+    css.href = "/vendor/katex/katex.min.css";
+    document.head.append(css);
+    const js = document.createElement("script");
+    js.src = "/vendor/katex/katex.min.js";
+    js.onload = () => (window.katex ? ok(window.katex) : fail(new Error("no katex")));
+    js.onerror = () => fail(new Error("katex didn't load"));
+    document.head.append(js);
+  });
+  return katexLoad;
+}
+
+async function loadManuscript(r) {
+  if (r.ms) return;
+  let data;
+  try {
+    data = await api(`/api/runs/${encodeURIComponent(r.id)}/manuscript`);
+  } catch {
+    return; // older backends and runs without one: nothing to show
+  }
+  if (!current(r.gen) || !data || typeof data.content !== "string" || !data.content.trim()) return;
+  r.ms = { content: data.content, path: String(data.path || "") };
+  renderManuscript(r);
+  loadKatex().then(() => current(r.gen) && renderManuscript(r), () => {});
+}
+
+function renderManuscript(r) {
+  const st = manuscriptStats(r.ms.content);
+  $("#run-ms-stats").textContent = [plural(st.words, "word"), st.equations ? plural(st.equations, "equation") : "", st.figures ? plural(st.figures, "figure") : ""].filter(Boolean).join(" · ");
+  $("#run-ms-body").innerHTML = renderBlocks(r.ms.content, { katex: window.katex || null, runId: r.id, path: r.ms.path }).map((b) => b.html).join("");
+  $("#run-ms").hidden = false;
+}
+
+// [n] in the manuscript: open the same source in "Papers it cited", when the run cited it.
+$("#run-ms-body").addEventListener("click", (e) => {
+  const ref = e.target.closest(".ref");
+  if (!ref) return;
+  const card = document.querySelector(`#run-sources-list .cite[data-key="${CSS.escape(ref.dataset.ref || "")}"]`);
+  if (!card) return toast("That source isn't in this run's cited papers.");
+  $("#run-sources").open = true;
+  card.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  card.classList.add("flash");
+  setTimeout(() => card.classList.remove("flash"), 1500);
 });
 
 // ---------- voice ----------

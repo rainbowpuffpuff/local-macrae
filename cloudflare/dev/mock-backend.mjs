@@ -4,6 +4,10 @@
 //   PORT=9000 MACRAE_TOOL_SECRET=x MOCK_SPEED=4 node cloudflare/dev/mock-backend.mjs
 //   MOCK_PLANNER=fail …                              (the planner "fails": the plan event says the defaults were used)
 //   MOCK_HISTORY=0 …                                 (no seeded past runs, lessons or evolution metrics)
+//   MOCK_DAWN=ready …                                (an illustrative, finished dusk → dawn report instead of the real one)
+// GET /api/capabilities and GET /api/dawn-report (v3) answer with what the live site had before the final deploy
+// (proof/live-before-final-deploy/): one capability gap, built, tested, and rejected because its tests failed in a
+// fresh sandbox; no benchmark yet. MOCK_DAWN=ready swaps in a made-up finished report for working on the page.
 // Runs play a scripted trace live (~40 s for methods-card/small-calc, ~100 s for the BFF task; divide by MOCK_SPEED):
 // the planner's decision first (type "plan", with its token cost), then every tool call as it happens, each agent event
 // with its own `cost` and `elapsed_s`. GET /api/runs/{id} carries `costs` (LLM + compute, tokens, per step, per phase)
@@ -18,6 +22,40 @@ import { fileURLToPath } from "node:url";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const PUBS_FILE = path.resolve(HERE, "../../data/group_publications.json");
+const LIVE_DIR = path.resolve(HERE, "../../proof/live-before-final-deploy");
+// A real small-calc manuscript and its figure (research/demo/small-calc-na), served for every finished small-calc run.
+const DEMO_DIR = path.resolve(HERE, "../../research/demo/small-calc-na");
+
+function readLive(name, fallback) {
+  try {
+    return JSON.parse(fs.readFileSync(path.join(LIVE_DIR, name), "utf8"));
+  } catch {
+    return fallback;
+  }
+}
+
+// Made up (MOCK_DAWN=ready only): the shape of evolve/benchmark.py report() with both sides done.
+function illustrativeDawn(t) {
+  const row = (label, run_id, o) => ({ label, task_id: "small-calc", run_id, status: "ok", ok: true, reward: 1, errors: 0, error_titles: [], capabilities_used: [], lessons_used: 0, ...o });
+  const dusk = [row("small-calc Na+", "20261008-230000-small-calc-dk01", { wall_s: 355, setup_s: 41, install_s: 39, llm_usd: 0.271, compute_usd: 0.006, total_usd: 0.277, errors: 2 }),
+    row("small-calc K+", "20261008-230010-small-calc-dk02", { wall_s: 300, setup_s: 44, install_s: 41, llm_usd: 0.242, compute_usd: 0.005, total_usd: 0.247, errors: 1 })];
+  const dawn = [row("small-calc Na+", "20261008-234000-small-calc-dw01", { wall_s: 210, setup_s: 4, install_s: 0, llm_usd: 0.18, compute_usd: 0.004, total_usd: 0.184, capabilities_used: ["calc-image"], lessons_used: 6 }),
+    row("small-calc K+", "20261008-234010-small-calc-dw02", { wall_s: 190, setup_s: 3, install_s: 0, llm_usd: 0.17, compute_usd: 0.004, total_usd: 0.174, capabilities_used: ["calc-image"], lessons_used: 6 })];
+  const sum = (rows, k) => Number(rows.reduce((a, r) => a + (r[k] || 0), 0).toFixed(4));
+  const totals = (rows) => ({ n: rows.length, done: rows.length, ok: rows.length, ok_rate: 1, wall_s: sum(rows, "wall_s"), setup_s: sum(rows, "setup_s"), install_s: sum(rows, "install_s"), llm_usd: sum(rows, "llm_usd"), compute_usd: sum(rows, "compute_usd"), total_usd: sum(rows, "total_usd"), errors: sum(rows, "errors"), capabilities_used: rows.some((r) => r.capabilities_used.length) ? 1 : 0 });
+  const d = (a, b) => ({ dusk: a, dawn: b, delta: Number((b - a).toFixed(4)), pct: a ? Number(((100 * (b - a)) / a).toFixed(1)) : null, better: b === a ? null : b < a });
+  const td = totals(dusk);
+  const tw = totals(dawn);
+  const delta = Object.fromEntries(["wall_s", "setup_s", "llm_usd", "compute_usd", "total_usd", "errors"].map((k) => [k, d(td[k], tw[k])]));
+  delta.by_task = Object.fromEntries(dawn.map((b, i) => [b.label, Object.fromEntries(["wall_s", "setup_s", "total_usd", "errors"].map((k) => [k, d(dusk[i][k], b[k])]))]));
+  return {
+    dusk: { id: "dusk-mock", mode: "dusk", status: "done", started: t - 7200, finished: t - 6600, tasks: dusk, totals: td },
+    dawn: { id: "dawn-mock", mode: "dawn", status: "done", started: t - 3600, finished: t - 3200, tasks: dawn, totals: tw },
+    delta, ready: true, generated: t,
+    capabilities_installed_between: [{ name: "calc-image", version: "1", kind: "image", t: t - 4000, purpose: "Sandbox image with pinned PySCF, numpy and matplotlib in /opt/calc", forge_run: "20261008-232000-forge-mk01", gap_run: dusk[0].run_id, why: "the agent spent 39 s installing packages and pyscf was not importable" }],
+    runs: dawn.map((b, i) => ({ label: b.label, task_id: b.task_id, dusk: dusk[i].run_id, dawn: b.run_id })),
+  };
+}
 
 const FALLBACK_PUBS = [
   { title: "Specific ion effects at the air/water interface", authors: "P. Jungwirth; D. J. Tobias", year: 2006, journal: "Chem. Rev.", doi: "10.1021/cr0403741" },
@@ -271,7 +309,7 @@ const HISTORY = {
   },
 };
 
-export function createMock({ secret = "dev-secret", speed = 1, now = () => Date.now() / 1000, planner = "ok", history = true } = {}) {
+export function createMock({ secret = "dev-secret", speed = 1, now = () => Date.now() / 1000, planner = "ok", history = true, dawn = "live" } = {}) {
   const pubs = loadPubs();
   const tasks = TASKS(pubs);
   const runs = new Map();
@@ -563,11 +601,33 @@ export function createMock({ secret = "dev-secret", speed = 1, now = () => Date.
       const all = events(run);
       return send(200, { events: all.filter((e) => e.seq > after), done: isDone(run) && all.length === run.events.length });
     }
+    if ((m = p.match(/^\/api\/runs\/([^/]+)\/manuscript$/))) {
+      const run = runs.get(decodeURIComponent(m[1]));
+      if (!run) return send(404, { detail: "no such run" });
+      let content = null;
+      try {
+        if (run.task_id === "small-calc" && isDone(run) && !run.failed) content = fs.readFileSync(path.join(DEMO_DIR, "manuscript.md"), "utf8");
+      } catch {}
+      return send(200, { run_id: run.run_id, path: "results/manuscript.md", edits: [], content, figures: content ? ["results/fig1.png"] : [] });
+    }
+    if ((m = p.match(/^\/api\/runs\/([^/]+)\/artifacts\/results\/fig1\.png$/))) {
+      try {
+        const png = fs.readFileSync(path.join(DEMO_DIR, "fig1.png"));
+        res.writeHead(200, { "content-type": "image/png" });
+        return res.end(png);
+      } catch {
+        return send(404, { detail: "no such image in this run" });
+      }
+    }
     if ((m = p.match(/^\/api\/runs\/([^/]+)$/))) {
       const run = runs.get(decodeURIComponent(m[1]));
       return run ? send(200, summary(run)) : send(404, { detail: "no such run" });
     }
     if (p === "/api/evolution" && req.method === "GET") return send(200, evolution());
+    if (p === "/api/capabilities" && req.method === "GET") return send(200, readLive("capabilities.json", { capabilities: [], ledger: [], authority: { rules: [] }, forges: [], counts: {} }));
+    if (p === "/api/dawn-report" && req.method === "GET") {
+      return send(200, dawn === "ready" ? illustrativeDawn(now()) : readLive("dawn-report.json", { dusk: null, dawn: null, delta: null, capabilities_installed_between: [], runs: [], ready: false }));
+    }
     if (p === "/api/search" && req.method === "POST") {
       const seconds = 0.2 + Math.random() * 0.4;
       const compute = Number((seconds * BACKEND_USD_S).toFixed(8));
@@ -618,6 +678,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     speed: Number(process.env.MOCK_SPEED || 1),
     planner: process.env.MOCK_PLANNER === "fail" ? "fail" : "ok",
     history: process.env.MOCK_HISTORY !== "0",
+    dawn: process.env.MOCK_DAWN === "ready" ? "ready" : "live",
   });
   console.log(`mock backend on http://127.0.0.1:${port} (secret: ${process.env.MACRAE_TOOL_SECRET || "dev-secret"})`);
 }
