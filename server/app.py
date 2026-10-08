@@ -105,6 +105,11 @@ def require_secret(x_macrae_secret: Optional[str] = Header(default=None)) -> Non
 
 auth = [Depends(require_secret)]
 
+# costs for people: price table, estimates before a task starts, `cost` on every chat answer (server/cost_api.py)
+from . import cost_api  # noqa: E402
+
+cost_api.install(app, auth)
+
 
 @app.get("/api/health")
 def health() -> dict:

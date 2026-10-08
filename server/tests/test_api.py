@@ -163,7 +163,8 @@ def test_search(env, client, fake_modules):
     assert set(p) == {"id", "text", "score", "citation"}
     assert set(p["citation"]) == {"key", "title", "authors", "year", "journal", "doi", "page", "url", "quote"}
     assert p["citation"]["key"] == "[1]"
-    assert client.post("/api/search", json={"query": "  "}).json() == {"passages": []}
+    empty = client.post("/api/search", json={"query": "  "}).json()
+    assert empty["passages"] == [] and set(empty) == {"passages", "cost"}  # cost: server/cost_api.py
     assert client.post("/api/search", json={"query": "x", "k": 0}).status_code == 422
 
 

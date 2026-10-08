@@ -10,6 +10,16 @@ LLM cost per Claude Code session, best source first: Claude Code's own total (`t
 final `result` line, or Harbor's result.json `agent_result.cost_usd`), else tokens × PRICES. The planner's call
 is its own step, "plan". Compute = sandbox seconds × the hardware's per-second rate (COMPUTE_RATES); only steps
 that ran on Modal are charged; script steps run on the backend and cost nothing extra here.
+
+Where the numbers come from (all list prices, USD, looked up on 2026-10-08; `price_table()` serves them to the page
+with these links, so every figure on the site can be traced back):
+  - Claude API: https://platform.claude.com/docs/en/about-claude/pricing ("Model pricing" and "Prompt caching").
+  - Modal: https://modal.com/pricing. Harbor's `--env modal` runs each agent step in a Modal *Sandbox*, so CPU and
+    memory use the "Modal Sandbox + Notebooks pricing" rates (about 3x the plain Functions rates); GPUs use the
+    standard GPU table.
+  - The backend itself (typed answers, script steps): Cloudflare Containers, instance standard-1,
+    https://developers.cloudflare.com/containers/pricing/
+  - Voice: ElevenLabs Agents, per conversation minute, https://elevenlabs.io/pricing/api
 """
 
 from __future__ import annotations
@@ -22,20 +32,31 @@ from pathlib import Path
 from typing import Any, Optional
 
 # ── prices ──────────────────────────────────────────────────────────────────
+PRICES_AS_OF = "2026-10-08"
+PRICING_SOURCES: dict[str, dict[str, str]] = {
+    "anthropic": {"label": "Claude API list prices", "url": "https://platform.claude.com/docs/en/about-claude/pricing"},
+    "modal": {"label": "Modal sandbox and GPU prices", "url": "https://modal.com/pricing"},
+    "backend": {"label": "Cloudflare Containers prices", "url": "https://developers.cloudflare.com/containers/pricing/"},
+    "voice": {"label": "ElevenLabs Agents prices", "url": "https://elevenlabs.io/pricing/api"},
+}
+
 # USD per million tokens: (input, output, cache read, cache write 5 min). A 1-hour cache write is 2× input.
-# Source: Anthropic list prices (platform.claude.com pricing, as of 2026-10-06). First-party API rates; a Claude
-# subscription login (AGENT_RUNNER_TOKEN_*) is not billed per token, so for those runs this is the API-equivalent.
+# Source: https://platform.claude.com/docs/en/about-claude/pricing, model pricing table, as of 2026-10-08. Cache reads
+# are 0.1× input, except 0.05× on Opus 5.5 / Sonnet 5.5 and 0.025× on Fable 5.1 / Mythos 5.1. First-party API rates;
+# a Claude subscription login (AGENT_RUNNER_TOKEN_*) is not billed per token, so for those runs this is the
+# API-equivalent.
 PRICES: dict[str, tuple[float, float, float, float]] = {
     "claude-fable-5-1": (10.0, 50.0, 0.25, 12.5),
     "claude-mythos-5-1": (10.0, 50.0, 0.25, 12.5),
     "claude-fable-5": (10.0, 50.0, 1.0, 12.5),
+    "claude-mythos-5": (10.0, 50.0, 1.0, 12.5),
     "claude-opus-5-5": (4.0, 20.0, 0.20, 5.0),
     "claude-opus-5": (5.0, 25.0, 0.50, 6.25),
     "claude-opus-4-8": (5.0, 25.0, 0.50, 6.25),
     "claude-opus-4-7": (5.0, 25.0, 0.50, 6.25),
     "claude-opus-4-6": (5.0, 25.0, 0.50, 6.25),
     "claude-opus-4-5": (5.0, 25.0, 0.50, 6.25),
-    "claude-sonnet-5-5": (2.0, 10.0, 0.20, 2.5),
+    "claude-sonnet-5-5": (2.0, 10.0, 0.10, 2.5),
     "claude-sonnet-5": (2.0, 10.0, 0.20, 2.5),
     "claude-sonnet-4-6": (3.0, 15.0, 0.30, 3.75),
     "claude-sonnet-4-5": (3.0, 15.0, 0.30, 3.75),
@@ -43,20 +64,40 @@ PRICES: dict[str, tuple[float, float, float, float]] = {
     "claude-haiku-5-5": (0.10, 0.50, 0.01, 0.125),
     "claude-haiku-4-5": (1.0, 5.0, 0.10, 1.25),
 }
+# Haiku 5.5 is priced by prompt length: a request whose prompt (input + cache read + cache write) is over 100,000
+# tokens pays these instead (same source).
+LONG_PROMPT_PRICES: dict[str, tuple[int, tuple[float, float, float, float]]] = {
+    "claude-haiku-5-5": (100_000, (0.50, 2.50, 0.05, 0.625)),
+}
 FAMILY_DEFAULT = {"fable": "claude-fable-5-1", "mythos": "claude-mythos-5-1", "opus": "claude-opus-5-5",
                   "sonnet": "claude-sonnet-5-5", "haiku": "claude-haiku-5-5"}
 UNKNOWN_MODEL = "claude-sonnet-5-5"  # Harbor's claude-code agent without -m uses Claude Code's default model
 
 # ── compute ─────────────────────────────────────────────────────────────────
-# Modal list prices in USD per second (modal.com/pricing as known on 2026-10-08: CPU per physical core, memory per
-# GiB, GPU per device). Sandboxes are billed by the same meters. Override any of them without a deploy:
-# MACRAE_COMPUTE_RATES='{"cpu_core_s": 0.0000131, "gpu_s": {"a10g": 0.000306}}'.
+# Modal list prices in USD per second, from https://modal.com/pricing as of 2026-10-08. Agent steps run in Modal
+# Sandboxes (Harbor --env modal), billed per physical core (= 2 vCPU) and per GiB at the "Modal Sandbox + Notebooks"
+# rates: $0.00003942/core/s and $0.00000667/GiB/s (plain Functions would be $0.0000131 and $0.00000222). GPUs: the
+# standard per-device table (the page calls the A10G "A10"). Region pinning (1.15-1.75×) and non-preemptible (3×)
+# are not used here. Override any of them without a deploy:
+# MACRAE_COMPUTE_RATES='{"cpu_core_s": 0.00003942, "gpu_s": {"a10g": 0.000306}}'.
 COMPUTE_RATES: dict[str, Any] = {
-    "cpu_core_s": 0.0000131,
-    "mem_gib_s": 0.00000222,
+    "cpu_core_s": 0.00003942,
+    "mem_gib_s": 0.00000667,
     "gpu_s": {"t4": 0.000164, "l4": 0.000222, "a10g": 0.000306, "l40s": 0.000542, "a100": 0.000583,
-              "a100-80gb": 0.000694, "h100": 0.001097, "h200": 0.001261, "b200": 0.001736},
+              "a100-80gb": 0.000694, "rtx-pro-6000": 0.000842, "h100": 0.001097, "h200": 0.001261,
+              "b200": 0.001736, "b300": 0.001972},
 }
+
+# The backend container (Cloudflare Containers, instance standard-1: 1/2 vCPU, 4 GiB, 8 GB disk), USD per second,
+# from https://developers.cloudflare.com/containers/pricing/ as of 2026-10-08: $0.000020/vCPU-s (active use only),
+# $0.0000025/GiB-s and $0.00000007/GB-s (provisioned), beyond the Workers Paid plan's included usage. A typed answer
+# is charged its request seconds with the CPU counted as busy, so it is an upper bound.
+BACKEND_RATES: dict[str, float] = {"vcpu_s": 0.000020, "mem_gib_s": 0.0000025, "disk_gb_s": 0.00000007}
+BACKEND_INSTANCE: dict[str, Any] = {"name": "standard-1", "vcpu": 0.5, "mem_gib": 4, "disk_gb": 8}
+
+# Voice: ElevenLabs Agents, USD per conversation minute (https://elevenlabs.io/pricing/api, as of 2026-10-08; the
+# LLM behind the voice agent is billed by ElevenLabs on top and isn't visible here). MACRAE_VOICE_USD_PER_MIN overrides.
+VOICE_USD_PER_MIN = 0.08
 
 # What the planner may choose. cores = Modal physical cores; mem in GiB.
 HARDWARE: dict[str, dict[str, Any]] = {
@@ -99,6 +140,21 @@ def hardware_rate(hw: str) -> float:
     if spec["gpu"]:
         usd += float(r["gpu_s"].get(spec["gpu"], 0.0))
     return usd
+
+
+def backend_rate() -> float:
+    """USD per second for the backend container while it serves a request (CPU counted as busy)."""
+    i = BACKEND_INSTANCE
+    return (i["vcpu"] * BACKEND_RATES["vcpu_s"] + i["mem_gib"] * BACKEND_RATES["mem_gib_s"] +
+            i["disk_gb"] * BACKEND_RATES["disk_gb_s"])
+
+
+def voice_usd_per_min() -> float:
+    try:
+        v = float(os.environ.get("MACRAE_VOICE_USD_PER_MIN", "") or VOICE_USD_PER_MIN)
+        return v if v >= 0 else VOICE_USD_PER_MIN
+    except ValueError:
+        return VOICE_USD_PER_MIN
 
 
 def hardware_options() -> list[dict]:
@@ -150,9 +206,22 @@ def norm_usage(u: Any) -> dict[str, int]:
             "cache_write": n("cache_creation_input_tokens", "cache_write"), "cache_write_1h": one_h}
 
 
-def llm_usd(model: str, tokens: dict[str, int]) -> float:
+def model_prices(model: str, tokens: Optional[dict[str, int]] = None) -> tuple[float, float, float, float]:
+    """(input, output, cache read, cache write 5 min) per million tokens. With `tokens` of ONE request, a long prompt
+    picks the long-prompt tier where the model has one (Haiku 5.5 over 100k)."""
     key, _ = price_key(model)
-    p_in, p_out, p_read, p_write = PRICES[key]
+    long = LONG_PROMPT_PRICES.get(key)
+    if long and tokens is not None:
+        prompt = tokens.get("in", 0) + tokens.get("cache_read", 0) + tokens.get("cache_write", 0)
+        if prompt > long[0]:
+            return long[1]
+    return PRICES[key]
+
+
+def llm_usd(model: str, tokens: dict[str, int], one_request: bool = False) -> float:
+    """Token cost. `one_request`: the tokens are a single API call's, so prompt-length tiers apply (sums of many
+    calls use the base tier)."""
+    p_in, p_out, p_read, p_write = model_prices(model, tokens if one_request else None)
     w1h = min(tokens.get("cache_write_1h", 0), tokens.get("cache_write", 0))
     w5m = tokens.get("cache_write", 0) - w1h
     return (tokens.get("in", 0) * p_in + tokens.get("out", 0) * p_out + tokens.get("cache_read", 0) * p_read +
@@ -225,7 +294,8 @@ class Session:
         if self.reported_usd is not None:
             return self.reported_usd, True
         if self.msgs:
-            return sum(llm_usd(self.msg_models.get(mid) or self.model, u) for mid, u in self.msgs.items()), False
+            return sum(llm_usd(self.msg_models.get(mid) or self.model, u, one_request=True)
+                       for mid, u in self.msgs.items()), False
         return llm_usd(self.model, self.tokens()), False
 
 
@@ -456,3 +526,42 @@ def save(run_dir: Path, costs: dict) -> None:
         tmp.replace(run_dir / "costs.json")
     except OSError:
         pass
+
+
+# ── for the page: one answer, and the price table ────────────────────────────
+
+
+def answer_cost(seconds: float, model: str = "", usage: Any = None) -> dict:
+    """The `cost` of one chat answer: the LLM call it made (if any: `model` + Anthropic `usage`) and the backend's
+    time serving it. {"llm_usd", "compute_usd", "total_usd", "seconds", "model", "tokens", "compute": "backend"}"""
+    tk = norm_usage(usage) if usage else {}
+    llm = llm_usd(model, tk, one_request=True) if model and sum(tk.values()) else 0.0
+    secs = max(0.0, float(seconds or 0))
+    compute = secs * backend_rate()
+    return {"llm_usd": round(llm, 6), "compute_usd": round(compute, 8), "total_usd": round(llm + compute, 8),
+            "seconds": round(secs, 3), "model": price_key(model)[0] if model else "", "tokens": public_tokens(tk),
+            "compute": "backend"}
+
+
+def price_table() -> dict:
+    """Every rate the site uses, with where it came from: GET /api/costs/prices (the "what this cost" popover)."""
+    r = rates()
+    models = []
+    for k, (p_in, p_out, p_read, p_write) in PRICES.items():
+        row = {"id": k, "input": p_in, "output": p_out, "cache_read": p_read, "cache_write_5m": p_write,
+               "cache_write_1h": round(2 * p_in, 4)}
+        if k in LONG_PROMPT_PRICES:
+            above, (l_in, l_out, l_read, l_write) = LONG_PROMPT_PRICES[k]
+            row["long_prompt"] = {"above_tokens": above, "input": l_in, "output": l_out, "cache_read": l_read,
+                                  "cache_write_5m": l_write}
+        models.append(row)
+    return {
+        "as_of": PRICES_AS_OF, "currency": "USD", "sources": PRICING_SOURCES,
+        "llm": {"unit": "per million tokens", "models": models},
+        "compute": {"unit": "per second", "cpu_core_s": r["cpu_core_s"], "mem_gib_s": r["mem_gib_s"],
+                    "gpu_s": r["gpu_s"], "note": "Modal Sandbox rates (Harbor --env modal); a core is 2 vCPU",
+                    "hardware": hardware_options()},
+        "backend": {"unit": "per second", **BACKEND_RATES, "instance": BACKEND_INSTANCE,
+                    "usd_per_hour": round(backend_rate() * 3600, 4)},
+        "voice": {"usd_per_min": voice_usd_per_min(), "note": "ElevenLabs Agents per minute; its LLM is billed on top"},
+    }
