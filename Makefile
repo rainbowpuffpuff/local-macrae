@@ -15,8 +15,9 @@ WITH_ENV = eval "$$($(PY) deploy/envtool.py export $(ENV_FILE))";
 # test folders that exist (each module ships its own). Default (prepend) import mode, same as a bare `pytest` at the
 # root: server/tests import helpers with `from conftest import …`, which importlib mode can't resolve. Test file
 # basenames must therefore stay unique across modules (rag/ and tasks/ tests are packages, so theirs are free).
-TEST_DIRS = $(wildcard tests server/tests rag/tests tasks/tests voice/tests deploy/tests)
-REQS      = $(wildcard server/requirements.txt rag/requirements.txt tasks/requirements.txt deploy/requirements.txt)
+TEST_DIRS = $(wildcard tests server/tests rag/tests tasks/tests voice/tests deploy/tests evolve/tests)
+REQS      = $(wildcard server/requirements.txt rag/requirements.txt tasks/requirements.txt deploy/requirements.txt \
+              evolve/requirements.txt)
 
 # Public URL: the Cloudflare Worker (saved by cloudflare/deploy.sh), else the AWS backend (deploy/aws_deploy.sh).
 PUBLIC_URL = $$(sed -n 's/^WORKER_URL=//p' deploy/.state/cloudflare.env 2>/dev/null | tail -1)
@@ -29,7 +30,7 @@ PUBLIC_URL = $$(sed -n 's/^WORKER_URL=//p' deploy/.state/cloudflare.env 2>/dev/n
 help: ## list targets
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  \033[1m%-16s\033[0m %s\n", $$1, $$2}'
 
-install: ## pip install agent_runner (-e) and the server/rag/tasks requirements
+install: ## pip install agent_runner (-e) and the server/rag/tasks/deploy/evolve requirements
 	$(PY) -m pip install -e ".[test]" $(addprefix -r ,$(REQS))
 
 index: ## build the RAG index: papers/ → index/ (python -m rag ingest)

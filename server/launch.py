@@ -86,14 +86,36 @@ def _fail_run(run_dir: Path, run_id: str, name: str, error: str) -> None:
         pass
 
 
-def _plan_and_start(run_dir: Path, run_id: str, task: dict, inputs: dict, flow_file: Path, base_vars: dict,
-                    flow_name: str) -> None:
+MODES = ("dawn", "dusk")
+
+
+def export_capabilities(run_dir: Path, task_id: str, mode: str) -> dict:
+    """<run>/capabilities.json (+ the folder agent_runner uploads as /app/capabilities). Never fails a start."""
     try:
-        lessons = evolution.lessons(task["id"])
-        rec = planner.make_plan(task, inputs, flow_file, lessons, run_dir=run_dir)
+        caps = bridges._import("evolve.capabilities")
+        if caps.env_off():
+            return {}
+        return caps.export(run_dir, task_id, mode)
+    except bridges.Unavailable:
+        return {}
+    except Exception as e:
+        log.warning("capability export for %s failed: %s", run_dir.name, e)
+        return {}
+
+
+def _plan_and_start(run_dir: Path, run_id: str, task: dict, inputs: dict, flow_file: Path, base_vars: dict,
+                    flow_name: str, mode: str = "dawn") -> None:
+    try:
+        dusk = mode == "dusk"
+        learned = {"lessons": "", "tools_dir": ""} if dusk else evolution.flow_vars(task["id"])
+        caps = export_capabilities(run_dir, task["id"], mode)
+        cap_text = "" if dusk else str(caps.get("instruction") or "")
+        rec = planner.make_plan(task, inputs, flow_file, learned["lessons"], run_dir=run_dir,
+                                capabilities=cap_text if caps.get("mounted") or caps.get("image") else "")
         vars_ = dict(base_vars)
-        vars_["lessons"] = lessons
+        vars_.update(learned)
         vars_.update(planner.flow_vars(rec))
+        vars_["evolve_mode"] = mode
         spawn_engine(flow_file, run_id, vars_)
         log.info("run %s: plan %s (%s), engine started", run_id, rec.get("status"), rec.get("hardware"))
     except Exception as e:
@@ -101,9 +123,12 @@ def _plan_and_start(run_dir: Path, run_id: str, task: dict, inputs: dict, flow_f
         _fail_run(run_dir, run_id, flow_name, f"could not start the flow engine: {type(e).__name__}: {e}")
 
 
-def start(task: dict, inputs: dict, origin: Optional[str] = None, wait: bool = False) -> str:
+def start(task: dict, inputs: dict, origin: Optional[str] = None, wait: bool = False, mode: str = "dawn",
+          meta_extra: Optional[dict] = None) -> str:
     """Start the task (inputs already checked by app._resolve_inputs). Raises bridges.Unavailable, KeyError,
-    ValueError or FileNotFoundError like tasks.runner.start."""
+    ValueError or FileNotFoundError like tasks.runner.start. mode "dusk" (the benchmark's from-scratch state):
+    no lessons, no earlier scripts, no capabilities mounted or built; "dawn" (default): everything learned."""
+    mode = mode if mode in MODES else "dawn"
     runner = bridges.runner_module()
     if not all(hasattr(runner, f) for f in ("get_task", "flow_path", "build_vars")):
         return _start_v1(runner, task, inputs)
@@ -123,13 +148,14 @@ def start(task: dict, inputs: dict, origin: Optional[str] = None, wait: bool = F
     live.setup_run(run_dir, url)
     meta = {"run_id": run_id, "task_id": task["id"], "title": task.get("title") or task["id"],
             "inputs": {k: base_vars.get(k, v) for k, v in inputs.items()}, "flow": str(flow_file),
-            "started": time.time(), "live_url": url}
+            "started": time.time(), "live_url": url, "mode": mode}
+    meta.update(meta_extra or {})
     try:
         (run_dir / "macrae.json").write_text(json.dumps(meta, indent=1, ensure_ascii=False))
     except OSError:
         pass
     args = (run_dir, run_id, dict(rtask, **{k: task[k] for k in ("hardware", "budget_usd") if k in task}),
-            inputs, flow_file, base_vars, name)
+            inputs, flow_file, base_vars, name, mode)
     if wait:
         _plan_and_start(*args)
     else:

@@ -58,7 +58,8 @@ class RunLog:
         except OSError:
             self.path = None  # read-only disk: keep going in memory
 
-    def merge(self, cands: list[trace.Cand], final: bool) -> None:
+    def merge(self, cands: list[trace.Cand], final: bool) -> list[dict]:
+        """Append the candidates not seen yet; returns the new events (each with its "_keys")."""
         new = [c for c in cands if not any(k in self.keys for k in c.keys)]
         # keep the builder's order for equal times; the run's final event goes last
         new = [c for _, c in sorted(enumerate(new), key=lambda ic: (ic[1].last, ic[1].t, ic[0]))]
@@ -74,6 +75,7 @@ class RunLog:
             self.final = True
             recs.append({"final": True})
         self._write(recs)
+        return [dict(r["event"], _keys=r["keys"]) for r in recs if "event" in r]
 
 
 _logs: dict[str, RunLog] = {}
@@ -103,9 +105,17 @@ def _refreshed(run_id: str) -> Optional[tuple[RunLog, bool]]:
     summary = runs.summarize(state)
     terminal = summary["status"] in runs.TERMINAL
     lg = _log_for(run_id)
+    new: list[dict] = []
     with lg.lock:
         if not lg.final:
-            lg.merge(trace.build(state, summary["title"]), final=terminal)
+            new = lg.merge(trace.build(state, summary["title"]), final=terminal)
+    if new:
+        try:
+            from . import capabilities
+            capabilities.on_events(run_id, summary, new)  # v3: gap → ledger (+ a forge run), use → ledger
+        except Exception:
+            import logging
+            logging.getLogger("macrae.server").exception("capability hook for %s failed", run_id)
     if terminal and summary.get("task_id"):
         try:
             from . import evolution

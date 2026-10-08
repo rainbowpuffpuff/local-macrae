@@ -1169,30 +1169,16 @@ async function ask(text) {
     addMsg({ role: "jarvis", bad: true, text: "I can't reach the papers right now: my backend is offline. Try again in a minute; this page keeps checking and the banner goes away when I'm back." });
     return;
   }
-  const id = addMsg({ role: "jarvis", pending: true, text: "Thinking…" });
+  const id = addMsg({ role: "jarvis", pending: true, text: "Searching the papers…" });
   try {
-    const data = await api("/api/chat", { method: "POST", body: { session: chatSession(), message: q }, timeout: 90_000 });
-    const citations = numberCitations(normalizeCitations(Array.isArray(data.citations) ? data.citations : []));
-    addMsg({ id, role: "jarvis", pending: false, text: data.answer || "", citations, cost: data.cost || null });
+    const data = await api("/api/search", { method: "POST", body: { query: q, k: 6 }, timeout: 30_000 });
+    const { text: answer, citations } = passagesAnswer(Array.isArray(data.passages) ? data.passages : []);
+    addMsg({ id, role: "jarvis", pending: false, text: answer, citations });
   } catch (err) {
     addMsg({
       id, role: "jarvis", pending: false, bad: true,
-      text: err.offline ? "I can't reach my backend right now. Try again in a minute; this page keeps checking." : `Sorry, that didn't go through: ${err.message}`,
+      text: err.offline ? "I can't reach the papers right now: my backend is offline. Try again in a minute." : `The search failed: ${err.message}`,
     });
-  }
-}
-
-// One anonymous chat session per browser, so Jarvis remembers the conversation. No login.
-function chatSession() {
-  try {
-    let s = localStorage.getItem("macrae.chat.session");
-    if (!s) {
-      s = (crypto.randomUUID ? crypto.randomUUID() : String(Math.random()).slice(2)).replace(/[^A-Za-z0-9_-]/g, "");
-      localStorage.setItem("macrae.chat.session", s);
-    }
-    return s;
-  } catch {
-    return S.chatSession || (S.chatSession = String(Date.now()));
   }
 }
 

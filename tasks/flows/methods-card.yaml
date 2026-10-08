@@ -1,5 +1,6 @@
 # methods-card: a DOI from data/group_publications.json → RAG passages from that paper (script, on the backend)
-# → an agent on Modal writes a methods card where every claim cites [n] → checked → copied to <run>/result/.
+# → an agent on Modal writes a methods card where every claim cites [n], keeping a lab notebook
+# (NOTES_TO_SELF.md, which evolve learns from) → checked → copied to <run>/result/.
 #   agent-runner flow run tasks/flows/methods-card.yaml --var doi=10.1021/acs.jctc.5c02051
 #   (local Docker instead of Modal: --var environment=docker)
 name: methods-card
@@ -47,12 +48,19 @@ steps:
       available sources." instead (that sentence needs no number). Prefer the paper's own passages and say so when
       a statement comes from a related group paper. Under 600 words. Don't change the other files in paper/.
 
+      Keep a lab notebook as you work: create paper/NOTES_TO_SELF.md early with the Write tool and keep it
+      current with Edit, with the sections "## What I tried", "## What was slow" (with seconds) and "## What to do
+      differently next time" (for example which sections the sources left thin, or which passages were missing
+      from the index). The next run of this task reads it.
+
       {{ vars.lessons }}
-    check: python3 "{{ sources.output.checker }}" card methods-card.md --sources "{{ sources.output.sources_file }}"
+    check: >-
+      python3 "{{ sources.output.checker }}" card methods-card.md --sources "{{ sources.output.sources_file }}"
+      --notes
     retry: {max: 1, until: "(reward or 0) >= 1"}   # reward is None when the trial errored
 
   - id: collect
     description: Copy the card to the run's result folder and summarize it
     needs: [card]
-    run: '"{{ vars.python }}" -m tasks.collect --step card --files methods-card.md'
+    run: '"{{ vars.python }}" -m tasks.collect --step card --files methods-card.md NOTES_TO_SELF.md'
     outputs: auto

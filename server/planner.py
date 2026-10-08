@@ -29,7 +29,7 @@ DEFAULT_MODEL = "claude-sonnet-5-5"
 # models that take the server-side refusal fallback ("default" form, beta server-side-fallback-2026-07-01)
 FALLBACK_MODELS = {"claude-sonnet-5-5", "claude-opus-5-5", "claude-opus-5", "claude-fable-5-1", "claude-fable-5"}
 RESERVED_VARS = {"environment", "python", "task_id", "task_title", "lessons", "plan", "hardware", "budget_usd",
-                 "plan_why"}
+                 "plan_why", "tools_dir", "evolve_mode"}
 SAFE_VALUE_RE = re.compile(r"^[^\"'`$\\;|&<>\n\r\x00]{0,300}$")
 MAX_BUDGET = 50.0
 
@@ -129,7 +129,7 @@ def defaults(task: dict, steps: list[dict], reason: str) -> dict:
     return {"plan": stages, "hardware": hw, "params": {}, "budget_usd": budget, "why": reason}
 
 
-def _prompt(task: dict, inputs: dict, steps: list[dict], knobs: dict, lessons: str) -> str:
+def _prompt(task: dict, inputs: dict, steps: list[dict], knobs: dict, lessons: str, capabilities: str = "") -> str:
     parts = [f"Task: {task.get('title') or task['id']} (id {task['id']})",
              f"What it does: {task.get('prompt') or task.get('subtitle') or ''}",
              "Inputs chosen by the user: " + (json.dumps(inputs, ensure_ascii=False) if inputs else "none"),
@@ -146,6 +146,8 @@ def _prompt(task: dict, inputs: dict, steps: list[dict], knobs: dict, lessons: s
     if task.get("budget_usd"):
         parts.append(f"The task's default budget: ${task['budget_usd']}")
     parts.append("Lessons from earlier runs of this task:\n" + (lessons.strip() or "none yet"))
+    parts.append("Capabilities the agent has (tested tools and environments it built for itself; an image "
+                 "capability means its packages are preinstalled):\n" + (capabilities.strip() or "none yet"))
     return "\n\n".join(parts)
 
 
@@ -225,7 +227,7 @@ def _clean(decision: dict, base: dict, knobs: dict) -> dict:
 
 def make_plan(task: dict, inputs: dict, flow_file: Optional[Path], lessons: str = "",
               call: Optional[Callable[[str, str], tuple[dict, dict, str]]] = None,
-              run_dir: Optional[Path] = None) -> dict:
+              run_dir: Optional[Path] = None, capabilities: str = "") -> dict:
     """Decide; never raises. Writes <run>/plan.json twice when run_dir is given: "planning" first, then the result.
     Returns the record: {status ok|default, plan, hardware, params, budget_usd, why, model, usage, cost_usd,
     started, finished, error, lessons, knobs}."""
@@ -233,7 +235,8 @@ def make_plan(task: dict, inputs: dict, flow_file: Optional[Path], lessons: str 
     steps, flow_vars = flow_outline(flow_file)
     knobs = tunable(task, flow_vars)
     rec: dict[str, Any] = {"status": "planning", "started": t0, "finished": None, "task_id": task["id"],
-                           "inputs": inputs, "lessons": lessons, "knobs": knobs, "model": "", "usage": {},
+                           "inputs": inputs, "lessons": lessons, "capabilities": capabilities, "knobs": knobs,
+                           "model": "", "usage": {},
                            "cost_usd": 0.0, "error": ""}
     if run_dir:
         save(run_dir, rec)
@@ -246,7 +249,8 @@ def make_plan(task: dict, inputs: dict, flow_file: Optional[Path], lessons: str 
         reason = "no ANTHROPIC_API_KEY on the backend"
     else:
         try:
-            decision, usage, model = (call or call_claude)(SYSTEM, _prompt(task, inputs, steps, knobs, lessons))
+            decision, usage, model = (call or call_claude)(SYSTEM, _prompt(task, inputs, steps, knobs, lessons,
+                                                                           capabilities))
             rec.update(model=model, usage=usage)
             if not isinstance(decision, dict):
                 raise ValueError("the planner did not return a JSON object")
@@ -299,4 +303,9 @@ def decision_detail(rec: dict) -> str:
     n_lessons = sum(1 for ln in str(rec.get("lessons") or "").splitlines() if ln.strip().startswith(("-", "*")))
     if n_lessons:
         lines.append(f"Used {n_lessons} lesson{'s' if n_lessons != 1 else ''} from earlier runs.")
+    caps = re.findall(r"^- ([a-z][a-z0-9-]+) v\d+", str(rec.get("capabilities") or ""), re.M)
+    img = re.search(r"image capability (\S+) v\d+", str(rec.get("capabilities") or ""))
+    names = caps + ([img.group(1)] if img else [])
+    if names:
+        lines.append(f"Capabilities available: {', '.join(names)}.")
     return "\n".join(x for x in lines if x)

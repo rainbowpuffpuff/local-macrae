@@ -20,7 +20,7 @@ import time
 from pathlib import Path
 from typing import Any, Optional
 
-from . import config, llm, rules, store, tools
+from . import config, llm, notes, rules, store, tools
 from .runs import Run, Step, load, list_run_dirs
 from .rules import err_line, short_cmd
 
@@ -180,6 +180,10 @@ def digest(run: Run, existing: list[dict], scripts: list[dict]) -> str:
     budget = max(8000, (MAX_DIGEST - sum(len(x) for x in L)) // max(1, len(run.agent_steps)) - 4000)
     for s in run.agent_steps:
         L += ["", f"## Agent transcript: {s.key}"] + _transcript(run, s, budget)
+    own_notes, _, _ = notes.text(run)
+    if own_notes.strip():
+        L += ["", "## The agent's notes to itself (NOTES_TO_SELF.md, written during the run)",
+              _clip(own_notes.strip(), 4000)]
     if scripts:
         L += ["", "## Scripts written in passing attempts"]
         for sc in scripts:
@@ -269,7 +273,7 @@ def _distill(run: Run, force: bool, use_llm: Optional[bool]) -> list[dict]:
     record: dict[str, Any] = {"run_id": run.id, "task_id": run.task_id, "status": run.status, "at": t0}
     cands: list[dict] = []
     reinforce: list[str] = []
-    notes: dict[str, dict] = {}
+    tool_notes: dict[str, dict] = {}
     source = "rules"
     want_llm = config.llm_enabled() if use_llm is None else (use_llm and config.llm_enabled())
     if want_llm:
@@ -281,7 +285,7 @@ def _distill(run: Run, force: bool, use_llm: Optional[bool]) -> list[dict]:
             cands = _from_llm(run, data, usage.get("model", ""))
             known = {x["id"] for x in current}
             reinforce = [i for i in data.get("reinforces") or [] if i in known]
-            notes = {str(t.get("file")): t for t in data.get("tools") or [] if isinstance(t, dict)}
+            tool_notes = {str(t.get("file")): t for t in data.get("tools") or [] if isinstance(t, dict)}
             source = "claude"
             cands += [c for c in rules.baseline_rule(run, hist)]  # deterministic planner reference
         except llm.LLMError as e:
@@ -289,6 +293,7 @@ def _distill(run: Run, force: bool, use_llm: Optional[bool]) -> list[dict]:
             record["llm_error"] = str(e)
     if source == "rules":
         cands = rules.extract(run, hist)
+    cands += notes.lessons(run)  # the agent's own NOTES_TO_SELF.md, in both modes
     record["candidates"] = cands
     now = time.time()
     with store.locked():
@@ -312,7 +317,7 @@ def _distill(run: Run, force: bool, use_llm: Optional[bool]) -> list[dict]:
                                   "evidence": [end_ev], "confidence": x.get("confidence")}, now)
             touched[i] = x
         store.save(lessons)
-        harvested = tools.harvest(run, notes)
+        harvested = tools.harvest(run, tool_notes)
         store.register(run.id, {"at": now, "source": source, "status": run.status, "task_id": run.task_id,
                                 "lessons": list(touched), "retired": retired,
                                 "tools": [t["name"] for t in harvested],

@@ -166,6 +166,11 @@ def start(task_id: str, inputs: Optional[dict] = None) -> str:
     return run_id
 
 
+# flow vars that aren't the user's inputs: plumbing, evolve's lessons, the planner's decision
+INTERNAL_VARS = ("task_id", "task_title", "python", "environment", "lessons", "tools_dir", "plan", "plan_why",
+                 "hardware", "budget_usd")
+
+
 def run_meta(run_id: str) -> Optional[dict]:
     """Task id, title and inputs of a run started here (macrae.json, else state.json vars). None if unknown."""
     if not re.fullmatch(r"[A-Za-z0-9._-]+", run_id or ""):
@@ -181,8 +186,7 @@ def run_meta(run_id: str) -> Optional[dict]:
         v = data.get("vars") or {}
         if v.get("task_id"):
             return {"run_id": run_id, "task_id": v["task_id"], "title": v.get("task_title") or v["task_id"],
-                    "inputs": {k: x for k, x in v.items() if k not in ("task_id", "task_title", "python",
-                                                                        "environment")},
+                    "inputs": {k: x for k, x in v.items() if k not in INTERNAL_VARS},
                     "flow": data.get("file", ""), "started": data.get("started")}
     return None
 

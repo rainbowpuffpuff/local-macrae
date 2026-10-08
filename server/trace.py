@@ -312,9 +312,66 @@ def stream_transcript(items: list[tuple[Optional[float], dict]]) -> Transcript:
 # ── transcript → candidates ─────────────────────────────────────────────────
 
 
-def transcript_events(tr: Transcript, step: str, trial_key: str, final: bool, fallback_t: float) -> list[Cand]:
+# ── capabilities (v3): the agent saying what it lacks, and using what it has ──
+
+GAP_RE = re.compile(r"CAPABILITY_GAP(?:\[(tool|image|writing)\])?:\s*`?([A-Za-z][A-Za-z0-9_ -]{1,60}?)`?\s*:\s*(.+)")
+USE_LINE_RE = re.compile(r"CAPABILITY_USE:\s*([a-z][a-z0-9-]{1,47})")
+CAP_PATH_RE = re.compile(r"/app/capabilities/([a-z][a-z0-9-]{1,47})/")
+
+
+def gap_name(raw: str) -> str:
+    s = re.sub(r"[^a-z0-9-]+", "-", raw.strip().lower().replace("_", "-")).strip("-")
+    return re.sub(r"-{2,}", "-", s)[:48].strip("-")
+
+
+def find_gaps(text: str) -> list[tuple[str, str, str]]:
+    """(name, kind or "", why) for each CAPABILITY_GAP line in the text."""
+    out, seen = [], set()
+    for ln in (text or "").splitlines():
+        m = GAP_RE.search(ln)
+        if not m:
+            continue
+        name, why = gap_name(m.group(2)), m.group(3).strip().strip('"\'`').strip()
+        if len(name) < 2 or name in seen or name in ("short-name", "name") or why.startswith("<"):
+            continue  # the protocol line itself, echoed back, is not a gap
+        seen.add(name)
+        out.append((name, m.group(1) or "", why[:500]))
+    return out
+
+
+def find_uses(command: str, output: str, mounted: dict[str, Any]) -> list[str]:
+    names = [n for n in CAP_PATH_RE.findall(command or "")] + USE_LINE_RE.findall(output or "")
+    return [n for n in dict.fromkeys(names) if n in mounted]
+
+
+def capability_cands(text_parts: list[str], step: str, t: float, mounted: dict[str, Any],
+                     command: str = "", output: str = "") -> list[Cand]:
+    out = []
+    for part in text_parts:
+        for name, kind, why in find_gaps(part):
+            out.append(Cand([f"{step}|gap|{name}"], t, step, "gap", f"Missing capability: {name}", why,
+                            extra={"capability": {"name": name, "kind": kind, "why": why}}))
+    for name in find_uses(command, output, mounted):
+        ver = (mounted.get(name) or {}).get("version")
+        out.append(Cand([f"{step}|use|{name}"], t, step, "use",
+                        f"Used capability {name}" + (f" v{ver}" if ver else ""), command,
+                        extra={"capability": {"name": name, "version": ver}}))
+    return out
+
+
+def mounted_capabilities(run_dir: Path) -> dict[str, Any]:
+    """name → {name, version, …} for what this run was given (<run>/capabilities.json)."""
+    info = cached(run_dir / "capabilities.json", _load_json)
+    if not isinstance(info, dict) or info.get("mode") == "dusk":
+        return {}
+    return {str(c.get("name")): c for c in info.get("mounted") or [] if isinstance(c, dict) and c.get("name")}
+
+
+def transcript_events(tr: Transcript, step: str, trial_key: str, final: bool, fallback_t: float,
+                      mounted: Optional[dict[str, Any]] = None) -> list[Cand]:
     out: list[Cand] = []
     occ: dict[str, int] = {}
+    mounted = mounted or {}
 
     def nth(k: str) -> str:
         occ[k] = occ.get(k, 0) + 1
@@ -333,6 +390,7 @@ def transcript_events(tr: Transcript, step: str, trial_key: str, final: bool, fa
             n = nth(_h(norm[:500]))
             keys = [f"{trial_key}|text|{n}"] + ([f"{sess}|text|{n}"] if sess else [])
             out.append(Cand(keys, t, step, "think", C.first_sentence(m.text), m.text, cost=cost))
+            out += capability_cands([m.text], step, t, mounted)
         elif m.kind == "call" and m.call is not None:
             c = m.call
             n = nth('h' + _h(c.name, c.args))
@@ -346,6 +404,10 @@ def transcript_events(tr: Transcript, step: str, trial_key: str, final: bool, fa
             if cl.needs_output and output is None:
                 continue  # wait for the output (it decides calc vs status); it'll come on a later poll
             out.append(Cand(keys, t, step, cl.type, cl.title, cl.detail, cl.citation, cost=cost))
+            args = c.args if isinstance(c.args, dict) else {}
+            if c.name.lower() == "bash":
+                cmd = str(args.get("command") or "")
+                out += capability_cands([cmd, output or ""], step, t, mounted, cmd, output or "")
             if cl.type == "search" and output:
                 for cit in C.citations_in_output(output)[:8]:
                     ck = _h(cit['doi'] or cit['title'], cit['page'])
@@ -366,7 +428,7 @@ def _msg_cost(m: Msg) -> Optional[dict]:
 
 
 def live_step_events(run_dir: Path, key: str, step_final: bool, has_trial_stream: bool,
-                     fallback_t: float) -> list[Cand]:
+                     fallback_t: float, mounted: Optional[dict[str, Any]] = None) -> list[Cand]:
     """Events from what the claude wrapper posted for this step (<run>/live/<step>.jsonl), one transcript per
     `claude` invocation. Calls still waiting for their output are emitted without it only when the step is over
     and no trial file will ever bring it."""
@@ -374,7 +436,8 @@ def live_step_events(run_dir: Path, key: str, step_final: bool, has_trial_stream
     out: list[Cand] = []
     for stream, items in live.streams(run_dir, key).items():
         tr = stream_transcript(items)
-        out += transcript_events(tr, key, f"{key}|live|{stream}", step_final and not has_trial_stream, fallback_t)
+        out += transcript_events(tr, key, f"{key}|live|{stream}", step_final and not has_trial_stream, fallback_t,
+                                 mounted)
     return out
 
 
@@ -386,7 +449,8 @@ def trial_dirs(job_dir: Path) -> list[Path]:
     return [p for p in kids if (p / "config.json").is_file() or (p / "agent").is_dir() or (p / "result.json").is_file()]
 
 
-def trial_events(trial: Path, step: str, step_final: bool, fallback_t: float) -> list[Cand]:
+def trial_events(trial: Path, step: str, step_final: bool, fallback_t: float,
+                 mounted: Optional[dict[str, Any]] = None) -> list[Cand]:
     trial_key = f"{step}|{trial.parent.name}/{trial.name}"
     result = cached(trial / "result.json", _load_json)
     result = result if isinstance(result, dict) else {}
@@ -395,7 +459,7 @@ def trial_events(trial: Path, step: str, step_final: bool, fallback_t: float) ->
     tr = cached(trial / "agent" / "trajectory.json", parse_atif)
     if tr is None:
         tr = cached(trial / "agent" / "claude-code.txt", parse_stream)
-    out = transcript_events(tr, step, trial_key, final, t0) if tr else []
+    out = transcript_events(tr, step, trial_key, final, t0, mounted) if tr else []
     ex = result.get("exception_info") or {}
     if isinstance(ex, dict) and ex:
         msg = f"{ex.get('exception_type', '')}: {ex.get('exception_message', '')}".strip(": ")
@@ -510,6 +574,14 @@ def log_events(run_dir: Path, key: str, kind: str, base: float, started: Optiona
             im = re.search(r"\s-i\s+(.*?)(?:\s+-p\s|\s+--no-scan|\s+--scan|$)", cmd, re.S)
             out.append(Cand(k, t, key, "status", f"Started {who} " + ", ".join(bits),
                             f"Instruction: {im.group(1)}" if im else ""))
+        elif head.startswith("capability image "):
+            m = re.match(r"capability image (\S+) v(\S+):", head)
+            name, ver = (m.group(1), m.group(2)) if m else ("", "")
+            out.append(Cand(k, t, key, "use", f"Sandbox built from image capability {name} v{ver}",
+                            "Packages preinstalled in the image instead of installed by the agent.",
+                            extra={"capability": {"name": name, "version": ver, "kind": "image"}}))
+            if name:
+                k.append(f"{key}|use|{name}")
         elif head.startswith("waiting for a free account"):
             out.append(Cand(k, t, key, "status", "Waiting for a free Claude account"))
         elif head.startswith("check exit"):
@@ -589,12 +661,13 @@ def step_events(state: dict, run_dir: Path, key: str, step: dict, base: float,
         final = status in TERMINAL_STEP
         if kind in ("agent", "task"):
             has_stream = False
+            mounted = mounted_capabilities(run_dir)
             for jd in job_dirs_for(state, key, step):
                 for tdir in trial_dirs(jd):
-                    out += trial_events(tdir, key, final, started)
+                    out += trial_events(tdir, key, final, started, mounted)
                     has_stream = has_stream or (tdir / "agent" / "trajectory.json").is_file() or \
                         (tdir / "agent" / "claude-code.txt").is_file()
-            out += live_step_events(run_dir, key, final, has_stream, started)
+            out += live_step_events(run_dir, key, final, has_stream, started, mounted)
         if kind == "run" and final:
             cmd_events = [c for c in out if c.type == "search"]
             if cmd_events:
@@ -647,6 +720,47 @@ def plan_events(run_dir: Path, plan: dict) -> list[Cand]:
     return out
 
 
+LEDGER_TITLES = {
+    "gap": lambda e: f"Missing capability: {e['name']}",
+    "create": lambda e: f"Created capability {e['name']}: {len(e.get('files') or [])} files, "
+                        f"{e.get('sandbox_tests') or e.get('tests') or 0} tests passed in its sandbox",
+    "test": lambda e: (f"Tests passed in a fresh sandbox ({e.get('n_passed')}/{e.get('n_tests')}, no network)"
+                       if e.get("passed") else f"Tests failed in a fresh sandbox for {e['name']}"),
+    "install": lambda e: f"Installed {e['name']} v{e.get('version')} (sha256 {str(e.get('sha256') or '')[:12]}…)",
+    "rejected": lambda e: f"Rejected {e['name']}: {str((e.get('reasons') or [e.get('reason') or ''])[0])[:70]}",
+    "use": lambda e: f"Used capability {e['name']}" + (f" v{e['version']}" if e.get("version") else ""),
+}
+
+
+def ledger_events(run_id: str) -> list[Cand]:
+    """The capability ledger's entries for this run (create/test/install/rejected from a forge run, a gap found in
+    the trace after the run): same keys as the transcript's own gap/use events, so nothing shows twice."""
+    try:
+        from . import bridges
+        caps = bridges._import("evolve.capabilities")
+        entries = caps.ledger(run_id=run_id)
+    except Exception:
+        return []
+    out = []
+    for e in entries:
+        ev = e.get("event")
+        if ev not in LEDGER_TITLES:
+            continue
+        keys = [str(e.get("event_key") or ""), f"ledger|{e.get('key')}"]
+        detail = e.get("why") or e.get("reason") or e.get("purpose") or ""
+        if ev == "test" and e.get("job"):
+            detail = f"Harbor job {e['job']}" + (f", built in {e['setup_s']:.0f} s" if e.get("setup_s") else "") + \
+                (f", tests took {e['seconds']:.1f} s" if isinstance(e.get("seconds"), (int, float)) else "")
+        if ev == "install":
+            detail = f"{e.get('purpose') or ''}\nsha256 {e.get('sha256') or ''}".strip()
+        if ev == "rejected" and e.get("reasons"):
+            detail = "\n".join(f"- {r}" for r in e["reasons"])
+        cap = {k: e.get(k) for k in ("name", "version", "kind", "sha256") if e.get(k) is not None}
+        out.append(Cand([k for k in keys if k], float(e.get("t") or 0), str(e.get("step") or ""), ev,
+                        LEDGER_TITLES[ev](e), str(detail), extra={"capability": cap}))
+    return out
+
+
 def build(state: dict, title: str = "", costs_obj: Optional[dict] = None) -> list[Cand]:
     """All candidate events for a run, in a stable order."""
     from . import costs, planner
@@ -675,6 +789,7 @@ def build(state: dict, title: str = "", costs_obj: Optional[dict] = None) -> lis
     for key in order:
         if key in steps and isinstance(steps[key], dict):
             out += step_events(state, run_dir, key, steps[key], base, by_step)
+    out += ledger_events(str(state.get("id") or run_dir.name))
     status = str(state.get("status") or "")
     fin = float(state.get("finished") or 0) or max([c.t for c in out] + [base])
     sts = [str(s.get("status")) for s in steps.values() if isinstance(s, dict) and s.get("fanout") is None]

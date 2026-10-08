@@ -1,0 +1,65 @@
+# forge: CREATE → TEST → INSTALL one capability the agent found missing (a CAPABILITY_GAP line in a run, or slow
+# installs / version breakage in its trace). Started by the backend (server/forge.py), never by a capability.
+#   create   an agent in a Harbor sandbox writes the capability AND its tests, and runs them (captest.py);
+#            check: the manifest is within the fixed policy and the sandbox's own test report matches the files
+#   package  the backend hashes and stages the files and builds an independent Harbor test task
+#   test     a fresh sandbox with no agent (Harbor's oracle) and no network runs the tests again
+#   install  the backend verifies sha256 (staged = tested), the test result and the policy, then installs; else
+#            records `rejected` with the reason
+name: forge
+workdir: ../..
+environment: "{{ vars.environment }}"
+concurrency: 1
+vars:
+  capability: ""       # the name from the gap line
+  kind: tool           # tool | image | writing
+  why: ""
+  workspace: ""        # <run>/capability: GAP.md, SPEC.md, captest.py, policy.json (→ /app/capability)
+  forge_dir: ""        # <run>/forge: staged files and the test task
+  environment: modal
+  python: python3
+  task_id: forge
+  lessons: ""
+  tools_dir: ""
+steps:
+  - id: create
+    description: An agent in a sandbox writes the capability and its tests, and runs them
+    paths: ["{{ vars.workspace }}", "{{ vars.tools_dir }}"]
+    timeout: 1800
+    instruction: >
+      You are extending your own toolbox. An earlier run found that a capability was missing; build it so later
+      runs can use it. Work only in /app/capability. Read /app/capability/GAP.md first (what is missing, why,
+      and the evidence from that run's trace), then /app/capability/SPEC.md (the manifest format and the limits
+      you must stay within; they are fixed and checked by the installer).
+
+
+      Build the {{ vars.kind }} capability "{{ vars.capability }}": the files, real tests that check results
+      against answers known independently (analytic cases, synthetic data with a known answer, edge cases), and
+      /app/capability/manifest.json. Keep it small, general and documented (a docstring and a --help).
+      Then run `python3 /app/capability/captest.py /app/capability` and fix things until every test passes;
+      it writes /app/capability/test_report.json. Do not change any file after the last captest run. Do not
+      put secrets, network calls or paths outside the capability folder in the files.
+
+      {{ vars.lessons }}
+    check: '"{{ vars.python }}" -m server.installer check . --name "{{ vars.capability }}"'
+    retry: {max: 1, until: "(reward or 0) >= 1"}
+
+  - id: package
+    description: Hash and stage the files, and package the tests as a fresh Harbor task
+    run: '"{{ vars.python }}" -m server.installer package "{{ create.files }}" --out "{{ vars.forge_dir }}" --name "{{ vars.capability }}"'
+    outputs: json
+    timeout: 300
+
+  - id: test
+    description: Run the tests again in a fresh sandbox, with no agent and no network
+    task: "{{ package.output.task_dir }}"
+    agent: oracle
+    account: none
+
+  - id: install
+    description: Verify sha256, the test result and the policy, then install into the registry
+    needs: [create, package, test]
+    always: true
+    run: '"{{ vars.python }}" -m server.installer install --name "{{ vars.capability }}"'
+    outputs: json
+    timeout: 300

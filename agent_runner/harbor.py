@@ -137,6 +137,117 @@ def mask_agent_env(cmd: list[str]) -> list[str]:
     return [re.sub(r"^(MACRAE_LIVE_TOKEN=).*", r"\1***", c, flags=re.S) for c in cmd]
 
 
+# ── capabilities (macrae v3) ────────────────────────────────────────────────
+# The server that starts a run writes <run>/capabilities.json (evolve.capabilities.export): which installed
+# capabilities this run gets, the block appended to every agent instruction (the list + the CAPABILITY_GAP protocol),
+# the folder to upload as /app/capabilities, and optionally an image capability (a Dockerfile fragment + pinned
+# requirements). No file, or mode "dusk": nothing is mounted or built, and the run is exactly as before.
+
+CAP_IMAGE_DIR = "/opt/macrae-cap"  # where an image capability's own files are copied in its Dockerfile
+
+
+def capability_context(run_dir: Path) -> dict:
+    info = _json(run_dir / "capabilities.json")
+    return info if isinstance(info, dict) else {}
+
+
+def _image_base_dir() -> Path:
+    """The Dockerfile an image capability builds on: AGENT_RUNNER_IMAGE_BASE (a folder with a Dockerfile and its
+    context), else the macrae agent image with the live-trace wrapper (tasks/common), else agent_runner's own."""
+    env = os.environ.get("AGENT_RUNNER_IMAGE_BASE", "").strip()
+    for d in ([Path(env).expanduser()] if env else []) + [_HERE.parent / "tasks" / "common", IMAGE_DIR]:
+        if (d / "Dockerfile").is_file():
+            return d
+    return IMAGE_DIR
+
+
+def image_dockerfile(cap: dict, base_image: str = "", inputs: Optional[list[str]] = None) -> str:
+    """Dockerfile text for a sandbox built from an image capability: the base (a registry image if one is set,
+    else our agent Dockerfile), the capability's files in /opt/macrae-cap/<name>/, its fragment, then the step's
+    input folders at /app/<name> last, so everything before them is the same for every run."""
+    name = str(cap["name"])
+    frag_path = Path(str(cap["dir"])) / str(cap.get("fragment") or "Dockerfile.fragment")
+    fragment = frag_path.read_text() if frag_path.is_file() else ""
+    if base_image:
+        head = f"FROM {base_image}\n"
+    else:
+        head = (_image_base_dir() / "Dockerfile").read_text().rstrip() + "\n"
+    lines = [head,
+             f"# ── image capability {name} v{cap.get('version', 1)} (sha256 {str(cap.get('sha256') or '')[:16]}) ──",
+             f"COPY macrae-cap/{name}/ {CAP_IMAGE_DIR}/{name}/",
+             f"WORKDIR {CAP_IMAGE_DIR}/{name}",
+             fragment.strip(),
+             "WORKDIR /app"]
+    for p in inputs or []:
+        lines.append(f"COPY inputs/{Path(p).name}/ /app/{Path(p).name}/")
+    return "\n".join(x for x in lines if x is not None) + "\n"
+
+
+def write_image_environment(env_dir: Path, cap: dict, base_image: str = "",
+                            inputs: Optional[list[str]] = None) -> Path:
+    """environment/ for a Harbor task built from an image capability (Modal builds it from the Dockerfile)."""
+    if env_dir.exists():
+        shutil.rmtree(env_dir)
+    env_dir.mkdir(parents=True)
+    if not base_image:
+        base = _image_base_dir()
+        for f in base.iterdir():  # the base Dockerfile's own context (the claude wrapper)
+            if f.is_file() and f.name != "Dockerfile" and not f.name.startswith(".") and f.suffix != ".md":
+                shutil.copy2(f, env_dir / f.name)
+    shutil.copytree(Path(str(cap["dir"])), env_dir / "macrae-cap" / str(cap["name"]),
+                    ignore=shutil.ignore_patterns("manifest.json"))
+    for p in inputs or []:
+        src = Path(p)
+        dest = env_dir / "inputs" / src.name
+        if src.is_dir():
+            shutil.copytree(src, dest)
+        elif src.is_file():
+            dest.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(src, dest / src.name)
+    (env_dir / "Dockerfile").write_text(image_dockerfile(cap, base_image, inputs))
+    return env_dir
+
+
+def _toml_str(s: str) -> str:
+    return json.dumps(str(s))  # a JSON string is a valid TOML basic string
+
+
+def compile_agent_task(dest: Path, *, instruction: str, paths: list[str], cap: dict, artifacts: list[str],
+                       agent_timeout: Optional[float] = None, workdir: str = "", base_image: str = "") -> Path:
+    """A Harbor task for an agent step whose sandbox is built from an image capability (`harbor run -p`, since
+    `harbor exec` always uses a prebuilt image). The input folders are COPY'd into /app, the artifacts are the
+    same folders (they come back as artifacts/app/<name>, as with exec), and tests/test.sh only writes reward 1:
+    the flow's own `check:` decides."""
+    if dest.exists():
+        shutil.rmtree(dest)
+    (dest / "tests").mkdir(parents=True)
+    write_image_environment(dest / "environment", cap, base_image, paths)
+    (dest / "instruction.md").write_text(instruction.rstrip() + "\n")
+    (dest / "tests" / "test.sh").write_text("#!/bin/bash\n# verification is the flow's check: on the backend\n"
+                                            "mkdir -p /logs/verifier && echo 1 > /logs/verifier/reward.txt\n")
+    (dest / "tests" / "test.sh").chmod(0o755)
+    arts = ", ".join(_toml_str(a) for a in artifacts)
+    toml = [
+        'schema_version = "1.4"',
+        f"artifacts = [{arts}]",
+        "",
+        "[metadata]",
+        f"macrae_image_capability = {_toml_str(str(cap['name']) + ' v' + str(cap.get('version', 1)))}",
+        "",
+        "[agent]",
+        f"timeout_sec = {float(agent_timeout or 3600):.1f}",
+        "",
+        "[verifier]",
+        "timeout_sec = 60.0",
+        "",
+        "[environment]",
+        "build_timeout_sec = 1800.0",
+        f"workdir = {_toml_str(workdir or '/app')}",
+    ]
+    (dest / "task.toml").write_text("\n".join(toml) + "\n")
+    return dest
+
+
 def harbor_env(agent: str, account: Optional[str]) -> dict[str, str]:
     env = {k: v for k, v in os.environ.items() if not k.startswith("CLAUDE")}
     env["PATH"] = env.get("PATH", "/usr/bin:/bin") + f":{HOME}/.local/bin"

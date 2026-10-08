@@ -287,6 +287,9 @@ class FlowRun:
                          "model": settings.get("default_model", ""), "account": "auto"}
         self.defaults.update(spec.get("defaults") or {})
         self.vars = AttrDict(dict(spec.get("vars") or {}, **(vars_ or {})))
+        if str(self.vars.get("evolve_mode") or "").lower() == "dusk":
+            # dusk (macrae v3 benchmark): start from scratch, nothing learned is injected or mounted
+            self.vars.update(lessons="", tools_dir="")
         self.results: dict[str, Any] = {}
         self.events = {s["id"]: asyncio.Event() for s in self.steps}
         self.state: dict[str, Any] = {
@@ -535,11 +538,17 @@ class FlowRun:
                       attempts=int(s.get("attempts") or 1), agent_kwargs=render(s.get("agent_kwargs") or {}, ctx))
         paths: list[str] = []
         environment = self._environment(s, ctx)
-        live_env = harbor.live_agent_env(self.dir, self.id, key)  # macrae live trace (tasks/common/ wrapper)
+        # macrae live trace (tasks/common/ wrapper): only Claude Code streams; the oracle agent runs no CLI
+        live_env = harbor.live_agent_env(self.dir, self.id, key) if agent == "claude-code" else {}
         if kind == "agent":
             instruction = str(render(s["instruction"], ctx))
             if prev is not None:
                 instruction += _feedback(prev)
+            cap = harbor.capability_context(self.dir)  # macrae v3: installed capabilities + the gap protocol
+            dusk = str(cap.get("mode") or "") == "dusk"
+            block = str(cap.get("instruction") or "").strip()
+            if block and block not in instruction:
+                instruction = instruction.rstrip() + "\n\n" + block
             rp = render(s.get("paths") or s.get("path") or [], ctx)
             paths = [str(p) for p in (rp if isinstance(rp, list) else [rp]) if p]
             arts = render(s.get("artifacts") or [], ctx)
@@ -547,22 +556,40 @@ class FlowRun:
                 # bring back each whole input folder; Harbor's own guess only takes paths named in the instruction
                 base = str(render(s.get("workdir") or "", ctx)) or "/app"
                 arts = [f"{base.rstrip('/')}/{Path(p).name}" for p in paths]
+            arts = arts if isinstance(arts, list) else [arts]
+            cap_dir = str(cap.get("dir") or "")
+            if cap.get("mount") and not dusk and cap_dir and Path(cap_dir).is_dir():
+                paths = paths + [cap_dir]  # uploaded as /app/capabilities (not brought back: it's a copy)
             image = str(render(s.get("image") or "", ctx))
+            image_cap = cap.get("image") if isinstance(cap.get("image"), dict) and not dusk and not image else None
+            if image_cap and not Path(str(image_cap.get("dir") or "")).is_dir():
+                image_cap = None
             template = ""
             if environment == "modal":
                 # the local agent image doesn't exist on Modal: a registry image, else Modal builds our Dockerfile
                 image = image or harbor.modal_image()
-                if not image:
+                if not image and not image_cap:
                     template = str(harbor.modal_template(self.dir / "modal-template"))
             elif not image:
                 default_image = load_settings().get("agent_image") or ""
                 if default_image and harbor.image_exists(default_image):
                     image = default_image
-            cmd = harbor.exec_cmd(paths=paths, instruction=instruction, image=image,
-                                  workdir=str(render(s.get("workdir") or "", ctx)), scan=bool(s.get("scan")),
-                                  artifacts=arts if isinstance(arts, list) else [arts],
-                                  agent_timeout=s.get("timeout"), environment=environment,
-                                  task_template=template, agent_env=live_env, **common)
+            if image_cap:
+                # an installed image capability: Harbor builds the sandbox from its Dockerfile (`harbor run` on a
+                # task we compile, because `harbor exec` always uses a prebuilt image)
+                task_dir = harbor.compile_agent_task(
+                    self.dir / "tasks" / job_name, instruction=instruction, paths=paths, cap=image_cap,
+                    artifacts=[str(a) for a in arts], agent_timeout=s.get("timeout"),
+                    workdir=str(render(s.get("workdir") or "", ctx)), base_image=image)
+                self.log(key, f"capability image {image_cap.get('name')} v{image_cap.get('version', 1)}: "
+                              f"the sandbox is built from its Dockerfile ({task_dir.name})")
+                cmd = harbor.run_cmd(task_path=str(task_dir), environment=environment, agent_env=live_env,
+                                     **common)
+            else:
+                cmd = harbor.exec_cmd(paths=paths, instruction=instruction, image=image,
+                                      workdir=str(render(s.get("workdir") or "", ctx)), scan=bool(s.get("scan")),
+                                      artifacts=arts, agent_timeout=s.get("timeout"), environment=environment,
+                                      task_template=template, agent_env=live_env, **common)
         else:
             tp = render(s.get("task") or "", ctx)
             if tp:

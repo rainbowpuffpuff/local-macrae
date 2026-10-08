@@ -277,7 +277,7 @@ export const CONTAINER_VARS = ["MODAL_PROFILE", "AGENT_RUNNER_MODAL_IMAGE", "MAC
   "MACRAE_SYNC_INTERVAL", "MACRAE_SYNC_MAX_MB", "MACRAE_DRAIN_SECONDS",
   // v2: live agent output, planner, costs, evolution (MACRAE_LIVE_URL is optional: the Worker sends its origin)
   "MACRAE_LIVE_URL", "MACRAE_PLANNER", "MACRAE_PLANNER_MODEL", "MACRAE_PLANNER_EFFORT", "MACRAE_COMPUTE_RATES",
-  "MACRAE_EVOLVE"];
+  "MACRAE_EVOLVE", "MACRAE_EVOLVE_MODEL", "MACRAE_EVOLVE_LLM", "MACRAE_EVOLVE_TOOLS"];
 // The container reaches R2 through this made-up host: index.js maps it to dataHandler (an outbound handler that
 // runs in the Worker, next to the DATA binding). Plain HTTP; the request never leaves Cloudflare.
 export const DATA_HOST = "r2.macrae";

@@ -42,6 +42,18 @@ def lessons(task_id: str, k: int = 8) -> str:
     return str(ctx or "").strip()[:8000]
 
 
+def flow_vars(task_id: str, k: int = 8) -> dict[str, str]:
+    """evolve.flow_vars(task_id): {"lessons": block, "tools_dir": earlier passing scripts or ""} for a new run."""
+    try:
+        v = module().flow_vars(task_id, k=k)
+        return {"lessons": str(v.get("lessons") or "").strip()[:8000], "tools_dir": str(v.get("tools_dir") or "")}
+    except bridges.Unavailable:
+        return {"lessons": "", "tools_dir": ""}
+    except Exception as e:
+        log.warning("evolve.flow_vars(%s) failed: %s", task_id, e)
+        return {"lessons": lessons(task_id, k), "tools_dir": ""}
+
+
 def metrics() -> dict:
     """evolve.metrics(); raises bridges.Unavailable when evolve isn't installed."""
     data = bridges.to_plain(module().metrics())
@@ -87,6 +99,13 @@ def _distill(run_id: str) -> None:
             except Exception as e:
                 log.warning("evolve.distill(%s) failed: %s", run_id, e)
                 rec["error"] = f"{type(e).__name__}: {e}"[:500]
+        try:
+            from . import capabilities
+            found = capabilities.on_run_end(run_id)  # v3: gaps the trace shows (slow installs, broken envs)
+            if found:
+                rec["gaps"] = [{"name": g["name"], "forge": (g.get("forge") or {}).get("status")} for g in found]
+        except Exception as e:
+            log.warning("trace gaps for %s failed: %s", run_id, e)
         rec["finished"] = time.time()
         try:
             m = _marker(run_id)

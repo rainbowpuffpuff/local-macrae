@@ -87,8 +87,7 @@ export function messageHTML(m, { runs = new Map() } = {}) {
       return `<div class="msg jarvis${m.bad ? " bad" : ""}" data-id="${id}">${head}<div class="text">${body}</div>
         ${m.runId ? runChipHTML(m.runId, runs.get(m.runId)) : ""}
         ${m.evoLink ? `<a class="run-chip evo-chip" href="/?view=evolution" data-open-tab="evolution"><span aria-hidden="true">📈</span><span class="rc-main"><span class="rc-title">Run over run</span><span class="rc-sub">time, cost and what it learned, per task</span></span><span class="rc-open">Evolution →</span></a>` : ""}
-        ${m.citations && m.citations.length ? `<div class="sources">${sourcesHTML(m)}</div>` : ""}
-        ${m.cost && typeof m.cost.usd === "number" ? `<div class="msg-cost" title="${esc(`${(m.cost.tokens && m.cost.tokens.in) || 0} tokens in · ${(m.cost.tokens && m.cost.tokens.out) || 0} out`)}">answer cost $${m.cost.usd < 0.01 ? m.cost.usd.toFixed(4) : m.cost.usd.toFixed(3)}</div>` : ""}</div>`;
+        ${m.citations && m.citations.length ? `<div class="sources">${sourcesHTML(m)}</div>` : ""}</div>`;
     }
     case "tool":
       return `<div class="tool-line${m.err ? " err" : ""}" data-id="${id}">${m.pending ? '<span class="spinner"></span>' : ""}${esc(m.text)}</div>`;
