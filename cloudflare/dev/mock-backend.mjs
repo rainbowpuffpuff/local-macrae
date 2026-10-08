@@ -355,6 +355,7 @@ export function createMock({ secret = "dev-secret", speed = 1, now = () => Date.
     return {
       llm_usd: Number(llm.toFixed(5)), compute_usd: Number(compute.toFixed(5)), total_usd: Number((llm + compute).toFixed(5)),
       tokens: tok, by_step, wall_s: Number((a * run.scale).toFixed(1)), phases,
+      hardware: hardwareOf(run), hardware_label: HARDWARE[hardwareOf(run)].label, usd_per_hour: Number((HARDWARE[hardwareOf(run)].usd_s * 3600).toFixed(3)),
     };
   }
 
@@ -471,6 +472,68 @@ export function createMock({ secret = "dev-secret", speed = 1, now = () => Date.
       });
   }
 
+  // ---------- costs for people (server/cost_api.py) ----------
+  // The real price table lives in server/costs.py (with its sources); this copy has its shape and the 2026-10-08 values.
+  const PRICE_TABLE = {
+    as_of: "2026-10-08", currency: "USD",
+    sources: {
+      anthropic: { label: "Claude API list prices", url: "https://platform.claude.com/docs/en/about-claude/pricing" },
+      modal: { label: "Modal sandbox and GPU prices", url: "https://modal.com/pricing" },
+      backend: { label: "Cloudflare Containers prices", url: "https://developers.cloudflare.com/containers/pricing/" },
+      voice: { label: "ElevenLabs Agents prices", url: "https://elevenlabs.io/pricing/api" },
+    },
+    llm: { unit: "per million tokens", models: [
+      { id: "claude-opus-5-5", input: 4, output: 20, cache_read: 0.2, cache_write_5m: 5, cache_write_1h: 8 },
+      { id: "claude-sonnet-5-5", input: 2, output: 10, cache_read: 0.1, cache_write_5m: 2.5, cache_write_1h: 4 },
+      { id: "claude-haiku-5-5", input: 0.1, output: 0.5, cache_read: 0.01, cache_write_5m: 0.125, cache_write_1h: 0.2 },
+    ] },
+    compute: { unit: "per second", cpu_core_s: 0.00003942, mem_gib_s: 0.00000667, gpu_s: { a10g: 0.000306, h100: 0.001097 } },
+    backend: { unit: "per second", vcpu_s: 0.00002, mem_gib_s: 0.0000025, disk_gb_s: 0.00000007, instance: { name: "standard-1", vcpu: 0.5, mem_gib: 4, disk_gb: 8 }, usd_per_hour: 0.074 },
+    voice: { usd_per_min: 0.08 },
+  };
+  const BACKEND_USD_S = 0.074 / 3600;
+
+  function quartiles(xs) {
+    const v = xs.slice().sort((a, b) => a - b);
+    const at = (q) => {
+      const i = (v.length - 1) * q;
+      const lo = Math.floor(i);
+      return v[lo] + (v[Math.ceil(i)] - v[lo]) * (i - lo);
+    };
+    return v.length < 4 ? [at(0.5), v[0], v[v.length - 1]] : [at(0.5), at(0.25), at(0.75)];
+  }
+
+  function costEstimates() {
+    const out = {};
+    const finished = {};
+    const done = [...runs.values()].filter(isDone).sort((a, b) => b.started - a.started);
+    for (const run of done) {
+      const c = summary(run).costs;
+      finished[run.run_id] = { total_usd: c.total_usd, llm_usd: c.llm_usd, compute_usd: c.compute_usd, wall_s: c.wall_s };
+    }
+    for (const task of tasks) {
+      const mine = done.filter((r) => r.task_id === task.id);
+      const ok = mine.filter((r) => !r.failed);
+      const use = (ok.length ? ok : mine).slice(0, 10);
+      if (!use.length) {
+        out[task.id] = { task_id: task.id, basis: "none", n: 0, n_ok: 0, usd: null, hardware: "cpu-2", usd_per_hour: 0.38, runs: [] };
+        continue;
+      }
+      const cs = use.map((r) => summary(r).costs);
+      const [usd, lo, hi] = quartiles(cs.map((c) => c.total_usd));
+      const [secs, slo, shi] = quartiles(cs.map((c) => c.wall_s));
+      const r4 = (x) => Number(x.toFixed(4));
+      out[task.id] = {
+        task_id: task.id, basis: "past_runs", n: use.length, n_ok: ok.length,
+        success_rate: Number((mine.slice(0, 10).filter((r) => !r.failed).length / Math.min(10, mine.length)).toFixed(3)),
+        usd: r4(usd), usd_low: r4(lo), usd_high: r4(hi), llm_usd: r4(quartiles(cs.map((c) => c.llm_usd))[0]),
+        compute_usd: r4(quartiles(cs.map((c) => c.compute_usd))[0]), seconds: Math.round(secs), seconds_low: Math.round(slo),
+        seconds_high: Math.round(shi), hardware: cs[0].hardware, usd_per_hour: cs[0].usd_per_hour, runs: use.map((r) => r.run_id),
+      };
+    }
+    return { estimates: out, runs: finished, as_of: PRICE_TABLE.as_of };
+  }
+
   async function handle(req, res) {
     const url = new URL(req.url, "http://mock");
     const send = (status, body) => {
@@ -505,7 +568,17 @@ export function createMock({ secret = "dev-secret", speed = 1, now = () => Date.
       return run ? send(200, summary(run)) : send(404, { detail: "no such run" });
     }
     if (p === "/api/evolution" && req.method === "GET") return send(200, evolution());
-    if (p === "/api/search" && req.method === "POST") return send(200, { passages: search(body.query, body.k || 6) });
+    if (p === "/api/search" && req.method === "POST") {
+      const seconds = 0.2 + Math.random() * 0.4;
+      const compute = Number((seconds * BACKEND_USD_S).toFixed(8));
+      return send(200, { passages: search(body.query, body.k || 6), cost: { llm_usd: 0, compute_usd: compute, total_usd: compute, seconds: Number(seconds.toFixed(3)), model: "", tokens: { in: 0, out: 0, cache: 0 }, compute: "backend" } });
+    }
+    if (p === "/api/costs/prices" && req.method === "GET") return send(200, PRICE_TABLE);
+    if (p === "/api/costs/estimates" && req.method === "GET") return send(200, costEstimates());
+    if ((m = p.match(/^\/api\/tasks\/([^/]+)\/estimate$/)) && req.method === "GET") {
+      const e = costEstimates().estimates[decodeURIComponent(m[1])];
+      return e ? send(200, e) : send(404, { detail: "no such task" });
+    }
     if (p === "/api/tools/search_papers" && req.method === "POST") {
       const passages = search(body.query, 6);
       return send(200, { answer_context: passages.map((x, i) => `[${i + 1}] ${x.text}`).join("\n\n"), citations: passages.map((x) => x.citation) });

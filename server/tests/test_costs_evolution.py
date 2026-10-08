@@ -48,12 +48,13 @@ def test_sessions_count_each_message_once_and_prefer_claude_codes_total():
 
 
 def test_compute_rates_and_override(monkeypatch):
-    cpu2 = 2 * 0.0000131 + 4 * 0.00000222
+    # Modal Sandbox rates (modal.com/pricing, 2026-10-08): $0.00003942/core/s, $0.00000667/GiB/s; A10G $0.000306/s
+    cpu2 = 2 * 0.00003942 + 4 * 0.00000667
     assert costs.hardware_rate("cpu-2") == pytest.approx(cpu2)
-    assert costs.hardware_rate("gpu-a10g") == pytest.approx(4 * 0.0000131 + 16 * 0.00000222 + 0.000306)
+    assert costs.hardware_rate("gpu-a10g") == pytest.approx(4 * 0.00003942 + 16 * 0.00000667 + 0.000306)
     assert costs.hardware_rate("nonsense") == pytest.approx(cpu2)
     monkeypatch.setenv("MACRAE_COMPUTE_RATES", '{"cpu_core_s": 0.001, "gpu_s": {"a10g": 1}}')
-    assert costs.hardware_rate("cpu-2") == pytest.approx(0.002 + 4 * 0.00000222)
+    assert costs.hardware_rate("cpu-2") == pytest.approx(0.002 + 4 * 0.00000667)
     assert costs.hardware_rate("gpu-a10g") > 1
     opts = {o["id"]: o for o in costs.hardware_options()}
     assert opts["gpu-h100"]["gpu"] == "h100" and opts["cpu-8"]["usd_per_hour"] > 0

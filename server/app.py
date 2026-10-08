@@ -117,6 +117,11 @@ auth = [Depends(require_secret)]
 # v3: raw traces (zip, Harbor jobs, trajectories), the manuscript edit stream, notes-to-self, figures
 app.include_router(rawtrace.router, dependencies=auth)
 
+# costs for people: price table, estimates before a task starts, `cost` on every chat answer (server/cost_api.py)
+from . import cost_api  # noqa: E402
+
+cost_api.install(app, auth)
+
 
 @app.get("/api/health")
 def health() -> dict:

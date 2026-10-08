@@ -73,7 +73,8 @@ export function runChipHTML(runId, run) {
     <span class="state ${esc(st.cls)}">${esc(st.label)}</span><span class="rc-open">Trace →</span></a>`;
 }
 
-export function messageHTML(m, { runs = new Map() } = {}) {
+// costHTML(m): the "$ · time" chip under an answer (web/cost_ui.js), when the page has one.
+export function messageHTML(m, { runs = new Map(), costHTML = null } = {}) {
   const id = esc(m.id || "");
   switch (m.role) {
     case "user":
@@ -84,7 +85,7 @@ export function messageHTML(m, { runs = new Map() } = {}) {
       // [n] becomes a button when this message has source n, or for any n while its sources haven't arrived yet.
       const keys = (m.citations || []).map((c, i) => c.key || `[${i + 1}]`);
       const body = richText(m.text || "", keys.length ? new Set(keys) : null);
-      return `<div class="msg jarvis${m.bad ? " bad" : ""}" data-id="${id}">${head}<div class="text">${body}</div>
+      return `<div class="msg jarvis${m.bad ? " bad" : ""}" data-id="${id}">${head}<div class="text">${body}</div>${costHTML && m.cost ? costHTML(m) : ""}
         ${m.runId ? runChipHTML(m.runId, runs.get(m.runId)) : ""}
         ${m.evoLink ? `<a class="run-chip evo-chip" href="/?view=evolution" data-open-tab="evolution"><span aria-hidden="true">📈</span><span class="rc-main"><span class="rc-title">Run over run</span><span class="rc-sub">time, cost and what it learned, per task</span></span><span class="rc-open">Evolution →</span></a>` : ""}
         ${m.citations && m.citations.length ? `<div class="sources">${sourcesHTML(m)}</div>` : ""}</div>`;
@@ -118,11 +119,14 @@ export function eventHTML(e, t0) {
     </div></li>`;
 }
 
-export function stepHTML(s) {
+// cost: {ref, text} from web/cost_ui.js: the step's $ and time, and a click opens "what this cost".
+export function stepHTML(s, cost = null) {
   const ss = statusState(s.status);
   const bits = [s.kind, ss.label.toLowerCase()];
   if (s.reward !== null && s.reward !== undefined && s.reward !== "") bits.push(`reward ${Number(s.reward).toFixed(2).replace(/\.?0+$/, "") || 0}`);
   if (Number(s.attempt) > 1) bits.push(`attempt ${s.attempt}`);
   const tip = [s.account && `account ${s.account}`, s.error].filter(Boolean).join(" · ");
-  return `<span class="step" title="${esc(tip)}"><span class="dot ${ss.cls}"></span>${esc(s.key)}<span class="sub">${esc(bits.filter(Boolean).join(" · "))}</span></span>`;
+  const c = cost && typeof cost === "object" && cost.ref ? cost : null;
+  const attrs = c ? ` data-cost="${esc(c.ref)}" role="button" tabindex="0" aria-haspopup="dialog"` : "";
+  return `<span class="step${c ? " has-cost" : ""}" title="${esc(tip || (c ? "What this step cost" : ""))}"${attrs}><span class="dot ${ss.cls}"></span>${esc(s.key)}<span class="sub">${esc(bits.filter(Boolean).join(" · "))}</span>${c && c.text ? `<span class="step-cost">${esc(c.text)}</span>` : ""}</span>`;
 }

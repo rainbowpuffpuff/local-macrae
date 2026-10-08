@@ -1,0 +1,61 @@
+/* Costs on the page (web/cost_ui.js): the session pill, $ chips, step costs, task estimates, the breakdown popover.
+   Uses style.css's tokens only, so light and dark follow the theme. */
+
+/* header: what this session cost */
+.cost-pill { gap: 7px; font-variant-numeric: tabular-nums; }
+.cost-pill b { color: var(--text); font-weight: 600; }
+.cost-pill-label { color: var(--text-3); }
+.cost-pill.live b { color: var(--gold-ink); }
+.cost-pill.live::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--gold); flex: none; animation: cost-pulse 1.6s ease-in-out infinite; }
+@keyframes cost-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
+@media (max-width: 860px) { .cost-pill-label { display: none; } .cost-pill { padding: 0 10px; } }
+
+/* a $ chip under an answer */
+.cost-chip {
+  display: inline-flex; align-items: center; gap: 2px; margin: 6px 0 0 34px; padding: 1px 8px; height: 22px;
+  border: 1px solid var(--border); border-radius: 999px; font: 11.5px var(--mono); color: var(--text-3);
+  font-variant-numeric: tabular-nums;
+}
+.cost-chip:hover, .cost-chip[aria-expanded="true"] { color: var(--text); border-color: var(--border-strong); background: var(--hover); }
+@media (max-width: 860px) { .cost-chip { margin-left: 0; } }
+
+/* step chips with their cost and time */
+.step.has-cost { cursor: pointer; }
+.step.has-cost:hover, .step.has-cost[aria-expanded="true"] { border-color: var(--border-strong); background: var(--hover); }
+.step .step-cost { color: var(--gold-ink); font-variant-numeric: tabular-nums; }
+
+/* the run meter's "What this cost" */
+.cost-why { display: inline-block; margin-top: 6px; font-size: 12.5px; }
+
+/* task cards: what it will likely cost */
+.task-est {
+  align-self: flex-start; margin: 2px 0 0; padding: 0; font-size: 12px; color: var(--text-3);
+  text-decoration: underline dotted var(--border-strong); text-underline-offset: 3px; font-variant-numeric: tabular-nums;
+}
+.task-est:hover, .task-est[aria-expanded="true"] { color: var(--text); }
+.run-cost { font-variant-numeric: tabular-nums; }
+
+/* the popover */
+.cost-pop {
+  position: fixed; z-index: 70; width: min(380px, calc(100vw - 16px)); max-height: min(70vh, 560px); overflow: auto;
+  padding: 12px 14px 10px; border-radius: 14px; background: var(--surface); color: var(--text);
+  border: 1px solid var(--border-strong); box-shadow: 0 8px 32px rgba(5, 8, 22, .18); font-size: 13px;
+}
+.cost-pop.sheet { left: 8px !important; right: 8px; top: auto !important; bottom: 8px; width: auto; max-height: 75vh; }
+.cp-head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; }
+.cp-head b { font-size: 14px; }
+.cp-head span { flex: 1; min-width: 0; color: var(--text-3); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cp-close { margin-left: auto; width: 24px; height: 24px; border-radius: 50%; color: var(--text-3); font-size: 17px; line-height: 1; }
+.cp-close:hover { background: var(--hover); color: var(--text); }
+.cp-table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.cp-table th { text-align: left; font-weight: 500; color: var(--text-2); padding: 4px 8px 4px 0; white-space: nowrap; vertical-align: top; }
+.cp-table td { text-align: right; padding: 4px 0; white-space: nowrap; vertical-align: top; font-family: var(--mono); font-size: 12.5px; }
+.cp-table td.cp-note { text-align: left; padding-left: 10px; color: var(--text-3); white-space: normal; font-family: var(--font); font-size: 12px; width: 100%; }
+.cp-table tr.cp-total th, .cp-table tr.cp-total td { border-top: 1px solid var(--border); padding-top: 6px; color: var(--text); font-weight: 600; }
+.cp-steps th { font-family: var(--mono); font-size: 12px; font-weight: 400; }
+.cp-steps th a { color: var(--text); }
+.cp-steps th.cp-run { font-family: var(--font); font-size: 12.5px; }
+.cp-sub { margin: 10px 0 2px; font-size: 11.5px; letter-spacing: .04em; text-transform: uppercase; color: var(--text-3); }
+.cp-src { margin: 8px 0 0; font-size: 11.5px; line-height: 1.45; color: var(--text-3); }
+.cp-src a { color: var(--text-2); }
+.cp-loading { margin: 4px 0; color: var(--text-3); }
