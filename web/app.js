@@ -10,6 +10,7 @@ import { taskIcon, citeHTML, messageHTML, eventHTML, stepHTML } from "./render.j
 import { planFromEvents, planHeadline, planCardHTML, runCosts, liveCosts, monotonic, costMeterHTML, byStepHTML, formatUsd, currentPhase } from "./live.js";
 import { normalizeEvolution, evolutionTaskHTML } from "./evolution.js";
 import { Voice, preloadSdk } from "./voice.js";
+import { setTraceLinks } from "./traces.js";
 
 const $ = (sel, el = document) => el.querySelector(sel);
 const enc = encodeURIComponent;
@@ -506,6 +507,7 @@ function openRun(id, { seq } = {}) {
     scrolledAt: Date.now() + HOLD_TOP - FOLLOW_PAUSE, // the plan card and the meter stay in view for the first seconds
   };
   $("#run-id").textContent = id;
+  safe(setTraceLinks, $("#run-links"), id);
   $("#run-plan").hidden = true;
   $("#run-plan").innerHTML = "";
   $("#run-costs").hidden = true;

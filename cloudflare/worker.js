@@ -123,7 +123,8 @@ export async function proxy(req, env, url) {
   }
 
   const out = new Headers();
-  for (const h of ["content-type", "content-length", "etag", "last-modified"]) {
+  // content-disposition: trace.zip and report.html name their file (GET /api/runs/{id}/trace.zip, /report.html)
+  for (const h of ["content-type", "content-length", "content-disposition", "etag", "last-modified"]) {
     const v = upstream.headers.get(h);
     if (v) out.set(h, v);
   }

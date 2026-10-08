@@ -16,10 +16,12 @@ from typing import Any, Optional
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request
 from fastapi.concurrency import run_in_threadpool
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from pydantic import BaseModel, Field
+from starlette.background import BackgroundTask
 
-from . import bridges, capabilities, catalog, config, costs, events, evolution, forge, launch, live, planner, rawtrace, runs
+from . import (bridges, capabilities, catalog, config, costs, events, evolution, forge, launch, live, planner,
+               rawtrace, runs, traces)
 from .classify import clip, first_sentence
 
 log = logging.getLogger("macrae.server")
@@ -351,6 +353,37 @@ def run_events(run_id: str, after: int = Query(0, ge=0)) -> dict:
     if res is None:
         raise HTTPException(404, f"no run {run_id!r}")
     return res
+
+
+# ── downloadable proof: trace.zip and the HTML report (server/traces.py, server/report.py) ──
+
+
+def _trace_files(run_id: str) -> "traces.RunFiles":
+    try:
+        rf = traces.locate(run_id)
+    except LookupError as e:
+        raise HTTPException(503, str(e)) from e
+    if rf is None:
+        raise HTTPException(404, f"no run {run_id!r}")
+    return rf
+
+
+@app.get("/api/runs/{run_id}/trace.zip", dependencies=auth)
+def run_trace_zip(run_id: str) -> FileResponse:
+    """Everything the run left (Harbor job folders, logs, state, live events, results) + report.html, as one zip."""
+    rf = _trace_files(run_id)
+    path = traces.build_zip(rf)
+    return FileResponse(path, media_type="application/zip", filename=f"macrae-trace-{run_id}.zip",
+                        headers={"Cache-Control": "no-store"}, background=BackgroundTask(path.unlink, missing_ok=True))
+
+
+@app.get("/api/runs/{run_id}/report.html", dependencies=auth)
+def run_report(run_id: str, download: bool = False) -> HTMLResponse:
+    """The run's trace as one self-contained HTML page (no scripts, nothing external): open it or save it."""
+    rf = _trace_files(run_id)
+    disp = "attachment" if download else "inline"
+    return HTMLResponse(traces.report_html(rf), headers={
+        "Content-Disposition": f'{disp}; filename="macrae-report-{run_id}.html"', "Cache-Control": "no-store"})
 
 
 # ── search ──────────────────────────────────────────────────────────────────
