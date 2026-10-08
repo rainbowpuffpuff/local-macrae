@@ -46,7 +46,7 @@ def fake_call(decision, model="claude-sonnet-5-5"):
 
 
 @pytest.fixture
-def flow_file(tmp_path):
+def flow_file(tmp_path, env):  # env: an empty runs folder, so the daily spend cap sees no spend
     p = tmp_path / "v2-demo.yaml"
     p.write_text(textwrap.dedent(FLOW))
     return p

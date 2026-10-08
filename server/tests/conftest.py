@@ -39,9 +39,14 @@ def env(tmp_path, monkeypatch):
     for k in ("MACRAE_AUTH_DISABLED", "MODAL_TOKEN_ID", "MODAL_TOKEN_SECRET", "MACRAE_MAX_ACTIVE_RUNS",
               # v2: never call the real Anthropic API or post anywhere from tests
               "ANTHROPIC_API_KEY", "MACRAE_PLANNER_API_KEY", "MACRAE_PLANNER", "MACRAE_LIVE_URL",
-              "MACRAE_COMPUTE_RATES", "MACRAE_EVOLVE"):
+              "MACRAE_COMPUTE_RATES", "MACRAE_EVOLVE",
+              # public safety (server/safety.py): defaults unless a test sets them
+              "MACRAE_KILL", "MACRAE_ADMIN_SECRET", "MACRAE_DAILY_BUDGET_USD", "MACRAE_RUN_RESERVE_USD",
+              "MACRAE_BUDGET_HARD_STOP", "MACRAE_RATE_LIMITS"):
         monkeypatch.delenv(k, raising=False)
     events.reset_cache()
+    from server import safety
+    safety.reset()  # rate-limit counters and cost cache are per process
     bridges._stats_cache.update(key=None)
     catalog._tasks_cache.update(key=None)
     return types.SimpleNamespace(tmp=tmp_path, home=home, runs=home / "runs", jobs=home / "jobs",

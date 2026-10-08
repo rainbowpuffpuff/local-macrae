@@ -21,7 +21,7 @@ import time
 from pathlib import Path
 from typing import Any, Callable, Optional
 
-from . import costs
+from . import costs, safety
 
 log = logging.getLogger("macrae.server")
 
@@ -145,9 +145,13 @@ def _prompt(task: dict, inputs: dict, steps: list[dict], knobs: dict, lessons: s
         parts.append(f"The task's default hardware: {task['hardware']}")
     if task.get("budget_usd"):
         parts.append(f"The task's default budget: ${task['budget_usd']}")
-    parts.append("Lessons from earlier runs of this task:\n" + (lessons.strip() or "none yet"))
+    parts.append("Lessons from earlier runs of this task:\n" + (
+        safety.fence(lessons.strip(), "lessons distilled from earlier runs' traces (which quote papers and tool "
+                     "output)") if lessons.strip() else "none yet"))
     parts.append("Capabilities the agent has (tested tools and environments it built for itself; an image "
-                 "capability means its packages are preinstalled):\n" + (capabilities.strip() or "none yet"))
+                 "capability means its packages are preinstalled):\n" + (
+                     safety.fence(capabilities.strip(), "the capability registry (manifests written by earlier runs' "
+                                  "agents)") if capabilities.strip() else "none yet"))
     return "\n\n".join(parts)
 
 
@@ -247,6 +251,8 @@ def make_plan(task: dict, inputs: dict, flow_file: Optional[Path], lessons: str 
         reason = "the planner is switched off (MACRAE_PLANNER=off)"
     elif call is None and not api_key():
         reason = "no ANTHROPIC_API_KEY on the backend"
+    elif blocked := safety.llm_block_reason():
+        reason = f"no Claude calls right now: {blocked}"
     else:
         try:
             decision, usage, model = (call or call_claude)(SYSTEM, _prompt(task, inputs, steps, knobs, lessons,

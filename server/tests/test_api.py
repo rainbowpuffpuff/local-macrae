@@ -196,7 +196,8 @@ def test_search_without_rag(env, client, monkeypatch):
 
 def test_tool_search_papers(env, client, fake_modules):
     r = client.post("/api/tools/search_papers", json={"query": "ion pairing"}).json()
-    assert r["answer_context"].startswith("[1] Passage 0")
+    # the passages come framed as quoted data (server/safety.py fence), numbered as rag gave them
+    assert "<untrusted-papers>\n[1] Passage 0" in r["answer_context"]
     assert [c["key"] for c in r["citations"]] == ["[1]", "[2]"]
     empty = client.post("/api/tools/search_papers", json={"query": "nothing at all"}).json()
     assert empty["citations"] == [] and "don't cover" in empty["answer_context"]
