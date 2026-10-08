@@ -3,7 +3,7 @@
 A script for a **7-minute live demo** (plus a 3-minute cut at the end), with what to say, what to click, and what to
 do when something doesn't cooperate. Timings are targets; the bold lines are the ones worth saying word for word.
 
-Site: <https://macrae.acalincarol.workers.dev> · Architecture page: `docs/architecture.html` · Traces: `docs/TRACES.md`
+Site: <https://macrae.acalincarol.workers.dev> · Architecture page: <https://macrae-architecture.pages.dev/> · Traces: `docs/TRACES.md`
 
 > **Read first (final state, 2026-10-09).** This script was written before the last merge. Two things in it were
 > not built: the **BFF tasks** (use a finished *Ion–water binding* run instead: its manuscript has equations, a
@@ -106,7 +106,7 @@ and the last rows: an honest live run beats a finished one.
   active Modal runs with a queue, and a daily spend cap; the owner has a kill switch.
 - **"Where does it run?"** One Cloudflare Worker (page, API proxy, voice signed URL) in front of a Cloudflare
   Container (the backend) whose state is mirrored to R2; each agent step runs Claude Code in its own Modal sandbox
-  through Harbor; voice is ElevenLabs. See `docs/architecture.html`.
+  through Harbor; voice is ElevenLabs. See <https://macrae-architecture.pages.dev/>.
 - **"Can the group use the traces?"** Yes: download any run's zip or report, and `python -m evolve export` turns
   all passing trajectories into a fine-tuning dataset (`docs/TRACES.md`).
 - **"Who built it?"** Claude Opus agents working in parallel waves through agent-runner and Harbor, from a written

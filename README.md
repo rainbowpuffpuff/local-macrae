@@ -3,7 +3,7 @@
 **A research agent for the Pavel Jungwirth group at IOCB Prague. It knows the group's papers, runs real
 computational chemistry in traced cloud sandboxes, and gets better at it from its own traces.**
 
-Live: <https://macrae.acalincarol.workers.dev> (no login) · Architecture: [`docs/architecture.html`](docs/architecture.html)
+Live: <https://macrae.acalincarol.workers.dev> (no login) · Architecture: <https://macrae-architecture.pages.dev/>
 · Traces: [`docs/TRACES.md`](docs/TRACES.md) · Demo script: [`docs/DEMO.md`](docs/DEMO.md)
 
 You talk to **Jarvis**, by voice (ElevenLabs) or by typing. Jarvis chats like a capable colleague and, when the
@@ -247,7 +247,7 @@ integration (`web/frankenstein.js`).
   inputs that never reach a shell.
 
 The interfaces are fixed in [`CONTRACT.md`](CONTRACT.md) (v1 plus the v2 addendum); the rendered overview with
-diagrams is [`docs/architecture.html`](docs/architecture.html).
+diagrams is <https://macrae-architecture.pages.dev/> (source: [`docs/architecture.html`](docs/architecture.html)).
 
 ## Repository map
 
@@ -329,7 +329,7 @@ wait for running flows: deploy when no run is active.
 |---|---|
 | [`docs/DEMO.md`](docs/DEMO.md) | presenting Macrae live: a timed script, the fallbacks |
 | [`docs/TRACES.md`](docs/TRACES.md) | reading a run's trace on the page, downloading it, and what is in the zip |
-| [`docs/architecture.html`](docs/architecture.html) | the whole system on one page, with diagrams (open in a browser) |
+| <https://macrae-architecture.pages.dev/> ([`docs/architecture.html`](docs/architecture.html)) | the whole system on one page, with diagrams |
 | [`CONTRACT.md`](CONTRACT.md) | the build contract: every route, shape and module boundary (v1 + v2 addendum) |
 | [`CLOUDFLARE.md`](CLOUDFLARE.md), [`deploy/cloudflare.md`](deploy/cloudflare.md) | the Cloudflare setup, secrets, sync, troubleshooting |
 | [`INTEGRATION.md`](INTEGRATION.md), [`w4-notes/`](w4-notes/), [`tasks/V3_NOTES.md`](tasks/V3_NOTES.md) | how the waves of parallel work were merged and verified; the final integration is in [How it was built](#how-it-was-built) |
