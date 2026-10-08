@@ -27,7 +27,7 @@
 
 ## 5 · What it does (45–60 s): a real run, fast-forwarded, the paper written in parallel
 
-> We give it research questions. It produces what scientists do: code, results, and papers.
+> We give his research questions. It produces what scientists do: code, results, and papers.
 >
 > It knows the literature, decides what to run and where, and runs real jobs. Today it lives on Cloudflare. Soon, on
 > IOCB's cluster, for the whole lab.
@@ -38,14 +38,14 @@ deletions, figures, formulas, citations)_
 ## 6 · Frankenstein: it learns (60–73 s)
 
 > And it learns. It reads its own traces and writes notes to itself. When it's missing a capability, it builds it,
-> tests it, installs it, and uses it again. Its skills evolve. Its authority doesn't.
+> tests it, installs it, and uses it again. Its skills evolve.
 
 _(on screen: notes-to-self; the real example: early runs reinstalled the same packages and hit a broken Python
 environment, so it built a ready-made, version-pinned environment, tested it, installed it, used it next run)_
 
 ## 7 · Dusk → dawn proof (73–83 s): the climax
 
-> At dusk, it couldn't. By dawn, it could. Faster, cheaper, fewer mistakes. And every number comes with its trace.
+> Its capabilities evolved over night. It became faster, cheaper, fewer mistakes. And every number comes with its trace.
 
 _(on screen: the galaxy turns from dusk to dawn, the sun brightens with each capability, then the measured
 dusk-vs-dawn numbers from the real benchmark)_
