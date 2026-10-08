@@ -2,7 +2,8 @@
 
 Routes (all behind X-Macrae-Secret, like the rest of /api):
     GET /api/costs/prices             → costs.price_table(): every rate the site uses, with links and the date
-    GET /api/costs/estimates          → {"estimates": {task_id: Estimate}} for every task in the catalog
+    GET /api/costs/estimates          → {"estimates": {task_id: Estimate}, "runs": {run_id: {"total_usd", "llm_usd",
+                                         "compute_usd", "wall_s"}}}: every catalog task, every finished run
     GET /api/tasks/{task_id}/estimate → Estimate
 
 Estimate (from the task's past finished runs; the successful ones when there are any, the newest RECENT of them):
@@ -136,24 +137,35 @@ def estimate_from(task: dict, records: list[dict]) -> dict:
             "runs": [r["run_id"] for r in use]}
 
 
-def estimates() -> dict[str, dict]:
-    """Every catalog task's estimate. Cached for a few seconds: it reads every run folder."""
+def _collect() -> dict:
+    """{"estimates": {task_id: Estimate}, "runs": {run_id: what it cost}}. Cached for a few seconds: it reads every
+    run folder."""
     key = str(config.runs_dir())
     now = time.time()
     with _lock:
         if _est_cache["key"] == key and now - _est_cache["at"] < CACHE_S and _est_cache["value"] is not None:
             return _est_cache["value"]
     by_task: dict[str, list[dict]] = {}
+    by_run: dict[str, dict] = {}
     for s in runs.list_runs(limit=runs.SCAN_MAX):  # newest first
-        if s["status"] not in runs.TERMINAL or s["status"] == "cancelled" or not s.get("task_id"):
+        if s["status"] not in runs.TERMINAL or not s.get("task_id"):
             continue
         rec = _run_record(s)
-        if rec:
+        if not rec:
+            continue
+        by_run[s["run_id"]] = {k: round(rec[k], 6) for k in ("total_usd", "llm_usd", "compute_usd", "wall_s")}
+        if s["status"] != "cancelled":
             by_task.setdefault(s["task_id"], []).append(rec)
-    out = {t["id"]: estimate_from(t, by_task.get(t["id"], [])) for t in catalog.load_tasks()}
+    out = {"estimates": {t["id"]: estimate_from(t, by_task.get(t["id"], [])) for t in catalog.load_tasks()},
+           "runs": by_run}
     with _lock:
         _est_cache.update(key=key, at=now, value=out)
     return out
+
+
+def estimates() -> dict[str, dict]:
+    """Every catalog task's estimate."""
+    return _collect()["estimates"]
 
 
 # ── answers ─────────────────────────────────────────────────────────────────
@@ -198,7 +210,7 @@ def router(dependencies: list) -> APIRouter:
 
     @r.get("/api/costs/estimates")
     def all_estimates() -> dict:
-        return {"estimates": estimates(), "as_of": costs.PRICES_AS_OF}
+        return {**_collect(), "as_of": costs.PRICES_AS_OF}
 
     @r.get("/api/tasks/{task_id}/estimate")
     def task_estimate(task_id: str) -> dict:

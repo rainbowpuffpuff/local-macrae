@@ -132,7 +132,9 @@ def test_estimate_from_past_runs_prefers_successes(env, client):
         _finished_run(env, f"r-ok-{i}", "small-calc", "ok", total, total * 0.9, wall, now + i)
     _finished_run(env, "r-bad", "small-calc", "failed", 5.0, 4.0, 2000, now + 10)
     _finished_run(env, "r-other", "methods-card", "ok", 0.10, 0.10, 60, now + 11)
-    est = client.get("/api/costs/estimates").json()["estimates"]
+    body = client.get("/api/costs/estimates").json()
+    est = body["estimates"]
+    assert body["runs"]["r-bad"]["total_usd"] == 5.0 and body["runs"]["r-ok-0"]["wall_s"] == 300  # recent-runs list
     e = est["small-calc"]
     assert e["basis"] == "past_runs" and e["n"] == 4 and e["n_ok"] == 4
     assert e["usd"] == pytest.approx(0.55) and e["seconds"] == pytest.approx(390)
