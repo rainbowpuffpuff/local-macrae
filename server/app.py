@@ -19,7 +19,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
-from . import bridges, catalog, config, costs, events, evolution, launch, live, planner, runs
+from . import bridges, catalog, config, costs, events, evolution, launch, live, planner, runs, safety
 from .classify import clip, first_sentence
 
 log = logging.getLogger("macrae.server")
@@ -46,21 +46,21 @@ class StartBody(BaseModel):
 
 
 class SearchBody(BaseModel):
-    query: str = ""
+    query: str = Field("", max_length=4000)
     k: int = Field(6, ge=1, le=50)
 
 
 class ToolSearchBody(BaseModel):
-    query: str = ""
+    query: str = Field("", max_length=4000)
 
 
 class ToolStartBody(BaseModel):
-    task_id: str = ""
+    task_id: str = Field("", max_length=200)
     inputs: Optional[dict[str, Any]] = None
 
 
 class ToolStatusBody(BaseModel):
-    run_id: str = ""
+    run_id: str = Field("", max_length=200)
 
 
 # ── app ─────────────────────────────────────────────────────────────────────
@@ -75,7 +75,9 @@ async def lifespan(_: FastAPI):
     log.info("live url: %s  planner: %s (%s)", live.public_url(None) or "from the Worker's X-Macrae-Origin",
              planner.model_name(), "key set" if planner.api_key() else "no ANTHROPIC_API_KEY: task defaults")
     evolution.start_watcher()
+    safety.start_watchdog()
     yield
+    safety.stop_watchdog()
     evolution.stop_watcher()
 
 
@@ -104,6 +106,8 @@ def require_secret(x_macrae_secret: Optional[str] = Header(default=None)) -> Non
 
 
 auth = [Depends(require_secret)]
+# kill switch, daily spend cap, rate limits, request checks, secret scrub (server/safety.py)
+safety.install(app, auth)
 
 
 @app.get("/api/health")
@@ -146,7 +150,7 @@ def _resolve_inputs(task: dict, given: Optional[dict]) -> dict:
             raise HTTPException(400, f"input {name} is longer than {MAX_INPUT_LEN} characters")
         if not SAFE_INPUT_RE.match(s):
             raise HTTPException(400, f"input {name} contains characters that are not allowed (quotes, $, ;, |, &, <, >, \\)")
-        out[name] = v
+        out[name] = safety.check_input(name, spec, v)
     return out
 
 
@@ -164,6 +168,7 @@ def _start(task: dict, given: Optional[dict], origin: Optional[str] = None) -> s
     if config.draining():
         raise HTTPException(503, "the backend is restarting (an update or a restart); try again in a few minutes")
     _check_capacity()
+    safety.check_start(task)
     try:
         run_id = launch.start(task, inputs, origin)
     except bridges.Unavailable as e:
@@ -298,7 +303,7 @@ def tool_search_papers(body: ToolSearchBody) -> dict:
     except Exception:
         log.exception("search_papers failed")
         return {"answer_context": "Paper search failed. Tell the user to try again in a moment.", "citations": []}
-    return {"answer_context": ctx or NO_PAPERS, "citations": cits}
+    return {"answer_context": safety.fence(ctx) if ctx else NO_PAPERS, "citations": safety.clean_citations(cits)}
 
 
 @app.post("/api/tools/start_task", dependencies=auth)
@@ -372,4 +377,5 @@ def tool_run_status(body: ToolStatusBody) -> dict:
     if run is None:
         return {"status": "unknown", "summary": f"I can't find a run with id {run_id}.", "recent": []}
     recent = events.tail(run_id, 5) or []
-    return {"status": run["status"], "summary": status_summary(run, recent), "recent": [e["title"] for e in recent]}
+    return {"status": run["status"], "summary": safety.defang(status_summary(run, recent), 1000),
+            "recent": [safety.defang(e["title"], 300) for e in recent]}

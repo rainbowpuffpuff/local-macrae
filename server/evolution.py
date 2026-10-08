@@ -18,7 +18,7 @@ import threading
 import time
 from typing import Any
 
-from . import bridges, config, costs, planner, runs
+from . import bridges, config, costs, planner, runs, safety
 
 log = logging.getLogger("macrae.server")
 
@@ -78,6 +78,10 @@ def _distill(run_id: str) -> None:
             log.warning("costs for %s failed: %s", run_id, e)
         if os.environ.get("MACRAE_EVOLVE", "").strip().lower() in ("off", "0", "false", "no"):
             rec["skipped"] = "MACRAE_EVOLVE=off"
+        elif blocked := safety.llm_block_reason():
+            # no marker: the watcher distills it later, when the kill switch is off or a new day's budget starts
+            log.info("not distilling %s now: %s", run_id, blocked)
+            return
         else:
             try:
                 out = module().distill(runs.run_dir(run_id))

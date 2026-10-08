@@ -26,7 +26,7 @@ import uuid
 from pathlib import Path
 from typing import Any, Optional
 
-from . import bridges, config, evolution, live, planner
+from . import bridges, config, evolution, live, planner, safety
 
 log = logging.getLogger("macrae.server")
 
@@ -66,7 +66,7 @@ def spawn_engine(flow_file: Path, run_id: str, vars_: dict[str, Any]) -> subproc
     """Like agent_runner.flows.start_detached, for a run id we already made."""
     run_dir = config.runs_dir() / run_id
     run_dir.mkdir(parents=True, exist_ok=True)
-    env = {k: v for k, v in os.environ.items() if not k.startswith("CLAUDE")}
+    env = safety.engine_env({k: v for k, v in os.environ.items() if not k.startswith("CLAUDE")})
     env["PYTHONPATH"] = os.pathsep.join(x for x in (str(config.REPO_ROOT), env.get("PYTHONPATH", "")) if x)
     with open(run_dir / "engine.log", "ab") as logf:
         return subprocess.Popen(engine_command(flow_file, run_id, vars_), stdout=logf, stderr=logf,
