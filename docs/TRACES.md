@@ -94,7 +94,7 @@ An event:
 
 The manuscript is a trace too: `GET /api/runs/{id}/manuscript` returns the ordered edit stream of
 `results/manuscript.md` (`[{seq, t, op, path, old, new, content}]`) rebuilt from the agent's Write/Edit calls; the
-**Manuscript** tab replays it, deletions included. Figures are served by `GET /api/runs/{id}/artifacts/<path>`.
+**Manuscript it wrote** box under a finished run shows the result. Figures are served by `GET /api/runs/{id}/artifacts/<path>`.
 
 ## 2 · Downloading a trace
 
@@ -208,9 +208,9 @@ Macrae learns from its traces in two ways:
 
 - **Lessons and capabilities.** After each run, `evolve` reads the trace (events, errors, timings, check output,
   costs) and writes lessons (`do`, `avoid`, `setting`, `tool`) with evidence pointing at `run_id/step/seq`. The next
-  run of the task gets them in its plan and its instruction; the **What it learned** tab shows them with links to the
+  run of the task gets them in its plan and its instruction; the **Evolution** tab shows them with links to the
   runs they came from. Capability events (gap → create → test → install → use) are recorded in a ledger shown in the
-  **Capabilities** view.
+  **Capabilities** section of the Evolution tab.
 - **Fine-tuning data.** `python -m evolve export out/` writes every finished agent trajectory as chat JSONL with
   its instruction, the lessons it was given and its reward: `all.jsonl`, `sft.jsonl` (reward ≥ 1 only) and
   `manifest.json`.

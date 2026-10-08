@@ -5,6 +5,14 @@ do when something doesn't cooperate. Timings are targets; the bold lines are the
 
 Site: <https://macrae.acalincarol.workers.dev> · Architecture page: `docs/architecture.html` · Traces: `docs/TRACES.md`
 
+> **Read first (final state, 2026-10-09).** This script was written before the last merge. Two things in it were
+> not built: the **BFF tasks** (use a finished *Ion–water binding* run instead: its manuscript has equations, a
+> figure and citations) and `proof/run_proof.py` (start the benchmark with `POST /api/benchmark/dusk` and `…/dawn`
+> and the operator secret, see the README's Deploy section). The page has two panel tabs, **Tasks & runs** and
+> **Evolution**; the manuscript is the **Manuscript it wrote** box under a finished run, and lessons, the
+> **Capabilities** ledger with the Authority card and **Dusk → Dawn** are sections of the Evolution tab. There is no
+> run queue; the limits are rate limits and the daily spend cap.
+
 ## The story in one breath
 
 The Jungwirth group's scientists are chemists, biologists and statisticians, not software engineers. Every time
