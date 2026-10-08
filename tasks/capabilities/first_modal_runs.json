@@ -1,0 +1,57 @@
+{
+  "about": "What our first real runs on Modal taught us (2026-10-08). Source: .reference/STATUS.md 'Verified' (the first real Claude Code agent run of small-calc on Modal through Harbor) and the owner's notes. These are the dusk observations the capability story starts from: the agent recognises from them that it lacks a calculation environment and creates a pinned calc image.",
+  "run": {
+    "task_id": "small-calc",
+    "inputs": {"ion": "Na+"},
+    "where": "Modal via Harbor 0.24 (local test), Claude Code agent",
+    "result": "Na+-water binding, PySCF B3LYP/def2-TZVP with counterpoise: -25.5 kcal/mol at 2.2 Å; reward 1; 34 trace events",
+    "wall_s": 540
+  },
+  "observations": [
+    {
+      "id": "agent-image-build",
+      "what": "first agent image build on Modal before the agent could start",
+      "seconds": 170,
+      "kind": "setting",
+      "lesson": "Build the agent image once, push it to a registry and point AGENT_RUNNER_MODAL_IMAGE (or the task's calc_image) at it; Modal caches a pulled image, a Dockerfile build costs ~170 s.",
+      "capability": "calc-image"
+    },
+    {
+      "id": "pyscf-install",
+      "what": "the agent pip-installed PySCF itself, on every run",
+      "seconds": 60,
+      "kind": "tool",
+      "lesson": "PySCF, numpy and matplotlib belong in the image (pinned, in /opt/calc): reinstalling them costs ~1 min per run (130 s for the full pinned stack).",
+      "capability": "calc-image"
+    },
+    {
+      "id": "sleep-wait",
+      "what": "a 4-minute sleep while waiting for the calculation",
+      "seconds": 240,
+      "kind": "avoid",
+      "lesson": "Never sleep-wait for a calculation (a 240 s sleep in the first Modal run): start it in the background, poll its log every 10-15 s, and write the manuscript meanwhile."
+    },
+    {
+      "id": "ensurepip",
+      "what": "python3 -m venv failed: 'ensurepip is not available' (Harbor 0.24 runs agent steps on bare ubuntu without python3-venv)",
+      "seconds": null,
+      "kind": "setting",
+      "lesson": "On a bare ubuntu sandbox, `python3 -m venv` fails with 'ensurepip is not available': run `apt-get update -qq && apt-get install -y -qq python3-venv` first, or use the calc image where /opt/calc exists.",
+      "capability": "calc-image"
+    },
+    {
+      "id": "omp-oversubscription",
+      "what": "PySCF/numpy start one OpenMP thread per host core; on a busy shared host a 1 s HF smoke test took 10.8 s (1.4 s with OMP_NUM_THREADS=1)",
+      "seconds": 9.4,
+      "kind": "setting",
+      "lesson": "Set OMP_NUM_THREADS to the sandbox's allotted cores (1-2 on a small Modal box) before running PySCF: per-host-core threads oversubscribe and slow small calculations 5-8x."
+    }
+  ],
+  "gap": {
+    "name": "calc-image",
+    "why": "every small-calc run rebuilt its calculation environment: ~60 s PySCF install (130 s for the pinned stack), a venv failure (ensurepip), on top of a 170 s image build",
+    "line": "CAPABILITY_GAP: calc-image: PySCF/numpy/matplotlib are not preinstalled; venv repair + pip install cost 60-130 s per run"
+  },
+  "expected_capability": "calc-image",
+  "setup_s": {"dusk": 230, "dusk_note": "170 s image build + ~60 s PySCF install (the 240 s sleep is waste, fixed by the protocol, not by a capability)", "dawn_expected": 0}
+}

@@ -109,8 +109,8 @@ def test_collect_copies_and_summarizes(tmp_path, monkeypatch, capsys):
     monkeypatch.setenv("FLOW_RUN_DIR", str(tmp_path / "run"))
     assert collect.main(["--step", "calc", "--files", "result.json", "missing.md"]) == 0
     out = json.loads(capsys.readouterr().out)
-    assert out["summary"].startswith("Na+–water binding: -23.4 kcal/mol at 2.23 Å (B3LYP/def2-TZVP, PySCF 2.8.0)")
-    assert "-30.0 → -22.5" in out["summary"]
+    assert out["summary"].startswith("Na+–water binding: -25.5 kcal/mol at 2.20 Å (B3LYP/def2-TZVP, PySCF 2.14.0)")
+    assert "-30.4 → -22.8" in out["summary"]
     assert (tmp_path / "run" / "result" / "result.json").is_file()
     ctx.write_text(json.dumps({"calc": {"ok": False}}))
     assert collect.main(["--step", "calc", "--files", "result.json"]) == 1

@@ -2,8 +2,9 @@
 
     python -m tasks.prepare_calc --ion Na+           (ion also from $TASK_ION)
 
-Writes $FLOW_RUN_DIR/small-calc/calc/{task.json, references.json, context.md} and prints JSON for the flow:
-{"dir", "ion", "charge", "element", "name", "n_references", "references_file", "checker"}.
+Writes $FLOW_RUN_DIR/small-calc/calc/{task.json, references.json, context.md, PROTOCOL.md, results/} and prints JSON
+for the flow: {"dir", "ion", "charge", "element", "name", "n_references", "references_file", "checker", "protocol",
+"manuscript", "citations"}. `protocol` is the research protocol block (tasks/research.py) for the agent instruction.
 """
 
 from __future__ import annotations
@@ -16,6 +17,7 @@ import shutil
 import sys
 from pathlib import Path
 
+from tasks import research as R
 from tasks import sources as S
 
 # ions the calculation supports: name, element, charge, words to find related group papers
@@ -27,6 +29,12 @@ ECC_RE = re.compile(r"charge scaling|electronic polarization|electronic continuu
                     r"polarization effects|prosecco", re.I)
 WATER_RE = re.compile(r"water|aqueous|hydration|solvation|\bions?\b", re.I)
 MAX_REFS = 6
+# the calculation environment: a venv the agent builds, or the pinned calc image (tasks/capabilities/calc-image)
+# where it is preinstalled. The protocol makes the agent check it before installing anything.
+CALC_PYTHON = "/opt/calc/bin/python"
+CALC_IMPORTS = "pyscf, numpy, matplotlib"
+FIGURE_1 = ("the B3LYP/def2-SVP interaction energy along the scan together with the full-charge and ECC-scaled "
+            "point-charge Coulomb curves, and the counterpoise-corrected def2-TZVP value at the minimum")
 
 
 def score_publication(p: dict, ion_name: str) -> float:
@@ -89,13 +97,20 @@ def main(argv: list[str] | None = None) -> int:
             "water_model_charges": {"model": "SPC/E", "O": -0.8476, "H": 0.4238}}
     S.write_json(d / "task.json", task)
     S.write_json(d / "references.json", refs)
-    header = ("# Group papers to cite in calc/explanation.md\n\nCite as [n]; only these numbers exist. Entries "
+    header = (f"# Group papers to cite in calc/{R.MANUSCRIPT}\n\nCite as [n]; only these numbers exist. Entries "
               "marked 'title only' have no full text here: cite them only for what their title states.")
     (d / "context.md").write_text(S.context_markdown(refs, header))
     S.write_json(base / "references.json", refs)
+    R.prepare_workspace(d, refs, task_id="small-calc",
+                        title_hint=f"How strongly does {ion} bind a single water molecule, and what does charge "
+                                   "scaling miss?")
+    protocol = R.protocol(f"/app/{d.name}", python=CALC_PYTHON, packages=CALC_IMPORTS, figure_hint=FIGURE_1,
+                          numbers_hint="the counterpoise-corrected binding energy (e_int_kcal_mol) and the "
+                                       "equilibrium distance (r_min_angstrom)")
     print(json.dumps({"dir": str(d), "ion": ion, "charge": charge, "element": element, "name": name,
                       "n_references": len(refs), "references_file": str(base / "references.json"),
                       "checker": str(Path(__file__).resolve().parent / "checks.py"),
+                      "protocol": protocol, "manuscript": R.MANUSCRIPT, "notes": R.NOTES,
                       "citations": [r["citation"] for r in refs]},  # → `cite` trace events on the page
                      ensure_ascii=False))
     return 0

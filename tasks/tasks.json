@@ -9,18 +9,20 @@
       "flow": "tasks/flows/methods-card.yaml",
       "inputs": [
         {"name": "doi", "label": "DOI", "default": "10.1021/acs.jctc.5c02051", "pattern": "^10\\.\\d{4,9}/[^\\s\"'`$;|&<>\\\\]+$"}
-      ]
+      ],
+      "research": {"workspace": "paper", "manuscript": null, "notes": "NOTES_TO_SELF.md"}
     },
     {
       "id": "small-calc",
       "title": "Ion–water binding, computed live",
-      "subtitle": "Runs a real DFT calculation on Modal and compares it with the group's charge-scaled force fields",
+      "subtitle": "Runs a real DFT calculation on Modal and writes it up as a cited manuscript, revised live as the numbers arrive",
       "icon": "atom",
-      "prompt": "An agent on Modal installs PySCF, scans the distance between an ion and a water molecule with DFT, computes the counterpoise-corrected binding energy, compares it with full and charge-scaled (ECC) point charges, and explains the result citing the group's papers.",
+      "prompt": "A research agent on Modal scans the distance between an ion and a water molecule with DFT (PySCF), computes the counterpoise-corrected binding energy and compares it with full and charge-scaled (ECC) point charges. It keeps a lab notebook of what it tried and what was slow, and drafts a manuscript early (equations, a figure, citations of the group's papers), then revises it as each result arrives.",
       "flow": "tasks/flows/small-calc.yaml",
       "inputs": [
         {"name": "ion", "label": "Ion", "default": "Na+", "options": ["Li+", "Na+", "K+", "Mg2+", "Ca2+"]}
-      ]
+      ],
+      "research": {"workspace": "calc", "manuscript": "results/manuscript.md", "figures": "results/fig*.png", "notes": "NOTES_TO_SELF.md"}
     }
   ]
 }

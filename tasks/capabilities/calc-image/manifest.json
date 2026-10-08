@@ -1,0 +1,59 @@
+{
+  "name": "calc-image",
+  "kind": "image",
+  "version": "1.0.0",
+  "purpose": "small-calc's calculation environment preinstalled and pinned in /opt/calc, so agent steps start computing at once instead of repairing a venv and pip-installing PySCF on every run",
+  "provides": [
+    "/opt/calc/bin/python with pyscf 2.14.0, numpy 2.5.3, scipy 1.18.1, matplotlib 3.11.2, h5py 3.16.0",
+    "python3-venv (no 'ensurepip is not available')",
+    "MPLBACKEND=Agg"
+  ],
+  "for_tasks": [
+    "small-calc"
+  ],
+  "inputs": {
+    "BASE_IMAGE": "the macrae agent image (tasks/common), default ubuntu:24.04"
+  },
+  "outputs": {
+    "image": "a registry reference Modal can pull, e.g. ghcr.io/<owner>/macrae-calc:<date>"
+  },
+  "use": {
+    "flow_var": "calc_image",
+    "check_in_sandbox": "/opt/calc/bin/python -c \"import pyscf, numpy, matplotlib\""
+  },
+  "smoke": "/opt/calc/bin/python /opt/calc-capability/smoke.py",
+  "tests": [
+    "python3 tasks/checks.py image-capability tasks/capabilities/calc-image (pins, hashes, policy)",
+    "docker build runs smoke.py: a Na+-water HF/STO-3G energy and a matplotlib figure (fails the build if broken)",
+    "build.sh runs smoke.py again in the built image"
+  ],
+  "requires": {
+    "secrets": [],
+    "network": [],
+    "registry_write": false
+  },
+  "build_network": [
+    "archive.ubuntu.com",
+    "security.ubuntu.com",
+    "pypi.org",
+    "files.pythonhosted.org"
+  ],
+  "gap": "calc-image",
+  "evidence": "tasks/capabilities/first_modal_runs.json",
+  "expected_effect": {
+    "setup_s_before": 130,
+    "setup_s_after": 0,
+    "note": "before = venv repair + pip install of the pinned stack measured on 2026-10-08 (130 s; the first Modal run lost ~60 s to the PySCF install alone, plus a failed venv); after = nothing to install once the image is pulled and cached by Modal. The dusk/dawn benchmark measures the real numbers."
+  },
+  "created_by": {
+    "run_id": "seed",
+    "step": "tasks",
+    "note": "the expected capability, written from the first Modal runs' lessons; the CREATE step's agent writes its own version, which this spec and checks.py image-capability judge"
+  },
+  "files": {
+    "Dockerfile": "e8bcf020599e4040892faf015fad8db2024e4e477aaea78d53b6e4d8dcbaf6e8",
+    "build.sh": "2cb3b93d4605e45f9158d47d08a8f5e702e068509500bdeddd7b60706ea7909d",
+    "requirements.lock": "a28e044e24418164fb5aecefcd2738f3ff51e53a7a11a06bde6b24874c76b6fa",
+    "smoke.py": "9224095ba829f56c859f4ad3016b8620cbcc6799a3669951e7c91a409133c9b9"
+  }
+}

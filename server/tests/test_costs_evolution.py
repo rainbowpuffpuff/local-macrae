@@ -3,6 +3,7 @@ pass-through that gives the agent its live URL and token (Harbor --ae)."""
 
 import json
 import os
+import site
 import subprocess
 import sys
 import textwrap
@@ -178,7 +179,8 @@ def test_engine_passes_live_env_to_harbor_and_masks_the_token(env, tmp_path, mon
     rdir = env.runs / rid
     tok = live.setup_run(rdir, "https://macrae.example.dev")
     penv = dict(os.environ, PATH=f"{bin_dir}:{os.environ['PATH']}", PYTHONPATH=str(ROOT),
-                FAKE_HARBOR_LOG=str(tmp_path / "harbor.log"), HOME=str(tmp_path))
+                FAKE_HARBOR_LOG=str(tmp_path / "harbor.log"), HOME=str(tmp_path),
+                PYTHONUSERBASE=site.getuserbase())  # a new HOME must not hide pip --user packages (pyyaml)
     r = subprocess.run([sys.executable, "-m", "agent_runner", "flow", "run", str(flow), "--run-id", rid],
                        env=penv, capture_output=True, text=True, timeout=60, cwd=str(tmp_path))
     argv = json.loads((tmp_path / "harbor.log").read_text().splitlines()[0])

@@ -1,0 +1,123 @@
+{
+  "ion": "Na+",
+  "charge": 1,
+  "software": "PySCF 2.14.0",
+  "method": "B3LYP",
+  "basis_scan": "def2-SVP",
+  "basis_final": "def2-TZVP",
+  "r_min_angstrom": 2.2,
+  "e_int_kcal_mol": -25.46,
+  "e_int_uncorrected_kcal_mol": -26.05,
+  "bsse_kcal_mol": 0.59,
+  "scan": [
+    {
+      "r_angstrom": 1.7,
+      "e_int_kcal_mol": -3.57,
+      "e_coulomb_full_kcal_mol": -48.676,
+      "e_coulomb_ecc_kcal_mol": -36.507
+    },
+    {
+      "r_angstrom": 1.8,
+      "e_int_kcal_mol": -17.553,
+      "e_coulomb_full_kcal_mol": -43.921,
+      "e_coulomb_ecc_kcal_mol": -32.941
+    },
+    {
+      "r_angstrom": 1.9,
+      "e_int_kcal_mol": -25.634,
+      "e_coulomb_full_kcal_mol": -39.823,
+      "e_coulomb_ecc_kcal_mol": -29.867
+    },
+    {
+      "r_angstrom": 2.0,
+      "e_int_kcal_mol": -29.926,
+      "e_coulomb_full_kcal_mol": -36.268,
+      "e_coulomb_ecc_kcal_mol": -27.201
+    },
+    {
+      "r_angstrom": 2.1,
+      "e_int_kcal_mol": -31.823,
+      "e_coulomb_full_kcal_mol": -33.165,
+      "e_coulomb_ecc_kcal_mol": -24.874
+    },
+    {
+      "r_angstrom": 2.2,
+      "e_int_kcal_mol": -32.227,
+      "e_coulomb_full_kcal_mol": -30.44,
+      "e_coulomb_ecc_kcal_mol": -22.83
+    },
+    {
+      "r_angstrom": 2.3,
+      "e_int_kcal_mol": -31.72,
+      "e_coulomb_full_kcal_mol": -28.035,
+      "e_coulomb_ecc_kcal_mol": -21.026
+    },
+    {
+      "r_angstrom": 2.4,
+      "e_int_kcal_mol": -30.673,
+      "e_coulomb_full_kcal_mol": -25.902,
+      "e_coulomb_ecc_kcal_mol": -19.426
+    },
+    {
+      "r_angstrom": 2.5,
+      "e_int_kcal_mol": -29.324,
+      "e_coulomb_full_kcal_mol": -24.001,
+      "e_coulomb_ecc_kcal_mol": -18.001
+    },
+    {
+      "r_angstrom": 2.6,
+      "e_int_kcal_mol": -27.825,
+      "e_coulomb_full_kcal_mol": -22.3,
+      "e_coulomb_ecc_kcal_mol": -16.725
+    },
+    {
+      "r_angstrom": 2.7,
+      "e_int_kcal_mol": -26.273,
+      "e_coulomb_full_kcal_mol": -20.773,
+      "e_coulomb_ecc_kcal_mol": -15.58
+    },
+    {
+      "r_angstrom": 2.8,
+      "e_int_kcal_mol": -24.727,
+      "e_coulomb_full_kcal_mol": -19.396,
+      "e_coulomb_ecc_kcal_mol": -14.547
+    },
+    {
+      "r_angstrom": 2.9,
+      "e_int_kcal_mol": -23.222,
+      "e_coulomb_full_kcal_mol": -18.151,
+      "e_coulomb_ecc_kcal_mol": -13.613
+    },
+    {
+      "r_angstrom": 3.0,
+      "e_int_kcal_mol": -21.777,
+      "e_coulomb_full_kcal_mol": -17.021,
+      "e_coulomb_ecc_kcal_mol": -12.766
+    },
+    {
+      "r_angstrom": 3.1,
+      "e_int_kcal_mol": -20.403,
+      "e_coulomb_full_kcal_mol": -15.993,
+      "e_coulomb_ecc_kcal_mol": -11.995
+    },
+    {
+      "r_angstrom": 3.2,
+      "e_int_kcal_mol": -19.102,
+      "e_coulomb_full_kcal_mol": -15.054,
+      "e_coulomb_ecc_kcal_mol": -11.291
+    },
+    {
+      "r_angstrom": 3.3,
+      "e_int_kcal_mol": -17.875,
+      "e_coulomb_full_kcal_mol": -14.196,
+      "e_coulomb_ecc_kcal_mol": -10.647
+    }
+  ],
+  "e_coulomb_full_charge_kcal_mol": -30.44,
+  "e_coulomb_ecc_kcal_mol": -22.83,
+  "ecc_scaling": 0.75,
+  "figures": [
+    "results/fig1.png"
+  ],
+  "wall_time_s": 140.9
+}

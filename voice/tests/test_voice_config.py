@@ -91,7 +91,8 @@ def test_prompt_covers_contract_rules():
     prompt = AGENT["conversation_config"]["agent"]["prompt"]["prompt"]
     for tool in ("search_papers", "show_citations", "start_task", "open_run", "run_status"):
         assert tool in prompt
-    assert re.search(r"only from the passages", prompt, re.I)            # answer from search_papers only
+    assert re.search(r"never invent", prompt, re.I)                      # no made-up authors, years, numbers
+    assert "isn't from the group's papers" in prompt                      # general knowledge is labelled as such
     assert "first author" in prompt and "[1]" in prompt and "year" in prompt  # cite [n] + first author + year
     assert "don't cover" in prompt                                        # say when papers don't cover it
     assert "one sentence" in prompt                                       # narrate run progress briefly

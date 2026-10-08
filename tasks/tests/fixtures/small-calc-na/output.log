@@ -1,0 +1,19 @@
+r=1.70 Å  E_int(B3LYP/def2-SVP)=  -3.570 kcal/mol
+r=1.80 Å  E_int(B3LYP/def2-SVP)= -17.553 kcal/mol
+r=1.90 Å  E_int(B3LYP/def2-SVP)= -25.634 kcal/mol
+r=2.00 Å  E_int(B3LYP/def2-SVP)= -29.926 kcal/mol
+r=2.10 Å  E_int(B3LYP/def2-SVP)= -31.823 kcal/mol
+r=2.20 Å  E_int(B3LYP/def2-SVP)= -32.227 kcal/mol
+r=2.30 Å  E_int(B3LYP/def2-SVP)= -31.720 kcal/mol
+r=2.40 Å  E_int(B3LYP/def2-SVP)= -30.673 kcal/mol
+r=2.50 Å  E_int(B3LYP/def2-SVP)= -29.324 kcal/mol
+r=2.60 Å  E_int(B3LYP/def2-SVP)= -27.825 kcal/mol
+r=2.70 Å  E_int(B3LYP/def2-SVP)= -26.273 kcal/mol
+r=2.80 Å  E_int(B3LYP/def2-SVP)= -24.727 kcal/mol
+r=2.90 Å  E_int(B3LYP/def2-SVP)= -23.222 kcal/mol
+r=3.00 Å  E_int(B3LYP/def2-SVP)= -21.777 kcal/mol
+r=3.10 Å  E_int(B3LYP/def2-SVP)= -20.403 kcal/mol
+r=3.20 Å  E_int(B3LYP/def2-SVP)= -19.102 kcal/mol
+r=3.30 Å  E_int(B3LYP/def2-SVP)= -17.875 kcal/mol
+minimum r=2.20 Å: def2-TZVP E_int=-26.049, CP-corrected -25.457 kcal/mol
+wall 141.1 s

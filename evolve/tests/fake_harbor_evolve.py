@@ -13,7 +13,8 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tasks" / "tests"))
-from fake_harbor import CALC_RESULT  # noqa: E402  (the tasks module's passing result.json)
+from fake_harbor import CALC_RESULT, RESEARCH_CALLS, write_research_files  # noqa: E402  (the tasks module's passing
+# result.json, and the reference run's manuscript + notebook with the Write/Edit calls that wrote them)
 
 RUN_CALC = '"""Ion–water scan with PySCF (B3LYP/def2-SVP), CP-corrected def2-TZVP at the minimum."""\nprint("scan")\n'
 
@@ -42,6 +43,7 @@ def main():
     for p in paths:
         shutil.copytree(p, trial / "artifacts" / "app" / Path(p).name)
     calc = trial / "artifacts" / "app" / Path(paths[0]).name
+    write_research_files(calc)  # results/manuscript.md, NOTES_TO_SELF.md, figure: the v3 research protocol
     (calc / "result.json").write_text(json.dumps(CALC_RESULT))
     (calc / "run_calc.py").write_text(RUN_CALC)
     (calc / "output.log").write_text("r=2.2 E=-23.4\n")
@@ -71,6 +73,8 @@ def main():
              "named 'pyscf'", 2, err=True)
     call("Bash", {"command": "cd /app/calc && /opt/calc/bin/python run_calc.py | tee output.log",
                   "description": "Run the scan with the venv's python"}, "r=2.2 E=-23.4\nwall 41.2 s", 45)
+    for name, args, out in RESEARCH_CALLS:  # the notebook and the manuscript, drafted and revised
+        call(name, args, out, 3)
     steps.append({"step_id": len(steps) + 1, "timestamp": iso(t), "source": "agent",
                   "message": "Done: result.json, explanation.md, run_calc.py and output.log are in /app/calc."})
     (trial / "agent" / "trajectory.json").write_text(json.dumps({"schema_version": "ATIF-v1.2", "steps": steps}))

@@ -1,10 +1,14 @@
 """Last step of every task flow (script): copy the agent's outputs to $FLOW_RUN_DIR/result/ and print a summary.
 
     python -m tasks.collect --step card --files methods-card.md
-    python -m tasks.collect --step calc --files result.json explanation.md run_calc.py output.log
+    python -m tasks.collect --step calc --files result.json results/manuscript.md 'results/fig*.png' NOTES_TO_SELF.md
 
-Reads the step's result from $FLOW_CONTEXT (its `files` folder). Prints JSON:
-{"result_dir", "files": [...], "summary": "one sentence for the page and the voice agent", "data": {...}}
+Reads the step's result from $FLOW_CONTEXT (its `files` folder). --files takes names, sub-paths and glob patterns;
+sub-paths are kept (results/manuscript.md → <run>/result/results/manuscript.md), so the manuscript's relative figure
+links keep working. Prints JSON:
+{"result_dir", "files": [...], "summary": "one sentence for the page and the voice agent", "data": {...},
+ "manuscript": {"path", "title", "words", "figures", "citations"} | null, "notes_to_self": path | null}
+NOTES_TO_SELF.md (the agent's lab notebook) is what evolve ingests after the run: tasks.research.notes_to_lessons.
 """
 
 from __future__ import annotations
@@ -49,6 +53,25 @@ def summarize(step: str, out: Path) -> tuple[str, dict]:
     return f"{step} finished.", {}
 
 
+def manuscript_info(out: Path) -> dict | None:
+    ms = out / "results" / "manuscript.md"
+    if not ms.is_file():
+        return None
+    text = ms.read_text(errors="replace")
+    title = next((ln[2:].strip() for ln in text.splitlines() if ln.startswith("# ")), "")
+    figs = re.findall(r"!\[[^\]]*\]\(\s*<?([^)\s>]+)", text)
+    body = re.split(r"(?im)^\s*##\s+references\b", text, maxsplit=1)[0]
+    cites = sorted({int(n) for grp in re.findall(r"\[(\d+(?:\s*,\s*\d+)*)\]", body) for n in re.split(r"\s*,\s*", grp)})
+    return {"path": str(ms), "title": title, "words": len(text.split()), "figures": figs, "citations": cites}
+
+
+def expand(src: Path, pattern: str) -> list[Path]:
+    """Files under src matching a name, sub-path or glob; never outside src."""
+    root = src.resolve()
+    hits = sorted(src.glob(pattern)) if any(c in pattern for c in "*?[") else [src / pattern]
+    return [p for p in hits if p.is_file() and root in p.resolve().parents]
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--step", required=True)
@@ -65,15 +88,19 @@ def main(argv: list[str] | None = None) -> int:
     out.mkdir(parents=True, exist_ok=True)
     copied = []
     for name in a.files:
-        p = src / name
-        if p.is_file():
-            shutil.copy2(p, out / name)
-            copied.append(str(out / name))
-        else:
+        hits = expand(src, name)
+        if not hits:
             print(f"missing {name} in {src}", file=sys.stderr)
+        for p in hits:
+            dest = out / p.relative_to(src)
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(p, dest)
+            copied.append(str(dest))
     summary, data = summarize(a.step, out)
     (out / "summary.txt").write_text(summary + "\n")
-    print(json.dumps({"result_dir": str(out), "files": copied, "summary": summary, "data": data},
+    notes = out / "NOTES_TO_SELF.md"
+    print(json.dumps({"result_dir": str(out), "files": copied, "summary": summary, "data": data,
+                      "manuscript": manuscript_info(out), "notes_to_self": str(notes) if notes.is_file() else None},
                      ensure_ascii=False))
     return 0 if copied else 1
 

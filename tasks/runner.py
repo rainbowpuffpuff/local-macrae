@@ -166,11 +166,6 @@ def start(task_id: str, inputs: Optional[dict] = None) -> str:
     return run_id
 
 
-# flow vars that aren't the user's inputs: plumbing, evolve's lessons, the planner's decision
-INTERNAL_VARS = ("task_id", "task_title", "python", "environment", "lessons", "tools_dir", "plan", "plan_why",
-                 "hardware", "budget_usd")
-
-
 def run_meta(run_id: str) -> Optional[dict]:
     """Task id, title and inputs of a run started here (macrae.json, else state.json vars). None if unknown."""
     if not re.fullmatch(r"[A-Za-z0-9._-]+", run_id or ""):
@@ -186,12 +181,41 @@ def run_meta(run_id: str) -> Optional[dict]:
         v = data.get("vars") or {}
         if v.get("task_id"):
             return {"run_id": run_id, "task_id": v["task_id"], "title": v.get("task_title") or v["task_id"],
-                    "inputs": {k: x for k, x in v.items() if k not in INTERNAL_VARS},
+                    "inputs": {k: x for k, x in v.items() if k not in ("task_id", "task_title", "python",
+                                                                        "environment")},
                     "flow": data.get("file", ""), "started": data.get("started")}
     return None
 
 
 # ── CLI ─────────────────────────────────────────────────────────────────────
+
+
+def research_problems(task: dict, spec: dict) -> list[str]:
+    """The research protocol hook (tasks/research.py) in a task's flow. tasks.json "research": {"workspace",
+    "manuscript", "notes"} says what the task's agent keeps; `"research": false` opts a task out explicitly.
+    A task without the entry is flagged, so a new flow (e.g. a BFF task) can't silently skip the protocol."""
+    tid, r = task["id"], task.get("research")
+    if r is False:
+        return []
+    if not isinstance(r, dict):
+        return [f"{tid}: no \"research\" entry in tasks.json: research agents keep NOTES_TO_SELF.md and write "
+                "results/manuscript.md (see tasks/V3_NOTES.md for the three flow edits), or set \"research\": false"]
+    agent_steps = [s for s in spec.get("steps") or [] if isinstance(s, dict) and s.get("instruction")]
+    if not agent_steps:
+        return [f"{tid}: \"research\" is set but the flow has no agent step"]
+    problems = []
+    if r.get("notes") and not any(r["notes"] in str(s["instruction"]) or ".output.protocol" in str(s["instruction"])
+                                  for s in agent_steps):
+        problems.append(f"{tid}: no agent step asks for {r['notes']} (the lab notebook evolve learns from)")
+    if r.get("manuscript"):
+        hooked = [s for s in agent_steps if ".output.protocol" in str(s["instruction"])]
+        if not hooked:
+            problems.append(f"{tid}: no agent step includes the research protocol ({{{{ <step>.output.protocol }}}})")
+        elif not any(re.search(r"--research\b|(checks\.py|checker\s*\}\})\"?\s+research\b", str(s.get("check") or ""))
+                     for s in hooked):
+            problems.append(f"{tid}: the protocol's step has no manuscript check (checks.py research … or calc "
+                            "--research)")
+    return problems
 
 
 def check_all() -> list[str]:
@@ -219,6 +243,7 @@ def check_all() -> list[str]:
             missing = [i["name"] for i in t.get("inputs") or [] if i.get("name") not in declared]
             if missing:
                 problems.append(f"{tid}: inputs {missing} are not vars of {t['flow']}")
+            problems += research_problems(t, spec)
         except (TaskError, flows.FlowError) as e:
             problems.append(f"{tid}: {e}")
     return problems

@@ -1,5 +1,7 @@
 # tasks: notes
 
+> v3 (research agent: lab notebook, progressive manuscript, capability seed): see [V3_NOTES.md](V3_NOTES.md).
+
 This module owns `tasks/` and the Modal support in `agent_runner/`. Everything below has been run here. Real Modal
 and Claude runs could not be done (no credentials on this machine). The real Harbor 0.24 CLI was run, though, and
 it accepted the exact command agent_runner builds and got as far as Modal authentication (details below).

@@ -34,6 +34,10 @@ def _env(tmp_path: Path) -> dict:
     shim = bindir / "harbor"
     shim.write_text(f'#!/bin/sh\nexec "{sys.executable}" "{ROOT / "tasks" / "tests" / "fake_harbor.py"}" "$@"\n')
     shim.chmod(shim.stat().st_mode | stat.S_IEXEC)
+    # an empty keyring: the developer's own stored Claude accounts must not log the test in
+    keyring = bindir / "secret-tool"
+    keyring.write_text("#!/bin/sh\nexit 1\n")
+    keyring.chmod(keyring.stat().st_mode | stat.S_IEXEC)
     env = {k: v for k, v in os.environ.items()
            if not k.startswith(("MODAL_", "AGENT_RUNNER_", "CLAUDE", "MACRAE_")) and k != "ANTHROPIC_API_KEY"}
     env.update(PATH=f"{bindir}{os.pathsep}{env.get('PATH', '')}", FAKE_HARBOR_LOG=str(tmp_path / "harbor.jsonl"),

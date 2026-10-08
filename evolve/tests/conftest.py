@@ -46,5 +46,6 @@ def fake_harbor(tmp_path, home):
            if not k.startswith(("MODAL_", "AGENT_RUNNER_", "CLAUDE", "MACRAE_")) and k != "ANTHROPIC_API_KEY"}
     env.update(PATH=f"{bindir}{os.pathsep}{env.get('PATH', '')}", FAKE_HARBOR_LOG=str(log),
                AGENT_RUNNER_HOME=str(home), ANTHROPIC_API_KEY="sk-ant-api03-test", MACRAE_OFFLINE="1",
+               MACRAE_INDEX_DIR=str(tmp_path / "no-index"),  # not the repo's local index/: same sources as a fresh clone
                PYTHONPATH=str(ROOT))
     return env, log
