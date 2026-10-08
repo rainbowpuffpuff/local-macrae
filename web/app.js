@@ -10,6 +10,7 @@ import { taskIcon, citeHTML, messageHTML, eventHTML, stepHTML } from "./render.j
 import { planFromEvents, planHeadline, planCardHTML, runCosts, liveCosts, monotonic, costMeterHTML, byStepHTML, formatUsd, currentPhase } from "./live.js";
 import { normalizeEvolution, evolutionTaskHTML } from "./evolution.js";
 import { Voice, preloadSdk } from "./voice.js";
+import { createCostUI } from "./cost_ui.js";
 
 const $ = (sel, el = document) => el.querySelector(sel);
 const enc = encodeURIComponent;
@@ -111,6 +112,9 @@ function reachable(ok) {
   renderHealth();
 }
 
+// What things cost: the header total, answer and step chips, task estimates, the breakdown popover (cost_ui.js).
+const costUI = createCostUI({ api });
+
 // ---------- small ui helpers ----------
 function toast(msg) {
   const t = $("#toast");
@@ -167,6 +171,7 @@ async function loadTasks() {
   try {
     const data = await api("/api/tasks");
     S.tasks = Array.isArray(data.tasks) ? data.tasks : [];
+    costUI.refreshEstimates();
     try {
       localStorage.setItem(TASKS_CACHE, JSON.stringify(S.tasks));
     } catch {}
@@ -253,15 +258,17 @@ function runStarted(runId, { title = "", task_id = "", inputs = {}, by = "you" }
     if (task) [title, task_id] = [task.title || task.id, task.id];
   }
   if (!S.hints.has(runId)) S.hints.set(runId, { title, task_id, at: Date.now() / 1000 });
+  costUI.trackRun(runId, { title });
   S.knownRuns.add(runId);
   if (!S.thread.some((m) => m.runId === runId)) {
     const what = title ? `**${title}**` : "the task";
     const args = Object.entries(inputs || {}).filter(([, v]) => v !== "" && v !== undefined).map(([k, v]) => `${k} \`${v}\``).join(", ");
     S.runChips.set(runId, { title: title || "Run", cls: "running", label: "Starting" });
+    const expect = costUI.startNote(task_id || taskIdFromRunId(runId, S.tasks)); // "The last 4 runs took about 6 min and cost $0.45–0.62."
     addMsg({
       role: "jarvis",
       runId,
-      text: `${by === "agent" ? "I started" : "Starting"} ${what}${args ? ` with ${args}` : ""} on Modal. Every paper it reads and every calculation it runs shows up in the trace.`,
+      text: `${by === "agent" ? "I started" : "Starting"} ${what}${args ? ` with ${args}` : ""} on Modal. Every paper it reads and every calculation it runs shows up in the trace.${expect ? ` ${expect}` : ""}`,
     });
   }
   navigate({ view: "run", runId });
@@ -616,6 +623,7 @@ async function pollRunInfo(gen, { once = false } = {}) {
 // Every run poll is a snapshot for the cost meter, which keeps counting between snapshots (live.js liveCosts).
 function setRunInfo(r, info) {
   r.info = info;
+  costUI.noteRun(r.id, info);
   const costs = runCosts(info, r.events);
   if (costs && costs.source === "run") {
     r.prevSnap = r.snap;
@@ -727,7 +735,7 @@ function renderRunHeader() {
   if (S.route.view === "run") document.title = `${h.title} · Macrae`;
   $("#run-state").className = `state ${h.state.cls}`;
   $("#run-state").textContent = h.state.label;
-  $("#run-steps").innerHTML = ((r.info && r.info.steps) || []).map(stepHTML).join("");
+  $("#run-steps").innerHTML = ((r.info && r.info.steps) || []).map((s) => stepHTML(s, costUI.stepNote(r.id, s, r.info.costs))).join("");
   const old = S.runChips.get(r.id);
   const chip = { ...old, title: h.title, cls: h.state.cls, label: h.state.label, plan: r.plan ? planHeadline(r.plan) : (old && old.plan) || "" };
   if (S.thread.some((m) => m.runId === r.id) && (!old || old.label !== chip.label || old.title !== chip.title || old.plan !== chip.plan)) {
@@ -963,7 +971,7 @@ function renderThread({ follow = false, keepScroll = false } = {}) {
   const nearBottom = sc.scrollHeight - sc.scrollTop - sc.clientHeight < 140;
   const top = sc.scrollTop;
   $("#app").classList.toggle("chatting", S.thread.length > 0);
-  $("#thread").innerHTML = S.thread.map((m) => messageHTML(m, { runs: S.runChips })).join("");
+  $("#thread").innerHTML = S.thread.map((m) => messageHTML(m, { runs: S.runChips, costHTML: costUI.answerChip })).join("");
   if (keepScroll && !nearBottom) sc.scrollTop = top;
   else if (follow || nearBottom) sc.scrollTop = sc.scrollHeight;
 }
@@ -1087,6 +1095,7 @@ function renderVoiceState(state, text) {
   $("#hint").textContent = live
     ? "You're in a voice conversation. Typed messages go to Jarvis too."
     : "Typed questions search the papers. Press the microphone to talk to Jarvis.";
+  costUI.voice(live);
   if (live && !S.sessionStart) startWatch();
   if (!live && state !== "connecting") stopWatch();
 }
@@ -1170,10 +1179,12 @@ async function ask(text) {
     return;
   }
   const id = addMsg({ role: "jarvis", pending: true, text: "Searching the papers…" });
+  const asked = performance.now();
   try {
     const data = await api("/api/search", { method: "POST", body: { query: q, k: 6 }, timeout: 30_000 });
     const { text: answer, citations } = passagesAnswer(Array.isArray(data.passages) ? data.passages : []);
-    addMsg({ id, role: "jarvis", pending: false, text: answer, citations });
+    const cost = costUI.noteAnswer(id, data.cost, (performance.now() - asked) / 1000);
+    addMsg({ id, role: "jarvis", pending: false, text: answer, citations, cost });
   } catch (err) {
     addMsg({
       id, role: "jarvis", pending: false, bad: true,
@@ -1249,6 +1260,7 @@ safe(renderTasks);
 // Health first, and nothing below can stop it: a throw while opening the run used to leave the pill on "Checking…".
 window.addEventListener("unhandledrejection", (e) => console.error("unhandled", e.reason));
 refreshHealth();
+safe(costUI.start);
 safe(restoreThread);
 safe(applyRoute, S.route);
 setInterval(() => {
