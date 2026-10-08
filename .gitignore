@@ -4,3 +4,16 @@ __pycache__/
 .pytest_cache/
 *.egg-info/
 build/
+
+# local only
+.reference/
+papers/
+index/
+.dev.vars
+.env
+node_modules/
+.wrangler/
+*secret*
+*.env
+!env.example
+!deploy/env.example

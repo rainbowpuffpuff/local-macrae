@@ -126,7 +126,7 @@ async def acquire(want: str, cap: Optional[int] = None, on_wait=None) -> Lease:
             return lease
         if want == "auto" and not usable_accounts():
             if not tokens.list_accounts():
-                raise RuntimeError("no Claude login: `agent-runner token set NAME` (token from `claude setup-token`), "
+                raise RuntimeError("no Claude login: `agent-runner accounts set NAME` (token from `claude setup-token`), "
                                    "or set AGENT_RUNNER_TOKEN_<NAME> / ANTHROPIC_API_KEY")
         if on_wait and not waited:
             on_wait()

@@ -1,0 +1,71 @@
+# small-calc: an agent on Modal runs a real quantum-chemistry calculation relevant to the group (ion–water
+# binding vs the charge-scaled (ECC) point-charge picture), writes result.json and an explanation citing group
+# papers; the check verifies result.json holds plausible numbers.
+#   agent-runner flow run tasks/flows/small-calc.yaml --var ion=Ca2+
+name: small-calc
+workdir: ../..
+environment: "{{ vars.environment }}"
+concurrency: 2
+vars:
+  ion: Na+
+  environment: modal
+  python: python3
+  task_id: small-calc
+  task_title: Ion–water binding
+  lessons: ""                           # filled by the server from evolve (lessons learned from earlier runs' traces)
+  tools_dir: ""                         # filled by the server: scripts from earlier passing runs (→ /app/small-calc)
+steps:
+  - id: prepare
+    description: Set up the calculation folder and the group papers to cite
+    run: '"{{ vars.python }}" -m tasks.prepare_calc'
+    env: {TASK_ION: "{{ vars.ion }}"}
+    outputs: auto                       # JSON on success; on failure the error shows the script's stderr
+    timeout: 600
+
+  - id: calc
+    description: An agent on Modal sets up and runs the calculation
+    paths: ["{{ prepare.output.dir }}", "{{ vars.tools_dir }}"]   # an empty tools_dir is dropped
+    timeout: 2400
+    instruction: >
+      Run a small but real quantum-chemistry calculation for Pavel Jungwirth's group (IOCB Prague), who model ions
+      in water and correct force fields for missing electronic polarization by scaling ionic charges by 0.75
+      (electronic continuum correction, ECC). The ion is {{ prepare.output.ion }} (charge
+      +{{ prepare.output.charge }}, element {{ prepare.output.element }}). Work in /app/calc; task.json has the
+      parameters, context.md and references.json list the group papers you may cite as [n].
+
+      1. Install PySCF in a venv: python3 -m venv /opt/calc && /opt/calc/bin/pip install -q pyscf numpy
+         (if that fails, use xtb or tblite instead and say so in result.json "software").
+
+      2. Write calc/run_calc.py and run it with /opt/calc/bin/python, saving everything it prints to
+         calc/output.log. It must: build one water molecule (O–H 0.9572 Å, H–O–H 104.52°) and put the ion on the
+         water's C2 axis on the oxygen side (ion facing O, as in the first hydration shell); scan the ion–O
+         distance from 1.7 to 3.3 Å in 0.1 Å steps with B3LYP/def2-SVP (interaction energy = E(complex) − E(ion)
+         − E(water), in kcal/mol, negative = bound); at the scan minimum compute the counterpoise-corrected
+         interaction energy with B3LYP/def2-TZVP (ghost atoms); then compute the point-charge Coulomb energy
+         between the ion and SPC/E water charges (O −0.8476 e, H +0.4238 e) at the minimum geometry, once with
+         the full ion charge and once with the ion charge scaled by 0.75 (ECC); time the whole run.
+
+      3. Write calc/result.json with numbers (not strings): {"ion", "charge", "software" (with version),
+         "method", "basis_scan", "basis_final", "r_min_angstrom", "e_int_kcal_mol" (counterpoise-corrected,
+         def2-TZVP), "e_int_uncorrected_kcal_mol", "bsse_kcal_mol", "scan": [{"r_angstrom", "e_int_kcal_mol"},
+         ...], "e_coulomb_full_charge_kcal_mol", "e_coulomb_ecc_kcal_mol", "ecc_scaling": 0.75,
+         "wall_time_s"}. Every number must come from the run, never typed in.
+
+      4. Write calc/explanation.md (150–350 words, Markdown) for a curious non-specialist: what was computed,
+         the key numbers, what the full- vs scaled-charge comparison suggests about why the group scales ionic
+         charges (and why a gas-phase ion–single-water comparison is only a rough illustration of it), and the
+         limitations (gas phase, one water, DFT functional, no dispersion). Cite group papers from
+         references.json as [n] for every statement about the literature or the group's work; numbers from this
+         run need no citation. Use only numbers that exist in references.json.
+
+      {{ vars.lessons }}
+    check: >-
+      python3 "{{ prepare.output.checker }}" calc . --references "{{ prepare.output.references_file }}"
+      --ion "{{ prepare.output.ion }}"
+    retry: {max: 1, until: "(reward or 0) >= 1"}   # reward is None when the trial errored
+
+  - id: collect
+    description: Copy the results to the run's result folder and summarize them
+    needs: [calc]
+    run: '"{{ vars.python }}" -m tasks.collect --step calc --files result.json explanation.md run_calc.py output.log'
+    outputs: auto

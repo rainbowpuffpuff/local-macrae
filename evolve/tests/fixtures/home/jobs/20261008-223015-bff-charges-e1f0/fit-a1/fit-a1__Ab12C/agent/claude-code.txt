@@ -1,0 +1,1 @@
+{"type": "system", "subtype": "init", "model": "claude-opus-5-5", "tools": ["Bash", "Read", "Write", "Edit", "Glob", "Grep"]}

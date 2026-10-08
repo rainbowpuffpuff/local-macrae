@@ -1,0 +1,6 @@
+# secrets, local state and data never get committed
+.env
+.env.*
+!env.example
+.state/
+data/

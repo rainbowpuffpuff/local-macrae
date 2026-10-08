@@ -1,0 +1,58 @@
+# methods-card: a DOI from data/group_publications.json → RAG passages from that paper (script, on the backend)
+# → an agent on Modal writes a methods card where every claim cites [n] → checked → copied to <run>/result/.
+#   agent-runner flow run tasks/flows/methods-card.yaml --var doi=10.1021/acs.jctc.5c02051
+#   (local Docker instead of Modal: --var environment=docker)
+name: methods-card
+workdir: ../..                          # repo root: data/, rag and the tasks package are importable from here
+environment: "{{ vars.environment }}"   # agent steps run on Modal (the backend has no Docker)
+concurrency: 2
+vars:
+  doi: 10.1021/acs.jctc.5c02051
+  environment: modal
+  python: python3                       # tasks.runner passes the server's interpreter
+  task_id: methods-card
+  task_title: Methods card
+  lessons: ""                           # filled by the server from evolve (lessons learned from earlier runs' traces)
+  tools_dir: ""                         # filled by the server: scripts from earlier passing runs (→ /app/methods-card)
+steps:
+  - id: sources
+    description: Pull the paper's passages from the RAG index (plus its abstract when the index has little)
+    run: '"{{ vars.python }}" -m tasks.prepare_methods'
+    env: {TASK_DOI: "{{ vars.doi }}"}   # passed as env, never pasted into the shell command
+    outputs: auto                       # JSON on success; on failure the error shows the script's stderr
+    timeout: 600
+
+  - id: card
+    description: An agent writes the cited methods card
+    paths: ["{{ sources.output.dir }}", "{{ vars.tools_dir }}"]   # an empty tools_dir is dropped
+    timeout: 1500
+    instruction: >
+      You are writing a methods card for a paper by Pavel Jungwirth's group (IOCB Prague):
+      "{{ sources.output.title }}" (DOI {{ sources.output.doi }}).
+      Your sources are in paper/: context.md has the numbered sources [1]…[{{ sources.output.n_sources }}] with
+      their text, sources.json is the same machine-readable, paper.json is the bibliographic record.
+      {{ sources.output.n_from_paper }} of the {{ sources.output.n_sources }} sources are passages from the paper
+      itself; the rest are its abstract, its bibliographic record or related group papers (each source says which).
+
+      Read them all, then write paper/methods-card.md in Markdown with exactly this structure:
+
+      "# Methods card: <short title>", then one line "**Paper:** <authors>, <journal> (<year>), DOI <doi>", then
+      the sections "## System studied", "## Computational methods" (software, force fields, water models or level
+      of theory, ensemble, system size, simulation length), "## Experimental methods", "## Analysis",
+      "## Limitations" (what the sources leave open) and "## References" (one line per number you cited:
+      "[n] First author et al. (year). Title. Journal. DOI, p. page").
+
+      Rules: every sentence that states a fact ends with its source number(s), like [2] or [1, 3]. Use only
+      numbers that exist in context.md. Never add details the sources don't contain; write "Not stated in the
+      available sources." instead (that sentence needs no number). Prefer the paper's own passages and say so when
+      a statement comes from a related group paper. Under 600 words. Don't change the other files in paper/.
+
+      {{ vars.lessons }}
+    check: python3 "{{ sources.output.checker }}" card methods-card.md --sources "{{ sources.output.sources_file }}"
+    retry: {max: 1, until: "(reward or 0) >= 1"}   # reward is None when the trial errored
+
+  - id: collect
+    description: Copy the card to the run's result folder and summarize it
+    needs: [card]
+    run: '"{{ vars.python }}" -m tasks.collect --step card --files methods-card.md'
+    outputs: auto

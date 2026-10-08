@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+<title>Macrae · ask Jarvis about the Jungwirth group's papers</title>
+<meta name="description" content="Talk to Jarvis, an agent that has read the Jungwirth group's papers. It answers with citations, and runs real tasks on Modal while you watch every paper it reads and every calculation it does.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0b1029" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='#0b1029'/%3E%3Cg transform='translate(16 16) rotate(-22)' fill='none'%3E%3Cellipse rx='13' ry='6.4' stroke='#4f5bb4' stroke-width='1.1'/%3E%3Cellipse rx='8.4' ry='4.1' stroke='#7d8af0' stroke-width='1.2'/%3E%3C/g%3E%3Ccircle cx='5.6' cy='21.2' r='1.4' fill='#8b97ff'/%3E%3Ccircle cx='26.6' cy='10.9' r='1.4' fill='#8b97ff'/%3E%3Ccircle cx='10.3' cy='13.2' r='1.3' fill='#e9a676'/%3E%3Ccircle cx='21.6' cy='18.9' r='1.3' fill='#e9a676'/%3E%3Ccircle cx='16' cy='16' r='3.6' fill='none' stroke='#c98a2c' stroke-width='.9'/%3E%3Ccircle cx='16' cy='16' r='2.4' fill='#ffb847'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+<script src="theme.js"></script>
+</head>
+<body>
+<div class="app" id="app">
+  <div class="main">
+    <header class="top">
+      <a class="brand" href="/" data-nav="home" aria-label="macrae, home">
+        <svg class="mark mark-sm" viewBox="-62 -42 124 84" width="42" height="28" aria-hidden="true" focusable="false"><g class="orbits" transform="rotate(-22)" fill="none"><ellipse class="o0" rx="56" ry="27" stroke-width="0.8"/><ellipse class="o1" rx="44" ry="20.5" stroke-width="0.9"/><ellipse class="o2" rx="31" ry="14.5" stroke-width="1"/><ellipse class="o3" rx="18" ry="8.6" stroke-width="1.1"/></g><g class="links" fill="none"><polyline points="17.2,-32.2 31.8,-32.3 43.3,-29.3 50,-24.3"/><polyline points="-39.9,30.7 -48.7,25.7 -52.7,18.2 -51.9,10.1"/><polyline points="31.3,11.5 16.2,20.6 0.9,26.6 -14.5,30"/><polyline points="-33,-3.1 -21.2,-12.2 -6.3,-19.6 8.2,-23.8"/><polyline points="41,-9 36.2,-0.4"/><polyline points="-4.7,16.6 -16.5,17.7 -25.2,15.5 -29.1,10.4 -27.6,3.3"/><polyline points="9.7,-17.4 20.4,-17.2 27.4,-13.8 29.2,-7.7 26,-0.9"/><polyline points="8.3,4.9 -2.5,9.3 -12.2,9.3 -15.9,3.4 -8.3,-4.9 2.5,-9.3 12.2,-9.3 15.9,-3.4"/></g><circle class="p1" cx="17.2" cy="-32.2" r="1.5"/><circle class="p1" cx="31.8" cy="-32.3" r="1.5"/><circle class="p1" cx="43.3" cy="-29.3" r="1.5"/><circle class="p1" cx="50" cy="-24.3" r="1.5"/><circle class="p1" cx="-39.9" cy="30.7" r="1.5"/><circle class="p1" cx="-48.7" cy="25.7" r="1.5"/><circle class="p1" cx="-52.7" cy="18.2" r="1.5"/><circle class="p1" cx="-51.9" cy="10.1" r="1.5"/><circle class="p1" cx="31.3" cy="11.5" r="1.5"/><circle class="p1" cx="16.2" cy="20.6" r="1.5"/><circle class="p1" cx="0.9" cy="26.6" r="1.5"/><circle class="p1" cx="-14.5" cy="30" r="1.5"/><circle class="p2" cx="-33" cy="-3.1" r="1.6"/><circle class="p2" cx="-21.2" cy="-12.2" r="1.6"/><circle class="p2" cx="-6.3" cy="-19.6" r="1.6"/><circle class="p2" cx="8.2" cy="-23.8" r="1.6"/><circle class="p2" cx="41" cy="-9" r="1.6"/><circle class="p2" cx="36.2" cy="-0.4" r="1.6"/><circle class="p3" cx="-4.7" cy="16.6" r="1.9"/><circle class="p3" cx="-16.5" cy="17.7" r="1.9"/><circle class="p3" cx="-25.2" cy="15.5" r="1.9"/><circle class="p3" cx="-29.1" cy="10.4" r="1.9"/><circle class="p3" cx="-27.6" cy="3.3" r="1.9"/><circle class="p3" cx="9.7" cy="-17.4" r="1.9"/><circle class="p3" cx="20.4" cy="-17.2" r="1.9"/><circle class="p3" cx="27.4" cy="-13.8" r="1.9"/><circle class="p3" cx="29.2" cy="-7.7" r="1.9"/><circle class="p3" cx="26" cy="-0.9" r="1.9"/><circle class="p4" cx="8.3" cy="4.9" r="1.7"/><circle class="p4" cx="-2.5" cy="9.3" r="1.7"/><circle class="p4" cx="-12.2" cy="9.3" r="1.7"/><circle class="p4" cx="-15.9" cy="3.4" r="1.7"/><circle class="p4" cx="-8.3" cy="-4.9" r="1.7"/><circle class="p4" cx="2.5" cy="-9.3" r="1.7"/><circle class="p4" cx="12.2" cy="-9.3" r="1.7"/><circle class="p4" cx="15.9" cy="-3.4" r="1.7"/><circle class="ring" r="6.6" fill="none"/><circle class="core" r="4.3"/><circle class="st" cx="-50" cy="-34" r="0.9"/><circle class="st" cx="-40" cy="-37" r="0.9"/><circle class="st" cx="-47" cy="-26" r="0.9"/><circle class="st" cx="49" cy="30" r="0.9"/><circle class="st" cx="44" cy="36" r="0.9"/><circle class="st" cx="55" cy="25" r="0.9"/></svg>
+        <span class="wordmark">macrae</span>
+      </a>
+      <span class="brand-sub">Jungwirth group · IOCB Prague</span>
+      <span class="spacer"></span>
+      <button class="pill" id="health" type="button" title="Backend status. Click to check again."><span class="led"></span><span id="health-text">Checking…</span></button>
+      <button class="icon-btn" id="theme" type="button" aria-label="Switch light or dark theme" title="Theme">
+        <svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+      </button>
+      <button class="icon-btn" id="panel-btn" type="button" aria-controls="panel" aria-expanded="true" aria-label="Tasks and runs" title="Tasks and runs">
+        <svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="3" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M14.5 4.5v15" stroke="currentColor" stroke-width="1.7"/></svg>
+        <span class="badge" id="panel-badge" hidden></span>
+      </button>
+    </header>
+
+    <div class="banner" id="offline" role="status" hidden>
+      <span class="led"></span>
+      <span><b>Jarvis is offline.</b> The backend isn't answering, so typed questions and tasks are paused. This page keeps checking.</span>
+      <button class="btn tiny" type="button" data-retry>Check again</button>
+    </div>
+
+    <div class="scroll" id="scroll">
+      <div class="column">
+        <section class="hero" id="hero" aria-labelledby="hero-title">
+          <svg class="mark mark-lg" viewBox="-62 -42 124 84" width="228" height="155" aria-hidden="true" focusable="false"><g class="orbits" transform="rotate(-22)" fill="none"><ellipse class="o0" rx="56" ry="27" stroke-width="0.8"/><ellipse class="o1" rx="44" ry="20.5" stroke-width="0.9"/><ellipse class="o2" rx="31" ry="14.5" stroke-width="1"/><ellipse class="o3" rx="18" ry="8.6" stroke-width="1.1"/></g><g class="links" fill="none"><polyline points="17.2,-32.2 31.8,-32.3 43.3,-29.3 50,-24.3"/><polyline points="-39.9,30.7 -48.7,25.7 -52.7,18.2 -51.9,10.1"/><polyline points="31.3,11.5 16.2,20.6 0.9,26.6 -14.5,30"/><polyline points="-33,-3.1 -21.2,-12.2 -6.3,-19.6 8.2,-23.8"/><polyline points="41,-9 36.2,-0.4"/><polyline points="-4.7,16.6 -16.5,17.7 -25.2,15.5 -29.1,10.4 -27.6,3.3"/><polyline points="9.7,-17.4 20.4,-17.2 27.4,-13.8 29.2,-7.7 26,-0.9"/><polyline points="8.3,4.9 -2.5,9.3 -12.2,9.3 -15.9,3.4 -8.3,-4.9 2.5,-9.3 12.2,-9.3 15.9,-3.4"/></g><circle class="p1" cx="17.2" cy="-32.2" r="1.5"/><circle class="p1" cx="31.8" cy="-32.3" r="1.5"/><circle class="p1" cx="43.3" cy="-29.3" r="1.5"/><circle class="p1" cx="50" cy="-24.3" r="1.5"/><circle class="p1" cx="-39.9" cy="30.7" r="1.5"/><circle class="p1" cx="-48.7" cy="25.7" r="1.5"/><circle class="p1" cx="-52.7" cy="18.2" r="1.5"/><circle class="p1" cx="-51.9" cy="10.1" r="1.5"/><circle class="p1" cx="31.3" cy="11.5" r="1.5"/><circle class="p1" cx="16.2" cy="20.6" r="1.5"/><circle class="p1" cx="0.9" cy="26.6" r="1.5"/><circle class="p1" cx="-14.5" cy="30" r="1.5"/><circle class="p2" cx="-33" cy="-3.1" r="1.6"/><circle class="p2" cx="-21.2" cy="-12.2" r="1.6"/><circle class="p2" cx="-6.3" cy="-19.6" r="1.6"/><circle class="p2" cx="8.2" cy="-23.8" r="1.6"/><circle class="p2" cx="41" cy="-9" r="1.6"/><circle class="p2" cx="36.2" cy="-0.4" r="1.6"/><circle class="p3" cx="-4.7" cy="16.6" r="1.9"/><circle class="p3" cx="-16.5" cy="17.7" r="1.9"/><circle class="p3" cx="-25.2" cy="15.5" r="1.9"/><circle class="p3" cx="-29.1" cy="10.4" r="1.9"/><circle class="p3" cx="-27.6" cy="3.3" r="1.9"/><circle class="p3" cx="9.7" cy="-17.4" r="1.9"/><circle class="p3" cx="20.4" cy="-17.2" r="1.9"/><circle class="p3" cx="27.4" cy="-13.8" r="1.9"/><circle class="p3" cx="29.2" cy="-7.7" r="1.9"/><circle class="p3" cx="26" cy="-0.9" r="1.9"/><circle class="p4" cx="8.3" cy="4.9" r="1.7"/><circle class="p4" cx="-2.5" cy="9.3" r="1.7"/><circle class="p4" cx="-12.2" cy="9.3" r="1.7"/><circle class="p4" cx="-15.9" cy="3.4" r="1.7"/><circle class="p4" cx="-8.3" cy="-4.9" r="1.7"/><circle class="p4" cx="2.5" cy="-9.3" r="1.7"/><circle class="p4" cx="12.2" cy="-9.3" r="1.7"/><circle class="p4" cx="15.9" cy="-3.4" r="1.7"/><circle class="ring" r="6.6" fill="none"/><circle class="core" r="4.3"/><circle class="st" cx="-50" cy="-34" r="0.9"/><circle class="st" cx="-40" cy="-37" r="0.9"/><circle class="st" cx="-47" cy="-26" r="0.9"/><circle class="st" cx="49" cy="30" r="0.9"/><circle class="st" cx="44" cy="36" r="0.9"/><circle class="st" cx="55" cy="25" r="0.9"/></svg>
+          <h1 id="hero-title">Ask Jarvis about the Jungwirth group's papers.</h1>
+          <p class="lead">Jarvis has read the group's publications. It answers with the paper behind every claim, and runs tasks on Modal while you watch each paper it opens and every calculation it does.</p>
+          <div class="chips" id="suggest">
+            <button type="button" class="chip" data-ask="How do ions behave at the air/water interface?">Ions at the air/water interface</button>
+            <button type="button" class="chip" data-ask="What is the electronic continuum correction and why does the group use it?">Why scaled charges (ECC)?</button>
+            <button type="button" class="chip" data-ask="Which methods does the group use for calcium binding to proteins?">Calcium binding methods</button>
+          </div>
+        </section>
+        <div class="thread" id="thread" aria-live="polite" aria-label="Conversation with Jarvis"></div>
+      </div>
+    </div>
+
+    <div class="dock">
+      <form class="composer" id="composer" autocomplete="off" data-voice="idle">
+        <textarea id="input" rows="1" placeholder="Ask Jarvis about the papers" aria-label="Message to Jarvis"></textarea>
+        <div class="composer-row">
+          <div class="composer-left">
+            <button type="button" class="mic" id="mic" aria-pressed="false" aria-label="Talk to Jarvis" title="Talk to Jarvis (voice)">
+              <span class="mic-level" id="mic-level" aria-hidden="true"></span>
+              <svg class="i-mic" viewBox="0 0 24 24" width="19" height="19" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3" fill="currentColor"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>
+              <svg class="i-end" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2.5" fill="currentColor"/></svg>
+              <span class="mic-text" id="mic-text">Talk</span>
+            </button>
+            <button type="button" class="icon-btn round" id="mute" hidden aria-pressed="false" aria-label="Mute microphone" title="Mute">
+              <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path class="mute-slash" d="M4 4l16 16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            </button>
+            <span class="voice-status" id="voice-status" role="status"></span>
+          </div>
+          <div class="composer-right">
+            <button type="submit" class="send" id="send" aria-label="Send" disabled>
+              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 19V5m0 0-6 6m6-6 6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </div>
+        </div>
+      </form>
+      <p class="fineprint" id="hint">Typed questions search the papers. Press the microphone to talk to Jarvis.</p>
+    </div>
+  </div>
+
+  <div class="scrim" id="scrim" hidden></div>
+  <aside class="panel" id="panel" aria-label="Tasks and runs">
+    <button class="panel-head" id="panel-head" type="button" aria-controls="panel" aria-expanded="false">
+      <span class="grip" aria-hidden="true"></span>
+      <b>Tasks &amp; runs</b>
+      <span class="panel-peek" id="panel-peek"></span>
+      <svg class="chev" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M6 15l6-6 6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <div class="panel-body" id="panel-body">
+      <div class="tabs" role="tablist" aria-label="Panel">
+        <button type="button" role="tab" class="tab" id="tab-runs" data-tab="runs" aria-selected="true" aria-controls="pane-runs">Tasks &amp; runs</button>
+        <button type="button" role="tab" class="tab" id="tab-evo" data-tab="evolution" aria-selected="false" aria-controls="pane-evo">Evolution<span class="tab-new" id="evo-badge" hidden></span></button>
+      </div>
+      <div id="pane-runs" role="tabpanel" aria-labelledby="tab-runs">
+      <details class="p-sec" id="sec-tasks" open>
+        <summary><h3>Tasks</h3><span class="count" id="tasks-count" hidden></span><svg class="chev" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></summary>
+        <div class="tasks" id="tasks"><div class="task skeleton"></div><div class="task skeleton"></div></div>
+      </details>
+
+      <section class="p-sec" id="sec-run" aria-labelledby="h-run" hidden>
+        <div class="p-sec-head"><h3 id="h-run">Current run</h3><a class="linklike" href="/" data-nav="home">Close</a></div>
+        <div class="run-card" id="run">
+          <div class="run-top">
+            <b class="run-title" id="run-title">Opening the run…</b>
+            <span class="state running" id="run-state">Starting</span>
+          </div>
+          <div class="run-meta"><span class="mono" id="run-timer"></span><span class="mono muted" id="run-id"></span></div>
+          <div class="run-plan" id="run-plan" hidden></div>
+          <div class="costs" id="run-costs" hidden>
+            <div id="cost-main"></div>
+            <details class="cost-steps" id="cost-steps"><summary>Per step</summary><div id="cost-steps-body"></div></details>
+          </div>
+          <div class="run-steps" id="run-steps"></div>
+          <div class="stats" id="run-stats"></div>
+          <div class="notice" id="run-notice" hidden></div>
+          <div class="run-strip" id="run-strip" hidden></div>
+          <ol class="timeline" id="timeline" aria-label="What the agent did"></ol>
+          <div class="working" id="run-working" hidden><span class="spinner"></span><span class="thinking">Working…</span></div>
+          <div class="run-end" id="run-end" hidden></div>
+          <details class="sources" id="run-sources" hidden open>
+            <summary><span>Papers it cited</span><span class="count" id="run-sources-count">0</span></summary>
+            <div class="cite-list" id="run-sources-list"></div>
+          </details>
+        </div>
+      </section>
+
+      <section class="p-sec" id="sec-runs" aria-labelledby="h-runs">
+        <h3 id="h-runs">Recent runs</h3>
+        <div class="runs" id="runs"><p class="muted">No runs yet.</p></div>
+      </section>
+      </div>
+
+      <div id="pane-evo" role="tabpanel" aria-labelledby="tab-evo" hidden>
+        <section class="p-sec" id="sec-evo" aria-labelledby="h-evo">
+          <div class="p-sec-head"><h3 id="h-evo">Run over run</h3><button type="button" class="linklike" id="evo-refresh">Refresh</button></div>
+          <p class="evo-intro">After every run Jarvis reads its own trace and writes down what to do differently. The next run starts with those lessons. Here is whether it is getting faster, cheaper and more reliable.</p>
+          <div class="evo" id="evo"><div class="task skeleton"></div></div>
+        </section>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<div class="toast" id="toast" role="status" hidden></div>
+<script type="module" src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,3 @@
+[@T+3337@] queued (run)
+[@T+3337@] $ "/usr/bin/python3" -m tasks.collect --step fit --files result.json posterior.png explanation.md  (cwd @REPO@)
+[@T+3339@] attempt 1: ok reward=None passed=True

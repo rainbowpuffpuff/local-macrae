@@ -1,0 +1,4 @@
+#!/bin/sh
+echo "docker $*" >> "$FAKE_DIR/docker.log"
+[ -n "$FAKE_DOCKER_DOWN" ] && { echo "Cannot connect to the Docker daemon" >&2; exit 1; }
+exit 0

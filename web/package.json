@@ -1,0 +1,9 @@
+{
+  "name": "macrae-web",
+  "private": true,
+  "description": "The macrae page: plain HTML/CSS/JS, no build step. This file only marks the .js files as ES modules for the tests.",
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/*.test.js"
+  }
+}

@@ -1,0 +1,2 @@
+{"type": "system", "subtype": "init", "model": "claude-opus-5-5", "tools": ["Bash", "Read", "Write", "Edit", "Glob", "Grep"]}
+{"type": "result", "subtype": "success", "is_error": false, "duration_ms": 1460000, "num_turns": 15, "result": "Done: posterior means O \u22120.61e (95% \u22120.66\u2026\u22120.55), tau 212 < steps/50; result.json, posterior.png and explanation.md are in /app/bff.", "total_cost_usd": 1.62, "usage": {"input_tokens": 49800, "output_tokens": 20500, "cache_read_input_tokens": 1250300, "cache_creation_input_tokens": 0}}

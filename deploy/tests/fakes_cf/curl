@@ -1,0 +1,21 @@
+#!/usr/bin/env python3
+"""Fake curl for the Worker: /api/health healthy after FAKE_HEALTH_AFTER calls, /admin/* checks the secret."""
+import os, sys
+from pathlib import Path
+d = Path(os.environ["FAKE_DIR"])
+url = next((a for a in sys.argv[1:] if a.startswith("http")), "")
+headers = [sys.argv[i + 1] for i, a in enumerate(sys.argv) if a == "-H"]
+with open(d / "curl.log", "a") as f:
+    f.write(" ".join(sys.argv[1:]) + "\n")
+if url.endswith("/api/health"):
+    n = int((d / "health.n").read_text()) if (d / "health.n").exists() else 0
+    (d / "health.n").write_text(str(n + 1))
+    if n < int(os.environ.get("FAKE_HEALTH_AFTER", "0")):
+        sys.exit(22)
+    print('{"ok": true, "papers": 2, "chunks": 9, "modal": true}')
+elif "/admin/" in url:
+    if "X-Macrae-Secret: " + os.environ.get("FAKE_SECRET", "") not in headers:
+        sys.exit(22)
+    print('{"ok": true, "was_running": true}' if "restart" in url else '{"status": "healthy"}')
+else:
+    sys.exit(22)

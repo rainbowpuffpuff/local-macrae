@@ -69,6 +69,18 @@ steps:
   `FLOW_ATTEMPT`. `check:` commands get `FLOW_FILES`.
 - On retry, the agent's instruction gets the previous attempt's error, check output and final message appended.
 
+## Modal
+`environment: modal` (on a step, at flow level, or in `defaults`; `{{ }}` allowed; default `docker`) runs agent and
+task steps on [Modal](https://modal.com) instead of local Docker: `harbor exec|run … -e modal`. Needs
+`harbor[modal]` and a Modal login: `MODAL_TOKEN_ID` + `MODAL_TOKEN_SECRET`, or a profile in `~/.modal.toml`
+(`MODAL_PROFILE`, default `acalincarol`, is exported to Harbor unless the token variables are set).
+Modal can't use the local `agent-runner/agent-base` image. When a registry image is configured (the step's `image:`,
+`AGENT_RUNNER_MODAL_IMAGE`, or `modal_image` in settings.json) it is passed as `--image`, and Modal pulls and caches
+it. Otherwise agent steps get `--task-template <run>/modal-template`, whose `environment/Dockerfile` is
+`agent_runner/image/Dockerfile`. Harbor 0.24's `exec -p` still pins its default `ubuntu` image over the template,
+so Claude Code is installed at trial start (about 1–2 min more per step). To avoid that, push the image once:
+`docker build -t ghcr.io/you/agent-base agent_runner/image && docker push ghcr.io/you/agent-base`.
+
 ## Examples (`agent_runner/examples/`, list them with `agent-runner examples`)
 | flow | what it shows |
 |---|---|

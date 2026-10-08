@@ -1,0 +1,11 @@
+#!/bin/sh
+# /usr/local/bin/claude in the macrae agent image (tasks/common/Dockerfile).
+# With MACRAE_LIVE_URL and MACRAE_LIVE_TOKEN set (agent_runner passes them through Harbor's --ae), Claude Code's
+# stream-json is forwarded live to the macrae backend by claude_live.py; stdout passes through unchanged.
+# Anything missing (python3, the forwarder, the env vars): run the real CLI directly, exactly as without us.
+real="${MACRAE_CLAUDE_REAL:-/usr/local/lib/macrae/claude-real}"
+fwd=/usr/local/lib/macrae/claude_live.py
+if [ -n "$MACRAE_LIVE_URL" ] && [ -n "$MACRAE_LIVE_TOKEN" ] && [ -f "$fwd" ] && command -v python3 >/dev/null 2>&1; then
+  MACRAE_CLAUDE_REAL="$real" exec python3 -I "$fwd" "$@"
+fi
+exec "$real" "$@"

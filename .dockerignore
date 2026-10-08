@@ -1,0 +1,30 @@
+# Build context is the repo root (docker build -f deploy/Dockerfile ., or wrangler with image_build_context = "..").
+# Two copies, kept identical (deploy/tests/test_artifacts.py): deploy/Dockerfile.dockerignore, which BuildKit reads
+# for `-f deploy/Dockerfile`, and /.dockerignore, which is the only one that applies to wrangler's build: wrangler
+# pipes the Dockerfile in (`docker build -f - <repo>`), so there is no Dockerfile path to find the first one by.
+# Papers and secrets never go into the image.
+# index/ (the paper index, if present) does: deploy/start.py uses it when R2 or the /data volume has none.
+.git
+**/.venv
+**/__pycache__
+**/*.pyc
+**/.pytest_cache
+**/node_modules
+**/.wrangler
+.reference
+papers
+index/.*.tmp
+**/.env
+**/.env.*
+!deploy/env.example
+**/.dev.vars
+deploy/.state
+deploy/data
+*.egg-info
+build
+# The page and the Worker are deployed by wrangler, not run by the backend. Keeping them out means a page edit
+# doesn't change the image (and doesn't restart the container on the next deploy).
+web
+cloudflare
+docs
+.claude

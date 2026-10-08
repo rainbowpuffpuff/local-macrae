@@ -1,0 +1,25 @@
+{
+  "name": "tincan-demo",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "remotion studio",
+    "audio": "node --env-file=.env scripts/audio.mjs",
+    "render": "remotion render TinCanDemo out/tincan-demo.raw.mp4 && sh scripts/finish.sh"
+  },
+  "dependencies": {
+    "@react-three/fiber": "^9.8.1",
+    "@remotion/cli": "^4.0.530",
+    "@remotion/media": "^4.0.530",
+    "@remotion/three": "^4.0.530",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "remotion": "^4.0.530",
+    "three": "^0.186.1"
+  },
+  "devDependencies": {
+    "@types/react": "^19.3.0",
+    "@types/three": "^0.186.0",
+    "typescript": "^7.0.2"
+  }
+}

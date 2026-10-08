@@ -1,0 +1,22 @@
+{
+ "task_name": "calc-a1",
+ "trial_name": "calc-a1__Pq3Vz",
+ "started_at": "@ISO+28.4@",
+ "finished_at": "@ISO+466@",
+ "agent_info": {
+  "name": "claude-code",
+  "version": "2.1.31",
+  "model_info": {
+   "name": "claude-opus-5-5",
+   "provider": "anthropic"
+  }
+ },
+ "agent_result": {
+  "n_input_tokens": 30111,
+  "n_cache_tokens": 601200,
+  "n_output_tokens": 12001,
+  "cost_usd": 0.66
+ },
+ "verifier_result": null,
+ "exception_info": null
+}

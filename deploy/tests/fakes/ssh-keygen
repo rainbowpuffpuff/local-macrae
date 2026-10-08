@@ -1,0 +1,4 @@
+#!/bin/sh
+# Fake ssh-keygen: writes a key pair at -f PATH.
+while [ $# -gt 0 ]; do [ "$1" = -f ] && f="$2"; shift; done
+echo "PRIVATE" > "$f"; echo "ssh-ed25519 AAAAC3NzaFAKEKEY macrae-deploy" > "$f.pub"

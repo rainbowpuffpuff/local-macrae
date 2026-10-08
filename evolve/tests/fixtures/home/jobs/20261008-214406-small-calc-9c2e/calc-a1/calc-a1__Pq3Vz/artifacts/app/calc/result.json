@@ -1,0 +1,86 @@
+{
+ "ion": "K+",
+ "charge": 1,
+ "software": "PySCF 2.8.0",
+ "method": "B3LYP",
+ "basis_scan": "def2-SVP",
+ "basis_final": "def2-TZVP",
+ "r_min_angstrom": 2.2,
+ "e_int_kcal_mol": -23.61,
+ "e_int_uncorrected_kcal_mol": -24.38,
+ "bsse_kcal_mol": 0.77,
+ "scan": [
+  {
+   "r_angstrom": 1.7,
+   "e_int_kcal_mol": -18.9
+  },
+  {
+   "r_angstrom": 1.8,
+   "e_int_kcal_mol": -20.09
+  },
+  {
+   "r_angstrom": 1.9,
+   "e_int_kcal_mol": -20.86
+  },
+  {
+   "r_angstrom": 2.0,
+   "e_int_kcal_mol": -21.21
+  },
+  {
+   "r_angstrom": 2.1,
+   "e_int_kcal_mol": -21.14
+  },
+  {
+   "r_angstrom": 2.2,
+   "e_int_kcal_mol": -20.65
+  },
+  {
+   "r_angstrom": 2.3,
+   "e_int_kcal_mol": -19.74
+  },
+  {
+   "r_angstrom": 2.4,
+   "e_int_kcal_mol": -18.41
+  },
+  {
+   "r_angstrom": 2.5,
+   "e_int_kcal_mol": -16.66
+  },
+  {
+   "r_angstrom": 2.6,
+   "e_int_kcal_mol": -14.49
+  },
+  {
+   "r_angstrom": 2.7,
+   "e_int_kcal_mol": -11.9
+  },
+  {
+   "r_angstrom": 2.8,
+   "e_int_kcal_mol": -8.89
+  },
+  {
+   "r_angstrom": 2.9,
+   "e_int_kcal_mol": -5.46
+  },
+  {
+   "r_angstrom": 3.0,
+   "e_int_kcal_mol": -1.61
+  },
+  {
+   "r_angstrom": 3.1,
+   "e_int_kcal_mol": 2.66
+  },
+  {
+   "r_angstrom": 3.2,
+   "e_int_kcal_mol": 7.35
+  },
+  {
+   "r_angstrom": 3.3,
+   "e_int_kcal_mol": 12.46
+  }
+ ],
+ "e_coulomb_full_charge_kcal_mol": -41.32,
+ "e_coulomb_ecc_kcal_mol": -30.99,
+ "ecc_scaling": 0.75,
+ "wall_time_s": 405.2
+}

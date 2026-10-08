@@ -1,0 +1,8 @@
+#!/bin/sh
+# Fake node: version from $FAKE_NODE_MAJOR (default 22); `node --test` passes unless FAKE_TESTS_FAIL is set.
+case "$1" in
+  -p) echo "${FAKE_NODE_MAJOR:-22}" ;;
+  -v) echo "v${FAKE_NODE_MAJOR:-22}.0.0" ;;
+  --test) echo "node --test $*" >> "$FAKE_DIR/node.log"; [ -z "$FAKE_TESTS_FAIL" ] ;;
+  *) echo "fake node: unexpected $*" >&2; exit 2 ;;
+esac

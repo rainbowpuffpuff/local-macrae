@@ -1,0 +1,90 @@
+{
+ "id": "20261008-214406-small-calc-9c2e",
+ "name": "small-calc",
+ "file": "@REPO@/tasks/flows/small-calc.yaml",
+ "status": "ok",
+ "started": "@E+0@",
+ "finished": "@E+478.9@",
+ "pid": 4242,
+ "workdir": "@REPO@",
+ "jobs_dir": "@HOME@/jobs/20261008-214406-small-calc-9c2e",
+ "vars": {
+  "ion": "K+",
+  "environment": "modal",
+  "python": "/usr/bin/python3",
+  "task_id": "small-calc",
+  "task_title": "Ion–water binding",
+  "lessons": "LESSONS FROM EARLIER RUNS OF THIS TASK (learned from their traces; follow them unless they contradict the instructions above):\n- [La1b2c3] SETTING: Python module `pyscf` is not importable in the sandbox with `cd /app/calc && python3 run_calc.py 2>&1 | tee output.log`; `cd /app/calc && /opt/calc/bin/python run_calc.py 2>&1 | tee output.log` worked (took 412 s). Do that first. (seen in 2 runs)\n- [Ld4e5f6] AVOID: Check before finishing: e_coulomb_ecc_kcal_mol / e_coulomb_full_charge_kcal_mol = 0.562; with only the ion charge scaled by 0.75 it should be 0.75 (the `calc` check rejected attempt 1 for this; attempt 2 passed after fixing it).\n- [L0a9b8c] AVOID: Check before finishing: explanation.md cites [4], which don't exist; valid numbers are [1, 2, 3] (the `calc` check rejected attempt 1 for this; attempt 2 passed after fixing it).",
+  "tools_dir": ""
+ },
+ "levels": [
+  [
+   "prepare"
+  ],
+  [
+   "calc"
+  ],
+  [
+   "collect"
+  ]
+ ],
+ "steps": {
+  "prepare": {
+   "key": "prepare",
+   "id": "prepare",
+   "kind": "run",
+   "status": "ok",
+   "item": null,
+   "queued": "@E+0.1@",
+   "attempt": 1,
+   "started": "@E+0.1@",
+   "finished": "@E+3@",
+   "error": "",
+   "reward": null,
+   "account": null,
+   "job_dir": null,
+   "cost_usd": null,
+   "output": "{\"dir\": \"@HOME@/runs/20261008-214406-small-calc-9c2e/small-calc/calc\", \"ion\": \"K+\", \"charge\": 1, \"element\": \"K\", \"name\": \"potassium\", \"n_references\": 3, \"references_file\": \"@HOME@/runs/20261008-214406-small-calc-9c2e/small-calc/references.json\", \"checker\": \"@REPO@/tasks/checks.py\", \"citations\": [{\"key\": \"[1]\", \"title\": \"Electronic continuum correction for ions\", \"doi\": \"10.1021/acs.jpcb.0c09009\", …"
+  },
+  "calc": {
+   "key": "calc",
+   "id": "calc",
+   "kind": "agent",
+   "status": "ok",
+   "item": null,
+   "queued": "@E+3.3@",
+   "attempt": 1,
+   "started": "@E+3.4@",
+   "finished": "@E+471@",
+   "error": "",
+   "reward": 1.0,
+   "account": "main",
+   "job_dir": "@HOME@/jobs/20261008-214406-small-calc-9c2e/calc-a1",
+   "cost_usd": 0.66,
+   "output": "Done: result.json, explanation.md, run_calc.py, output.log are in /app/calc.",
+   "environment": "modal"
+  },
+  "collect": {
+   "key": "collect",
+   "id": "collect",
+   "kind": "run",
+   "status": "ok",
+   "item": null,
+   "queued": "@E+472@",
+   "attempt": 1,
+   "started": "@E+472@",
+   "finished": "@E+473@",
+   "error": "",
+   "reward": null,
+   "account": null,
+   "job_dir": null,
+   "cost_usd": null,
+   "output": "{\"summary\": \"K+–water: E_int −23.6 kcal/mol at 2.2 Å\"}"
+  }
+ },
+ "order": [
+  "prepare",
+  "calc",
+  "collect"
+ ]
+}

@@ -1,0 +1,1 @@
+{"dir": "@HOME@/runs/20261008-223015-bff-charges-e1f0/bff-charges/bff", "molecule": "acetate", "n_charges": 4, "net_charge": -0.8, "checker": "@REPO@/tasks/checks.py"}

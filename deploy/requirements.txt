@@ -1,0 +1,5 @@
+# What the container needs beyond server/, rag/ and tasks/ requirements (deploy/Dockerfile installs all four).
+pyyaml>=6            # agent_runner (pip install -e . is done with --no-deps after this)
+uvicorn[standard]>=0.30
+fastapi>=0.110
+modal>=1.0           # `modal` CLI/SDK in the server env (health check, debugging); Harbor has its own copy

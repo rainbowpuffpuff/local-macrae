@@ -1,0 +1,26 @@
+{
+  "tasks": [
+    {
+      "id": "methods-card",
+      "title": "Methods card for a group paper",
+      "subtitle": "Reads the paper's passages and writes a methods summary where every claim is cited",
+      "icon": "flask",
+      "prompt": "Pulls the passages of one group paper from the paper index, then an agent on Modal writes a methods card (system, simulation and experimental methods, analysis, limitations) in which every claim cites its source as [n].",
+      "flow": "tasks/flows/methods-card.yaml",
+      "inputs": [
+        {"name": "doi", "label": "DOI", "default": "10.1021/acs.jctc.5c02051", "pattern": "^10\\.\\d{4,9}/[^\\s\"'`$;|&<>\\\\]+$"}
+      ]
+    },
+    {
+      "id": "small-calc",
+      "title": "Ion–water binding, computed live",
+      "subtitle": "Runs a real DFT calculation on Modal and compares it with the group's charge-scaled force fields",
+      "icon": "atom",
+      "prompt": "An agent on Modal installs PySCF, scans the distance between an ion and a water molecule with DFT, computes the counterpoise-corrected binding energy, compares it with full and charge-scaled (ECC) point charges, and explains the result citing the group's papers.",
+      "flow": "tasks/flows/small-calc.yaml",
+      "inputs": [
+        {"name": "ion", "label": "Ion", "default": "Na+", "options": ["Li+", "Na+", "K+", "Mg2+", "Ca2+"]}
+      ]
+    }
+  ]
+}

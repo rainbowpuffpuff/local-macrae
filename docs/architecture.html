@@ -1,0 +1,576 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Macrae Architecture</title>
+<style>
+  :root {
+    --bg: #fafaf8; --panel: #ffffff; --ink: #1d1d1f; --dim: #6b6b70; --line: #c9c9cf;
+    --ui: #1d9bf0; --ui-bg: #e8f3fd; --srv: #9141ac; --srv-bg: #f4eaf7;
+    --ext: #c64600; --ext-bg: #fdf0e6; --data: #16a34a; --data-bg: #e7f5ec; --acc: #d97757; --voice: #0f766e; --voice-bg: #e3f4f1;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #141414; --panel: #1c1c1c; --ink: #ececf0; --dim: #9a9aa2; --line: #45454b;
+      --ui: #6cb8f5; --ui-bg: #172a3b; --srv: #c38fd6; --srv-bg: #2e2235; --ext: #f0915a; --ext-bg: #3a2618;
+      --data: #57c785; --data-bg: #1a3324; --voice: #4fd1c0; --voice-bg: #12302c;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #141414; --panel: #1c1c1c; --ink: #ececf0; --dim: #9a9aa2; --line: #45454b;
+    --ui: #6cb8f5; --ui-bg: #172a3b; --srv: #c38fd6; --srv-bg: #2e2235; --ext: #f0915a; --ext-bg: #3a2618;
+    --data: #57c785; --data-bg: #1a3324; --voice: #4fd1c0; --voice-bg: #12302c;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+         font: 15px/1.55 ui-sans-serif, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 1120px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { font-size: 30px; margin: 0 0 4px; letter-spacing: -.01em; }
+  h2 { font-size: 19px; margin: 44px 0 6px; }
+  h3 { font-size: 15px; margin: 18px 0 4px; }
+  p { margin: 6px 0; max-width: 80ch; }
+  .dim { color: var(--dim); }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px;
+          margin-top: 14px; overflow-x: auto; }
+  svg { display: block; width: 100%; height: auto; min-width: 780px; }
+  svg.small { min-width: 640px; }
+  svg text { fill: var(--ink); font: 13px ui-sans-serif, system-ui, sans-serif; }
+  svg .t { font-weight: 650; font-size: 14px; } svg .s { fill: var(--dim); font-size: 11.5px; }
+  .ui rect.b { fill: var(--ui-bg); stroke: var(--ui); } .srv rect.b { fill: var(--srv-bg); stroke: var(--srv); }
+  .ext rect.b { fill: var(--ext-bg); stroke: var(--ext); } .data rect.b { fill: var(--data-bg); stroke: var(--data); }
+  .voice rect.b { fill: var(--voice-bg); stroke: var(--voice); }
+  rect.b { stroke-width: 1.5; rx: 10; } rect.zone { fill: none; stroke: var(--line); stroke-dasharray: 5 5; rx: 14; }
+  rect.b.fixed { stroke-width: 2.5; }
+  .zl { fill: var(--dim); font-size: 11px; letter-spacing: .06em; font-weight: 600; }
+  path.a { fill: none; stroke: var(--dim); stroke-width: 1.5; marker-end: url(#arr); }
+  path.a.hot { stroke: var(--acc); stroke-width: 2; marker-end: url(#arrhot); }
+  path.a.v { stroke: var(--voice); stroke-width: 2; marker-end: url(#arrv); }
+  path.a.v2 { marker-start: url(#arrvs); }
+  path.a.dash { stroke-dasharray: 5 4; }
+  .al { fill: var(--dim); font-size: 11px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 10px; font-size: 13px; color: var(--dim); }
+  .legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 6px;
+              vertical-align: -1px; border: 1.5px solid; }
+  .legend b.ln { display: inline-block; width: 22px; height: 0; border-top: 2px solid; margin-right: 6px; vertical-align: 4px; }
+  ol.flow, ul.flow { padding-left: 22px; } ol.flow li, ul.flow li { margin: 6px 0; max-width: 80ch; }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-weight: 650; color: var(--dim); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+  td.when { white-space: nowrap; color: var(--dim); font-size: 13px; }
+  code { font: 13px ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--bg); padding: 1px 5px;
+         border-radius: 5px; border: 1px solid var(--line); }
+  abbr { text-decoration: none; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-top: 12px; }
+  .pill { display: inline-block; font-size: 12px; padding: 1px 8px; border-radius: 99px; border: 1px solid var(--line);
+          color: var(--dim); white-space: nowrap; }
+  .ok { color: var(--data); border-color: var(--data); } .wip { color: var(--ext); border-color: var(--ext); }
+  .todo { color: var(--dim); } .wait { color: var(--ui); border-color: var(--ui); }
+  h2 .pill { vertical-align: 3px; margin-left: 8px; font-weight: 400; }
+  .note { border-left: 3px solid var(--ext); padding: 6px 12px; margin: 10px 0; color: var(--dim); max-width: 80ch; }
+  .theme { position: fixed; top: 12px; right: 12px; border: 1px solid var(--line); background: var(--panel);
+           color: var(--ink); border-radius: 8px; padding: 4px 10px; cursor: pointer; font: inherit; }
+  @media (max-width: 640px) { h1 { font-size: 24px; } }
+</style>
+</head>
+<body>
+<button class="theme" onclick="toggleTheme()">◐ theme</button>
+<main>
+  <h1>Macrae</h1>
+  <p class="dim" style="font-size:13px">Updated <span id="upd">2026-10-08 21:10</span> CEST (Central European Summer
+    Time) · status: live on Cloudflare · live traces, costs and "Frankenstein" in progress</p>
+  <p class="dim">A voice agent for the Jungwirth group at the IOCB (Institute of Organic Chemistry and Biochemistry of
+    the Czech Academy of Sciences, Prague). You chat with it, by voice or by typing, and it answers from the group's
+    papers with citations. When you start a task, it does real computational chemistry on cloud hardware and shows you
+    every paper it read and every calculation it ran.</p>
+
+  <!-- ───────────── 1 ───────────── -->
+  <h2>1 · The pieces</h2>
+  <p>Everything public sits behind <b>one Cloudflare Worker</b> (a small program on Cloudflare's network) at one
+    address. The Worker serves the page and hands the browser a short-lived voice session. It forwards
+    <code>/api</code> calls to the backend, adding a secret header the browser never sees. The backend is a
+    <b>Cloudflare Container</b>, owned by a <b>Durable Object</b>: a named Cloudflare object that keeps exactly
+    one instance and decides when it sleeps. The backend answers paper questions from its own index and runs tasks
+    as agent-runner flows. <b>Harbor</b> starts each agent step in a sandbox on <b>Modal</b> and keeps the full
+    trace. Runs, traces and the paper index are mirrored to <b>R2</b>, Cloudflare's object storage.</p>
+  <p class="dim" style="font-size:13px">Abbreviations in the diagram: API = application programming interface ·
+    LLM = large language model · RAG = retrieval-augmented generation (search the papers first, answer only from what
+    was found) · BM25 = "Best Match 25", a keyword-ranking formula · vCPU = virtual processor core · GiB = gibibyte ·
+    CPU / GPU = central / graphics processing unit · PySCF = Python-based Simulations of Chemistry Framework ·
+    BFF = BayesicForceFields (Bayesian force fields, the group's code) · GROMACS = GROningen MAchine for Chemical
+    Simulations · ATIF = Agent Trajectory Interchange Format (Harbor's trace file).</p>
+  <div class="card">
+  <svg viewBox="0 0 1080 660" role="img" aria-label="Component diagram: browser, ElevenLabs, Cloudflare Worker, Durable Object, Container, R2, Modal sandboxes">
+    <defs>
+      <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--dim)"/></marker>
+      <marker id="arrhot" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--acc)"/></marker>
+      <marker id="arrv" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--voice)"/></marker>
+      <marker id="arrvs" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--voice)"/></marker>
+    </defs>
+    <!-- zones -->
+    <rect class="zone" x="10" y="10" width="200" height="330"/><text class="zl" x="24" y="32">YOU · BROWSER</text>
+    <rect class="zone" x="10" y="362" width="200" height="288"/><text class="zl" x="24" y="384">ELEVENLABS</text>
+    <rect class="zone" x="226" y="10" width="560" height="640"/><text class="zl" x="240" y="32">CLOUDFLARE · ONE WORKER, ONE ADDRESS</text>
+    <rect class="zone" x="802" y="10" width="268" height="640"/><text class="zl" x="816" y="32">MODAL · STARTED BY HARBOR</text>
+
+    <!-- browser -->
+    <g class="ui"><rect class="b" x="24" y="48" width="172" height="278"/>
+      <text class="t" x="38" y="74">Web page</text><text class="s" x="38" y="92">web/ · chat with Jarvis</text>
+      <text x="38" y="120">• chat + mic button</text>
+      <text x="38" y="142">• [n] → source cards</text>
+      <text x="38" y="164">• panel "Tasks &amp; runs"</text>
+      <text class="s" x="50" y="182">tasks · live run trace</text><text class="s" x="50" y="198">recent runs</text>
+      <text x="38" y="226">• icons per event</text>
+      <text class="s" x="50" y="244">📄 🔎 🧮 ✍️ ✅ ⚠️</text>
+      <text class="s" x="38" y="296">still loads when the</text><text class="s" x="38" y="312">backend is asleep</text></g>
+
+    <!-- ElevenLabs -->
+    <g class="voice"><rect class="b" x="24" y="400" width="172" height="234"/>
+      <text class="t" x="38" y="426">Voice agent</text><text class="s" x="38" y="444">"macrae" · voice "Jarvis"</text>
+      <text class="s" x="38" y="460">LLM: Claude Sonnet 5.5</text>
+      <text x="38" y="490">server tools:</text>
+      <text class="s" x="50" y="508">search_papers</text><text class="s" x="50" y="524">start_task · run_status</text>
+      <text x="38" y="554">page tools:</text>
+      <text class="s" x="50" y="572">show_citations</text><text class="s" x="50" y="588">open_run</text>
+      <text class="s" x="38" y="618">answers only from [n]</text></g>
+
+    <!-- Worker -->
+    <g class="ui"><rect class="b" x="242" y="48" width="226" height="300"/>
+      <text class="t" x="258" y="74">Worker "macrae"</text><text class="s" x="258" y="92">cloudflare/ · wrangler deploy</text>
+      <text x="258" y="120">• serves web/ (static files)</text>
+      <text x="258" y="146">• /api/* → backend</text><text class="s" x="270" y="164">adds the secret header</text>
+      <text x="258" y="190">• /voice/signed-url</text><text class="s" x="270" y="208">ElevenLabs key stays here</text>
+      <text x="258" y="234">• rate limits per visitor</text><text class="s" x="270" y="252">6 task starts, 10 voice / min</text>
+      <text x="258" y="278">• secrets (names only)</text><text class="s" x="270" y="296">ElevenLabs · Anthropic</text>
+      <text class="s" x="270" y="312">Modal token · tool secret</text>
+      <text class="s" x="270" y="328">never sent to the browser</text></g>
+
+    <!-- Durable Object -->
+    <g class="srv"><rect class="b" x="516" y="48" width="254" height="118"/>
+      <text class="t" x="532" y="74">Durable Object</text><text class="s" x="532" y="92">MacraeBackend · binding BACKEND</text>
+      <text x="532" y="118">• one instance: macrae-backend</text>
+      <text x="532" y="140">• sleeps after 2 h idle</text><text class="s" x="544" y="156">never while a run is going</text></g>
+
+    <!-- Container -->
+    <g class="srv"><rect class="b" x="516" y="190" width="254" height="270"/>
+      <text class="t" x="532" y="216">Container (standard-1)</text><text class="s" x="532" y="234">deploy/Dockerfile · ½ vCPU · 4 GiB</text>
+      <text x="532" y="262">• API (FastAPI) server/</text><text class="s" x="544" y="280">tasks · runs · events · tools</text>
+      <text x="532" y="306">• RAG rag/: BM25 + vectors</text><text class="s" x="544" y="324">[n] citations with page</text>
+      <text x="532" y="350">• agent-runner flows</text><text class="s" x="544" y="368">Harbor: 1 sandbox per step</text>
+      <text x="532" y="394">• disk: runs/ jobs/ index/</text><text class="s" x="544" y="412">temporary, mirrored to R2</text>
+      <text class="s" x="532" y="440">on restart: waits up to 14 min</text></g>
+
+    <!-- R2 -->
+    <g class="data"><rect class="b" x="242" y="490" width="528" height="144"/>
+      <text class="t" x="258" y="516">R2 bucket "macrae-data"</text>
+      <text class="s" x="258" y="534">object storage · Worker binding DATA</text>
+      <text class="s" x="520" y="534">container reaches it via the Worker</text>
+      <text x="258" y="562">index/</text><text class="s" x="258" y="580">paper index (chunks, vectors)</text>
+      <text x="258" y="604">state/runs/</text><text class="s" x="258" y="622">flow state.json, step logs</text>
+      <text x="520" y="562">state/jobs/</text><text class="s" x="520" y="580">Harbor trial folders = traces</text>
+      <text x="520" y="604">state/macrae/</text><text class="s" x="520" y="622">page event logs, run → task</text></g>
+
+    <!-- Modal -->
+    <g class="ext"><rect class="b" x="818" y="48" width="236" height="262"/>
+      <text class="t" x="834" y="74">Sandbox per agent step</text><text class="s" x="834" y="92">Harbor starts one per step</text>
+      <text x="834" y="120">Claude Code</text><text class="s" x="834" y="138">Claude Opus 5.5 · Sonnet 5.5</text>
+      <text x="834" y="164">• reads paper excerpts</text>
+      <text x="834" y="186">• runs PySCF, BFF, GROMACS</text>
+      <text x="834" y="208">• writes result.json</text><text class="s" x="846" y="226">+ a cited explanation</text>
+      <text class="s" x="834" y="254">CPU (up to 32 cores) or GPU</text>
+      <text class="s" x="834" y="276">v2: streams each step live</text><text class="s" x="834" y="292">(in progress)</text></g>
+    <g class="data"><rect class="b" x="818" y="340" width="236" height="170"/>
+      <text class="t" x="834" y="366">Harbor trial = the trace</text>
+      <text x="834" y="394">agent/trajectory.json</text>
+      <text class="s" x="834" y="412">ATIF: every message, tool call</text><text class="s" x="834" y="428">and its output</text>
+      <text x="834" y="454">agent/claude-code.txt</text><text class="s" x="834" y="472">live stream while it runs</text>
+      <text class="s" x="834" y="496">+ reward from the check</text></g>
+    <g class="ext"><rect class="b" x="818" y="540" width="236" height="94"/>
+      <text class="t" x="834" y="566">Images (cached by Modal)</text>
+      <text class="s" x="834" y="586">agent: Claude Code + tools</text>
+      <text class="s" x="834" y="604">BFF: BFF + GROMACS (in progress)</text>
+      <text class="s" x="834" y="622">built once, then reused</text></g>
+
+    <!-- arrows -->
+    <path class="a" d="M196,100 H242"/>
+    <path class="a v" d="M196,196 H242"/>
+    <path class="a v v2" d="M110,326 V400"/><text class="al" x="118" y="355">voice audio</text>
+    <path class="a v" d="M196,430 H355 V348"/><text class="al" x="234" y="447">tool webhooks /api/tools/*</text>
+    <path class="a hot" d="M468,100 H516"/><text class="al" x="474" y="92">/api/*</text>
+    <path class="a hot" d="M643,166 V190"/>
+    <path class="a hot" d="M770,240 H818"/>
+    <path class="a hot" d="M936,310 V340"/>
+    <path class="a" d="M818,420 H770"/>
+    <path class="a" d="M643,460 V490"/><text class="al" x="652" y="480">sync: every step + 60 s</text>
+  </svg>
+  <div class="legend">
+    <span><i style="background:var(--ui-bg);border-color:var(--ui)"></i>what the visitor touches</span>
+    <span><i style="background:var(--voice-bg);border-color:var(--voice)"></i>voice</span>
+    <span><i style="background:var(--srv-bg);border-color:var(--srv)"></i>backend</span>
+    <span><i style="background:var(--ext-bg);border-color:var(--ext)"></i>cloud compute</span>
+    <span><i style="background:var(--data-bg);border-color:var(--data)"></i>stored data / traces</span>
+    <span><b class="ln" style="border-color:var(--acc)"></b>a task run</span>
+    <span><b class="ln" style="border-color:var(--voice)"></b>a voice session</span>
+  </div>
+  </div>
+
+  <!-- ───────────── 2 ───────────── -->
+  <h2>2 · Status</h2>
+  <p>As of 2026-10-08, 21:10 CEST.</p>
+  <div class="card"><table>
+    <tr><th>state</th><th>what</th><th>when</th></tr>
+    <tr><td><span class="pill ok">live</span></td><td><b>Site</b> on the Worker "macrae": the page, the <code>/api</code>
+      proxy and <code>/voice/signed-url</code>.</td><td class="when">2026-10-08</td></tr>
+    <tr><td><span class="pill ok">live</span></td><td><b>Page</b>: dark/light chat with Jarvis, the macrae orbit logo,
+      and a right panel "Tasks &amp; runs" (tasks, live run trace, recent runs).</td><td class="when">2026-10-08</td></tr>
+    <tr><td><span class="pill ok">live</span></td><td><b>Backend</b>: one Cloudflare Container (standard-1: ½ vCPU, 4 GiB).
+      It sleeps after 2 h unless a run is going, and syncs its state (runs, Harbor traces, paper index) to the R2 bucket
+      "macrae-data". Health: ok. Modal: connected.</td><td class="when">2026-10-08</td></tr>
+    <tr><td><span class="pill ok">live</span></td><td><b>Voice</b>: ElevenLabs agent "macrae", voice "Jarvis", Claude
+      Sonnet 5.5 through ElevenLabs. Server tools <code>search_papers</code>, <code>start_task</code> and
+      <code>run_status</code> are webhooks to the Worker. Page tools: <code>show_citations</code>,
+      <code>open_run</code>.</td><td class="when">2026-10-08</td></tr>
+    <tr><td><span class="pill ok">live</span></td><td><b>AWS</b> (Amazon Web Services) is no longer used: the Cloudflare
+      Container replaced it.</td><td class="when">2026-10-08</td></tr>
+    <tr><td><span class="pill ok">verified</span></td><td><b>A real Claude Code agent run on Modal through Harbor</b>
+      (local test). It computed the Na<sup>+</sup>–water binding energy with DFT (density functional theory) in PySCF:
+      B3LYP functional (Becke 3-parameter, Lee–Yang–Parr), def2-TZVP basis set (triple-zeta valence with polarisation), counterpoise correction. Result:
+      −25.5 kcal/mol at 2.2 Å, reward 1, 34 trace events (search, cite, read, calc, write, result).<br>
+      <span class="dim">It took 9 min: 170 s for the first image build on Modal, the agent installing PySCF itself, and a
+      4-min sleep. That is to be optimised.</span></td><td class="when">2026-10-08, 20:18</td></tr>
+    <tr><td><span class="pill ok">verified</span></td><td><b>Tests</b>: 277 Python tests and 57 Node tests pass. They
+      cover the Worker → container path, the R2 sync, and draining runs on restart.</td><td class="when">2026-10-08</td></tr>
+    <tr><td><span class="pill wip">in progress</span></td><td><b>First cloud run</b> (container → Modal): the K<sup>+</sup>
+      small calculation.</td><td class="when">started 21:02</td></tr>
+    <tr><td><span class="pill wip">in progress</span></td><td><b>Two BFF research tasks</b>, approved by the owner,
+      being turned into clickable tasks (<a href="#bff">section 6</a>).</td><td class="when">started 20:34</td></tr>
+    <tr><td><span class="pill wip">in progress</span></td><td><b>v2</b>: live traces (the sandbox streams each step),
+      costs in money (<a href="#costs">section 5</a>), a planner that decides what to run and where (shown first in the
+      trace), and "Evolution": lessons distilled from each trace feed the next run, plus a tools library and a
+      fine-tuning dataset export.</td><td class="when">started 20:43</td></tr>
+    <tr><td><span class="pill wip">in progress</span></td><td><b>Frankenstein (v3)</b>: a capability lifecycle
+      (create → test → install → use again) with fixed authority, and raw Harbor traces downloadable from the page
+      (<a href="#frankenstein">section 7</a>). Queued after v2.</td><td class="when">queued 21:08</td></tr>
+    <tr><td><span class="pill wip">in progress</span></td><td><b>Video</b>: a 90 s film celebrating Pavel Jungwirth's
+      research, plus a 20–25 s accelerated demo. ElevenLabs music and narration.</td><td class="when">started 21:07</td></tr>
+    <tr><td><span class="pill wait">waiting on owner</span></td><td><b>Paper PDFs</b> (Portable Document Format). Until
+      they arrive the RAG index is empty, and Jarvis says the papers here don't cover the question.</td><td class="when">open</td></tr>
+    <tr><td><span class="pill wait">waiting on owner</span></td><td><b>A fresh Claude API key</b> to replace the current
+      one.</td><td class="when">open</td></tr>
+  </table></div>
+
+  <!-- ───────────── 3 ───────────── -->
+  <h2>3 · What happens when you…</h2>
+  <div class="grid">
+    <div class="card">
+      <b>…ask a question</b>
+      <ol class="flow">
+        <li><b>By voice:</b> the mic button asks the Worker for a signed URL (a short-lived link; URL = uniform resource locator), and the ElevenLabs session starts in the
+          browser. <b>Typed, outside a call:</b> the text goes straight to <code>POST /api/search</code>.</li>
+        <li>The voice agent calls <code>search_papers</code>. That webhook goes to the Worker, then through the Durable
+          Object to the container.</li>
+        <li>RAG returns the best passages, numbered <code>[1] [2]</code>, each with title, authors, page and DOI (Digital
+          Object Identifier).</li>
+        <li>Jarvis answers only from those passages and names the source ("Košťál 2026, page 3"). With no PDFs indexed
+          yet, it says the papers don't cover the question.</li>
+        <li><code>show_citations</code> adds numbered source chips under the answer. Clicking <code>[n]</code> opens
+          that source's card.</li>
+      </ol>
+    </div>
+    <div class="card">
+      <b>…start a task (click Run, or ask)</b>
+      <ol class="flow">
+        <li><code>POST /api/tasks/{id}/start</code> returns a <code>run_id</code>. Jarvis posts a run chip in the chat,
+          and the panel opens the live trace.</li>
+        <li><span class="pill wip">v2</span> A planner first decides what to run and on which hardware, and the page
+          shows that decision as the first card.</li>
+        <li>Script steps pull paper passages from RAG. Agent steps run in Modal sandboxes through Harbor.</li>
+        <li>The page polls <code>/api/runs/{id}/events</code> every 1–2 s. Each tool call becomes a timeline row
+          (📄 read, 🔎 search, 🧮 calc, ✍️ write, ✅ result).</li>
+        <li>A <code>check:</code> verifies the output (e.g. <code>result.json</code> has numbers) and gives a reward.
+          The container pushes the run's state to R2 at every step.</li>
+        <li>When the run ends, Jarvis posts the outcome with the papers it cited.</li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- ───────────── 4 ───────────── -->
+  <h2>4 · Where the traces are</h2>
+  <p>A <b>trace</b> is everything one run did: every message, tool call and result. The same trace appears in three
+    places, from the most readable to the most raw.</p>
+  <div class="card"><table>
+    <tr><th>where</th><th>what you find</th><th>how to get it</th></tr>
+    <tr><td><b>1 · The page timeline</b></td>
+      <td>One row per event (<code>status</code>, <code>read</code>, <code>search</code>, <code>calc</code>,
+        <code>write</code>, <code>think</code>, <code>cite</code>, <code>result</code>, <code>error</code>), with a short
+        human title, details, and source cards. The server builds it from the run's <code>state.json</code>, the step
+        logs and each Harbor trial. While a step is still running it reads the live <code>claude-code.txt</code>
+        instead.</td>
+      <td>Panel "Tasks &amp; runs" → a run; or <code>GET /api/runs/{id}/events</code></td></tr>
+    <tr><td><b>2 · R2 bucket <code>macrae-data</code></b></td>
+      <td><code>state/runs/&lt;run_id&gt;/</code>: the flow's <code>state.json</code>, step logs, outputs.<br>
+        <code>state/jobs/&lt;run_id&gt;/…</code>: Harbor trial folders, i.e. the full agent traces.<br>
+        <code>state/macrae/</code>: the server's event logs and run → task records.<br>
+        <code>index/</code>: the paper index.<br>
+        <span class="dim">The container pushes changes at every step and every 60 s, and restores them when it starts.
+        At most about 60 s can be lost if a host dies without warning.</span></td>
+      <td>Cloudflare dashboard (owner only)</td></tr>
+    <tr><td><b>3 · Harbor <code>trajectory.json</code></b></td>
+      <td>Inside each trial folder: <code>agent/trajectory.json</code> in ATIF (steps with source, message, tool calls
+        and their outputs), <code>agent/claude-code.txt</code> (Claude Code's raw stream), the reward, and the files the
+        agent changed.</td>
+      <td>In R2 under <code>state/jobs/</code>.
+        <span class="pill wip">v3</span> "Download trace" (zip) and "Open raw trajectory" on each run.</td></tr>
+  </table></div>
+  <p class="dim"><span class="pill wip">v2, in progress</span> A wrapper around Claude Code inside the sandbox
+    forwards each step to <code>POST /api/live/{run}/{step}</code>, at most 1 s late, with a per-run token. The server
+    stores these lines in <code>&lt;run&gt;/live/&lt;step&gt;.jsonl</code>, so the timeline fills in while the agent
+    works instead of when the step ends. Lines are de-duplicated against the final <code>trajectory.json</code>.</p>
+
+  <!-- ───────────── 5 ───────────── -->
+  <h2 id="costs">5 · Costs <span class="pill wip">in progress (v2)</span></h2>
+  <p>The page shows what each run costs in money, growing live while it runs. This is the design from the v2 addendum
+    of the build contract. It is being built and is not on the live site yet.</p>
+  <div class="card">
+  <svg class="small" viewBox="0 0 1000 250" role="img" aria-label="How run cost is computed">
+    <defs>
+      <marker id="arr2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--dim)"/></marker>
+    </defs>
+    <g class="srv"><rect class="b" x="14" y="16" width="250" height="96"/>
+      <text class="t" x="30" y="42">Tokens per step</text>
+      <text class="s" x="30" y="62">input · output · cache read / write</text>
+      <text class="s" x="30" y="80">per model, planner calls too</text>
+      <text class="s" x="30" y="98">from Claude Code's stream</text></g>
+    <g class="srv"><rect class="b" x="14" y="138" width="250" height="96"/>
+      <text class="t" x="30" y="164">Modal sandbox seconds</text>
+      <text class="s" x="30" y="184">CPU core-seconds · memory</text>
+      <text class="s" x="30" y="202">GPU type and seconds</text>
+      <text class="s" x="30" y="220">per step, from Harbor</text></g>
+    <g class="data"><rect class="b" x="356" y="16" width="250" height="96"/>
+      <text class="t" x="372" y="42">LLM $</text>
+      <text class="s" x="372" y="62">tokens × price table per model</text>
+      <text class="s" x="372" y="80">(server/costs.py); Claude Code's</text>
+      <text class="s" x="372" y="98">own total_cost_usd wins if given</text></g>
+    <g class="data"><rect class="b" x="356" y="138" width="250" height="96"/>
+      <text class="t" x="372" y="164">Compute $</text>
+      <text class="s" x="372" y="184">seconds × Modal rate table</text>
+      <text class="s" x="372" y="202">(one dict, with its source)</text>
+      <text class="s" x="372" y="220">CPU, memory, GPU type</text></g>
+    <g class="ui"><rect class="b" x="700" y="56" width="286" height="138"/>
+      <text class="t" x="716" y="82">Live cost meter on the page</text>
+      <text x="716" y="108">LLM $ + compute $ = total $</text>
+      <text class="s" x="716" y="128">tokens · per step: model, hardware</text>
+      <text class="s" x="716" y="146">time per phase: plan · setup ·</text>
+      <text class="s" x="716" y="162">work · check · and wall clock</text>
+      <text class="s" x="716" y="182">GET /api/runs/{id} → "costs"</text></g>
+    <path class="a" style="marker-end:url(#arr2)" d="M264,64 H356"/>
+    <path class="a" style="marker-end:url(#arr2)" d="M264,186 H356"/>
+    <path class="a" style="marker-end:url(#arr2)" d="M606,64 C650,64 656,110 700,110"/>
+    <path class="a" style="marker-end:url(#arr2)" d="M606,186 C650,186 656,140 700,140"/>
+  </svg>
+  </div>
+  <p>Numbers known so far:</p>
+  <ul class="flow">
+    <li><b>A BFF research run</b>: about 10–14 min and about $0.40 of Modal compute on a 32-CPU box (estimate).</li>
+    <li><b>Hosting</b>: standard-1 container about $29/month if it never sleeps, about $4–5/month at about 4 h/day. That
+      is on top of the $5 Workers Paid plan. R2 stays in the free tier. An open, visible browser tab checks health
+      every 20 s and keeps the container awake.</li>
+    <li><b>Building Macrae itself</b>: see <a href="#built">section 10</a> ($23.90 API-equivalent for the first six
+      modules).</li>
+  </ul>
+
+  <!-- ───────────── 6 ───────────── -->
+  <h2 id="bff">6 · Research tasks with BFF <span class="pill wip">in progress</span></h2>
+  <p><b>BFF</b> (BayesicForceFields) is the group's open-source code for <b>Bayesian learning of partial charges</b>
+    (Košťál, Shanks, Jungwirth, Martinez-Seara, JCTC (Journal of Chemical Theory and Computation) 2026). It fits
+    force-field charges to <i>ab initio</i> molecular dynamics (AIMD) references through a Gaussian-process surrogate
+    and MCMC (Markov chain Monte Carlo) sampling. The result is a probability distribution of charges, not a single
+    best guess. Agents scouted the group's papers and the BFF code, proposed ideas, and had them critiqued by a
+    simulated chemist and a compute engineer. The owner approved two, which are now being turned into clickable
+    tasks. Each one runs in Harbor on Modal, so every stage is traced.</p>
+  <div class="grid">
+    <div class="card">
+      <span class="pill wip">task A</span>
+      <h3>Is 0.8 the right charge-scaling factor? A Bayesian answer with BFF</h3>
+      <p>The group scales ionic charges by about 0.8 with the ECC (electronic continuum correction), to account for
+        electronic polarisation. Here BFF learns acetate's charges at several ECC factors between 0.70 and 0.90. It then
+        compares 0.80 against 0.75 with a Bayes factor: how much better the reference data supports one than the
+        other.</p>
+    </div>
+    <div class="card">
+      <span class="pill wip">task B</span>
+      <h3>Ca<sup>2+</sup>–acetate binding with error bars: from the BFF charge posterior to experiment</h3>
+      <p>BFF gives a range of plausible charges (the posterior), not one set. This task carries that uncertainty through
+        umbrella-sampling PMFs (potentials of mean force: the free-energy profile of calcium binding to acetate). That
+        gives a binding free energy with error bars, which it compares with Raman spectroscopy data.</p>
+    </div>
+  </div>
+  <p class="dim">Both: about 10–14 min and about $0.40 per run on a 32-CPU Modal box, with BFF and GROMACS
+    preinstalled in the image, so the agent never spends time installing. The agent is told to poll, not sleep. Until
+    they ship, the panel shows the two current tasks: "Methods card for a group paper" and "Ion–water binding,
+    computed live" (DFT on Modal).</p>
+
+  <!-- ───────────── 7 ───────────── -->
+  <h2 id="frankenstein">7 · Frankenstein: an agent that builds itself <span class="pill wip">in progress (v3)</span></h2>
+  <p>The hackathon brief: "By dawn, show a creature that learned to do things it could not do at dusk." Macrae notices
+    a capability it is missing, creates it, tests it, installs it, and uses it again in later runs. <b>Its capabilities
+    may evolve; its authority may not.</b> This is designed and queued behind v2. Nothing below is live yet. (SHA-256 = Secure Hash Algorithm, 256-bit: a
+    fingerprint that changes if a single byte of the tool changes.)</p>
+  <div class="card">
+  <svg class="small" viewBox="0 0 1000 300" role="img" aria-label="Capability lifecycle: gap, create, test, install, use; authority fixed">
+    <defs>
+      <marker id="arr3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--acc)"/></marker>
+    </defs>
+    <g class="ui"><rect class="b" x="14" y="30" width="170" height="104"/>
+      <text class="t" x="30" y="56">1 · Gap</text>
+      <text class="s" x="30" y="76">the agent needs a tool</text><text class="s" x="30" y="92">that isn't there and says</text>
+      <text class="s" x="30" y="108">CAPABILITY_GAP: name: why</text></g>
+    <g class="ext"><rect class="b" x="214" y="30" width="170" height="104"/>
+      <text class="t" x="230" y="56">2 · Create</text>
+      <text class="s" x="230" y="76">a sandbox step writes</text><text class="s" x="230" y="92">the tool and its tests</text>
+      <text class="s" x="230" y="108">(Harbor on Modal)</text></g>
+    <g class="ext"><rect class="b" x="414" y="30" width="170" height="104"/>
+      <text class="t" x="430" y="56">3 · Test</text>
+      <text class="s" x="430" y="76">runs the tests;</text><text class="s" x="430" y="92">the step's check passes</text>
+      <text class="s" x="430" y="108">only if they all pass</text></g>
+    <g class="srv"><rect class="b" x="614" y="30" width="170" height="104"/>
+      <text class="t" x="630" y="56">4 · Install</text>
+      <text class="s" x="630" y="76">server checks SHA-256,</text><text class="s" x="630" y="92">tests and policy, then</text>
+      <text class="s" x="630" y="108">adds it to the registry</text></g>
+    <g class="data"><rect class="b" x="814" y="30" width="170" height="104"/>
+      <text class="t" x="830" y="56">5 · Use again</text>
+      <text class="s" x="830" y="76">later runs get it in their</text><text class="s" x="830" y="92">sandbox and instruction;</text>
+      <text class="s" x="830" y="108">no re-creating</text></g>
+    <path class="a hot" style="marker-end:url(#arr3)" d="M184,82 H214"/>
+    <path class="a hot" style="marker-end:url(#arr3)" d="M384,82 H414"/>
+    <path class="a hot" style="marker-end:url(#arr3)" d="M584,82 H614"/>
+    <path class="a hot" style="marker-end:url(#arr3)" d="M784,82 H814"/>
+    <path class="a hot dash" style="marker-end:url(#arr3)" d="M899,134 V160 H99 V134"/>
+    <text class="al" x="380" y="154">evolve: lessons + capability ledger feed the next run</text>
+    <g class="voice"><rect class="b fixed" x="14" y="182" width="970" height="104"/>
+      <text class="t" x="30" y="208">🔒 Authority: fixed (server/policy.py, constants that no capability can change)</text>
+      <text x="30" y="236">• tools run only inside the Harbor sandbox</text>
+      <text x="30" y="258">• no secrets (environment allowlist)</text>
+      <text x="370" y="236">• no network hosts beyond a fixed list</text>
+      <text x="370" y="258">• no write access to the registry</text>
+      <text x="700" y="236">• a maximum runtime</text>
+      <text x="700" y="258">• asking for more → rejected</text>
+      <text class="s" x="30" y="278">The installer refuses any manifest that asks for more, and records a "rejected" event with the reason.</text></g>
+  </svg>
+  </div>
+  <ul class="flow">
+    <li><b>Capabilities</b> are versioned, tested tools with a manifest: name, purpose, inputs/outputs, tests,
+      SHA-256 fingerprint, the run that created it, created/tested/installed/last-used times and
+      a use count. The registry lives under <code>evolve/capabilities/</code> and is synced to R2 with the rest of the
+      state.</li>
+    <li><b>Dusk → dawn ledger</b>: <code>GET /api/capabilities</code> lists every event (gap, create, test, install,
+      use, rejected) since the session began. The page shows it as a timeline, with one card per capability and a fixed
+      "Authority" card.</li>
+    <li><b>Demo plan</b>: run 1 needs something it lacks, e.g. a radial distribution function, or a block-averaged
+      error bar from a molecular dynamics trajectory. It creates, tests and installs the tool. Run 2 uses it without
+      re-creating it. A manifest that asks for a secret is rejected.</li>
+    <li><b>Raw traces</b>: each run gets "Download trace" (a zip of its Harbor job folders, state and live logs) and
+      "Open raw trajectory".</li>
+  </ul>
+
+  <!-- ───────────── 8 ───────────── -->
+  <h2>8 · Code map</h2>
+  <div class="card">
+  <table>
+    <tr><th>folder</th><th>what's in it</th><th>status</th></tr>
+    <tr><td><code>data/</code>, <code>scripts/</code></td><td>479 group publications (titles, authors, DOIs) from the IOCB site</td><td><span class="pill ok">done</span></td></tr>
+    <tr><td><code>web/</code></td><td>Chat with Jarvis: a thread with mic and composer, <code>[n]</code> citations
+      opening source cards, typed questions that search the papers even without voice. Right panel "Tasks &amp;
+      runs": task cards, the live run timeline (📄🔎🧮✍️✅⚠️), counters, cited papers, recent runs. Offline state,
+      light/dark, a bottom sheet on phones.</td><td><span class="pill ok">live</span> <span class="pill wip">v2/v3 views</span></td></tr>
+    <tr><td><code>cloudflare/</code></td><td>Worker <code>macrae</code> (<code>index.js</code> + <code>worker.js</code>):
+      serves the page, sends <code>/api</code> through the Durable Object to the container, ElevenLabs signed URL, rate
+      limits, admin status/restart, and the container's R2 endpoint. <code>wrangler.toml</code>, <code>deploy.sh</code>,
+      a local dev server and a mock backend.</td><td><span class="pill ok">live</span></td></tr>
+    <tr><td><code>server/</code></td><td>FastAPI (a Python web framework): tasks, runs, trace events (tool calls →
+      read / calc / write…), search, ElevenLabs tools, draining on restart.</td><td><span class="pill ok">live</span> <span class="pill wip">v2: live, costs, planner</span></td></tr>
+    <tr><td><code>rag/</code></td><td>PDF → clean pages (headers, hyphenation and reference lists removed) → chunks;
+      BM25 + bge-small embeddings (BAAI General Embedding, by the Beijing Academy of Artificial Intelligence), fused
+      ranking; <code>[n]</code> citations with page</td><td><span class="pill ok">built</span> <span class="pill wait">needs PDFs</span></td></tr>
+    <tr><td><code>tasks/</code></td><td>"Methods card for a group paper" and "Ion–water binding, computed live" (DFT
+      with PySCF on Modal), plus Modal support in agent-runner. The two BFF tasks are being added.</td><td><span class="pill ok">live</span> <span class="pill wip">BFF tasks</span></td></tr>
+    <tr><td><code>voice/</code></td><td>ElevenLabs agent "macrae" (voice "Jarvis", Claude Sonnet 5.5 through ElevenLabs,
+      cites every claim): three server tools and a setup script</td><td><span class="pill ok">live</span></td></tr>
+    <tr><td><code>deploy/</code></td><td>Backend Dockerfile (Harbor uses Modal, so there is no Docker inside),
+      <code>start.py</code> (supervises the server, drains runs on restart), <code>r2sync.py</code> (R2 mirror), the
+      secret checker, docs</td><td><span class="pill ok">live</span></td></tr>
+    <tr><td><code>evolve/</code></td><td>Lessons distilled from traces, a tools library, a fine-tuning dataset export,
+      then the capability registry</td><td><span class="pill wip">v2 → v3</span></td></tr>
+    <tr><td><code>research/</code></td><td>Scouting notes on the group's papers and the BFF code, behind the two research
+      tasks</td><td><span class="pill ok">done</span></td></tr>
+  </table>
+  </div>
+
+  <!-- ───────────── 9 ───────────── -->
+  <h2>9 · Where it runs: all on Cloudflare</h2>
+  <p>The page, the Worker and the backend live on one Cloudflare account and one address, deployed with
+    <code>cloudflare/deploy.sh</code> (which runs <code>wrangler deploy</code>). The backend is a <b>Cloudflare
+    Container</b>, built from the same Docker image, and the Durable Object <code>MacraeBackend</code> owns it. It
+    sleeps after 2 hours without use, but never while a run is going. Its disk is temporary, so the paper index is
+    baked into the image, and everything the backend writes is mirrored to <b>R2</b>. The container reaches R2 through
+    the Worker at a private address (<code>r2.macrae</code>), so it needs no S3 (Simple Storage Service) keys. On a
+    restart, task starts pause and running flows get up to 14 minutes to finish. Edits to the page alone don't restart
+    the backend. The heavy work (agents, calculations) runs in Modal sandboxes. AWS was the first plan and is no longer
+    used.</p>
+
+  <!-- ───────────── 10 ───────────── -->
+  <h2 id="built">10 · How it was built</h2>
+  <p>With agent-runner itself. A written contract (<code>CONTRACT.md</code>) fixed every interface. Then six Claude
+    Opus 5.5 agents (high effort) built their modules at the same time across three Claude accounts, each in its own
+    container. All six passed their checks on the first attempt.</p>
+  <div class="card"><table>
+    <tr><th>module</th><th>time</th><th>cost (API-equivalent)</th></tr>
+    <tr><td>web + Worker</td><td>18.5 min</td><td>$5.24</td></tr>
+    <tr><td>server</td><td>14.4 min</td><td>$3.86</td></tr>
+    <tr><td>rag</td><td>15.6 min</td><td>$3.41</td></tr>
+    <tr><td>tasks + Modal</td><td>16.5 min</td><td>$4.95</td></tr>
+    <tr><td>voice</td><td>10.2 min</td><td>$2.99</td></tr>
+    <tr><td>deploy</td><td>15.7 min</td><td>$3.44</td></tr>
+    <tr><td><b>total</b></td><td><b>~19 min wall clock</b></td><td><b>$23.90</b>, on Claude subscriptions</td></tr>
+  </table></div>
+  <p class="dim">Later flows on 2026-10-08 used the same method (Claude Opus 5.5, high effort, through agent-runner
+    and Harbor): an integrator that fixed the seams and tested end to end; the move of the backend into a Cloudflare
+    Container with R2; the chat redesign; the BFF research ideas; and now v2, Frankenstein (v3) and the video.</p>
+
+  <!-- ───────────── 11 ───────────── -->
+  <h2>11 · What the owner provides</h2>
+  <div class="card"><table>
+    <tr><th>item</th><th>status</th></tr>
+    <tr><td>ElevenLabs API key</td><td><span class="pill ok">provided</span> live</td></tr>
+    <tr><td>Claude login for the agents</td><td><span class="pill ok">provided</span> <span class="pill wait">waiting</span> a fresh key to replace it</td></tr>
+    <tr><td>Modal token (for the container)</td><td><span class="pill ok">provided</span> connected</td></tr>
+    <tr><td>Paper PDFs</td><td><span class="pill wait">waiting</span> indexed on the server, never published</td></tr>
+    <tr><td>Research tasks</td><td><span class="pill ok">approved</span> two BFF ideas, being built</td></tr>
+    <tr><td>Hosting</td><td><span class="pill ok">live</span> Cloudflare</td></tr>
+  </table></div>
+
+  <h2>Glossary</h2>
+  <div class="card"><table>
+    <tr><td><b>RAG</b></td><td>Retrieval-augmented generation: find the relevant passages first, answer only from them, cite them.</td></tr>
+    <tr><td><b>Worker</b></td><td>Small program on Cloudflare's network that serves the site and forwards API calls.</td></tr>
+    <tr><td><b>Durable Object</b></td><td>A named Cloudflare object with its own storage. Here it owns the single backend container and decides when it sleeps.</td></tr>
+    <tr><td><b>Container</b></td><td>The backend's Docker image, run by Cloudflare on demand.</td></tr>
+    <tr><td><b>R2</b></td><td>Cloudflare's object storage (files in a bucket). Holds the index, runs and traces.</td></tr>
+    <tr><td><b>Harbor</b></td><td>Open-source harness that runs an agent in a sandbox and saves its trajectory, reward and files.</td></tr>
+    <tr><td><b>Modal</b></td><td>Cloud that starts sandboxes/containers on demand, CPU or GPU, billed per second.</td></tr>
+    <tr><td><b>Trace / trajectory</b></td><td>Every message, tool call and result of one agent run (ATIF format in <code>trajectory.json</code>).</td></tr>
+    <tr><td><b>Signed URL</b></td><td>A short-lived link (URL = uniform resource locator) that lets the browser open a voice session without seeing the API key.</td></tr>
+    <tr><td><b>BFF</b></td><td>BayesicForceFields: Bayesian learning of force-field partial charges from reference simulations.</td></tr>
+    <tr><td><b>ECC</b></td><td>Electronic continuum correction: scaling ionic charges (about 0.75–0.8) to mimic electronic polarisation.</td></tr>
+    <tr><td><b>Capability</b></td><td>A tool the agent wrote, tested and installed for itself. Authority (what tools may do) stays fixed.</td></tr>
+  </table></div>
+</main>
+<script>
+  function toggleTheme() {
+    const r = document.documentElement;
+    const dark = r.dataset.theme ? r.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+    r.dataset.theme = dark ? "light" : "dark";
+  }
+</script>
+</body>
+</html>

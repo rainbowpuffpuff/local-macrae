@@ -1,0 +1,13 @@
+#!/usr/bin/env python3
+"""Fake ssh: logs the remote command; stdin of the env upload is saved to $FAKE_DIR/remote_env."""
+import json, os, sys
+from pathlib import Path
+
+d = Path(os.environ["FAKE_DIR"])
+args = sys.argv[1:]
+cmd = args[-1] if args else ""
+data = b"" if sys.stdin is None or sys.stdin.isatty() else sys.stdin.buffer.read()
+with open(d / "ssh.log", "a") as f:
+    f.write(json.dumps({"cmd": cmd, "stdin_bytes": len(data)}) + "\n")
+if "deploy/.env" in cmd:
+    (d / "remote_env").write_bytes(data)

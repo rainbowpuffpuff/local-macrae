@@ -1,0 +1,7 @@
+{
+ "job_name": "calc-a2",
+ "n_attempts": 1,
+ "orchestrator": {
+  "type": "local"
+ }
+}

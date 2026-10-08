@@ -1,0 +1,50 @@
+# The backend as it runs on the EC2 instance (and locally with `make docker-run`).
+#   docker compose -f deploy/compose.yaml up -d --build                     backend only, http://127.0.0.1:8080
+#   docker compose -f deploy/compose.yaml --profile https up -d --build     + Caddy with HTTPS for $MACRAE_DOMAIN
+# Secrets come from deploy/.env (copy deploy/env.example). Papers, index, runs and Harbor traces live in
+# $MACRAE_DATA_DIR (default deploy/data) mounted at /data, so rebuilding the image keeps them.
+name: macrae
+
+services:
+  backend:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    image: macrae-backend:latest
+    restart: unless-stopped
+    init: false            # the image's entrypoint is tini
+    env_file: .env         # required: cp deploy/env.example deploy/.env
+    environment:
+      MACRAE_PAPERS_DIR: /data/papers
+      MACRAE_INDEX_DIR: /data/index
+      AGENT_RUNNER_HOME: /data/agent-runner
+    volumes:
+      - ${MACRAE_DATA_DIR:-./data}:/data
+    ports:
+      - "127.0.0.1:${MACRAE_PORT:-8080}:8080"   # loopback only; the public side is Caddy (or the Worker)
+    stop_grace_period: 30s
+    logging:
+      driver: json-file
+      options: {max-size: "20m", max-file: "5"}
+
+  caddy:
+    profiles: [https]
+    image: caddy:2
+    restart: unless-stopped
+    depends_on: [backend]
+    environment:
+      MACRAE_DOMAIN: ${MACRAE_DOMAIN:-localhost}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    logging:
+      driver: json-file
+      options: {max-size: "20m", max-file: "5"}
+
+volumes:
+  caddy_data:
+  caddy_config:

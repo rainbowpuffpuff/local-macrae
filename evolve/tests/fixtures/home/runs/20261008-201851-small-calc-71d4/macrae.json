@@ -1,0 +1,10 @@
+{
+ "run_id": "20261008-201851-small-calc-71d4",
+ "task_id": "small-calc",
+ "title": "Ion–water binding, computed live",
+ "inputs": {
+  "ion": "Na+"
+ },
+ "flow": "@REPO@/tasks/flows/small-calc.yaml",
+ "started": "@E+0@"
+}

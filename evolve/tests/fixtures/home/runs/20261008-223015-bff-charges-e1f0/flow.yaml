@@ -1,0 +1,10 @@
+name: bff-charges
+steps:
+- id: prepare
+  description: Pull the BFF paper's passages and set up the acetate system
+  run: python3 -m tasks.prepare_bff
+- id: fit
+  description: An agent runs MD, the surrogate and MCMC with BFF on Modal
+  instruction: …
+- id: collect
+  run: python3 -m tasks.collect

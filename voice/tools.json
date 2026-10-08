@@ -1,0 +1,136 @@
+[
+  {
+    "type": "webhook",
+    "name": "search_papers",
+    "description": "Search the full text of the Jungwirth group's papers (hybrid keyword + semantic search). Returns answer_context with numbered passages [1], [2], ... and a citations list whose keys match those numbers. Call this before answering any question about the group's research, methods, results, numbers or papers, including follow-up questions.",
+    "api_schema": {
+      "url": "{BACKEND_URL}/api/tools/search_papers",
+      "method": "POST",
+      "request_headers": {
+        "X-Macrae-Secret": {"secret_id": "{MACRAE_TOOL_SECRET_ID}"}
+      },
+      "request_body_schema": {
+        "type": "object",
+        "description": "Search request.",
+        "required": ["query"],
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "A standalone search query in English with the key scientific terms, e.g. 'ion specific effects at the water/air interface' or 'force field for sulfated glycosaminoglycans'. Resolve pronouns and follow-ups from the conversation so the query makes sense on its own."
+          }
+        }
+      }
+    },
+    "response_timeout_secs": 30,
+    "pre_tool_speech": "auto",
+    "tool_call_sound": "typing",
+    "tool_call_sound_behavior": "auto",
+    "tool_error_handling_mode": "passthrough",
+    "execution_mode": "immediate"
+  },
+  {
+    "type": "webhook",
+    "name": "start_task",
+    "description": "Start one of the predefined tasks. It runs real work on Modal (reading papers, running calculations) and every step is traced live on the page. Only call this when the user asks for a task or agrees to your offer. Returns run_id and a message saying what started.",
+    "api_schema": {
+      "url": "{BACKEND_URL}/api/tools/start_task",
+      "method": "POST",
+      "request_headers": {
+        "X-Macrae-Secret": {"secret_id": "{MACRAE_TOOL_SECRET_ID}"}
+      },
+      "request_body_schema": {
+        "type": "object",
+        "description": "Which task to start.",
+        "required": ["task_id"],
+        "properties": {
+          "task_id": {
+            "type": "string",
+            "description": "The id of the task to start, exactly as written. Available tasks: {TASK_IDS}."
+          }
+        }
+      }
+    },
+    "response_timeout_secs": 30,
+    "pre_tool_speech": "auto",
+    "tool_error_handling_mode": "passthrough",
+    "execution_mode": "immediate"
+  },
+  {
+    "type": "webhook",
+    "name": "run_status",
+    "description": "Get the progress of a task run: status (running, ok, failed or cancelled), a short summary, and the most recent trace steps (newest last). Call this when the user asks how a run is going or what it found.",
+    "api_schema": {
+      "url": "{BACKEND_URL}/api/tools/run_status",
+      "method": "POST",
+      "request_headers": {
+        "X-Macrae-Secret": {"secret_id": "{MACRAE_TOOL_SECRET_ID}"}
+      },
+      "request_body_schema": {
+        "type": "object",
+        "description": "Which run to check.",
+        "required": ["run_id"],
+        "properties": {
+          "run_id": {
+            "type": "string",
+            "description": "The run_id returned by start_task, copied exactly."
+          }
+        }
+      }
+    },
+    "response_timeout_secs": 20,
+    "pre_tool_speech": "off",
+    "tool_error_handling_mode": "passthrough",
+    "execution_mode": "immediate"
+  },
+  {
+    "type": "client",
+    "name": "show_citations",
+    "description": "Show citation cards on the user's screen for the papers your answer relies on. Pass the citation objects from the latest search_papers result that you cite, copied unchanged. Does not return anything.",
+    "parameters": {
+      "type": "object",
+      "description": "Citations to display.",
+      "required": ["citations"],
+      "properties": {
+        "citations": {
+          "type": "array",
+          "description": "Citation objects from search_papers that you cite in your answer, in the order you cite them (at most 6).",
+          "items": {
+            "type": "object",
+            "description": "One citation, copied unchanged from search_papers.",
+            "required": ["key", "title"],
+            "properties": {
+              "key": {"type": "string", "description": "Citation number as given by search_papers, e.g. '[1]'."},
+              "title": {"type": "string", "description": "Paper title."},
+              "authors": {"type": "string", "description": "Authors as given by search_papers."},
+              "year": {"type": "integer", "description": "Publication year. Omit if unknown."},
+              "journal": {"type": "string", "description": "Journal name."},
+              "doi": {"type": "string", "description": "DOI, e.g. '10.1021/acs.jctc.5c02051'."},
+              "page": {"type": "integer", "description": "Page of the cited passage. Omit if unknown."},
+              "url": {"type": "string", "description": "Link to the paper, usually https://doi.org/..."},
+              "quote": {"type": "string", "description": "Short quote from the passage, as given by search_papers."}
+            }
+          }
+        }
+      }
+    },
+    "expects_response": false,
+    "pre_tool_speech": "off",
+    "execution_mode": "immediate"
+  },
+  {
+    "type": "client",
+    "name": "open_run",
+    "description": "Open the live trace view of a task run on the user's screen (which papers it reads, which calculations it runs). Call it right after start_task returns a run_id, or when the user asks to see a run. Does not return anything.",
+    "parameters": {
+      "type": "object",
+      "description": "Which run to show.",
+      "required": ["run_id"],
+      "properties": {
+        "run_id": {"type": "string", "description": "The run_id returned by start_task, copied exactly."}
+      }
+    },
+    "expects_response": false,
+    "pre_tool_speech": "off",
+    "execution_mode": "immediate"
+  }
+]

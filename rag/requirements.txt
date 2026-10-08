@@ -1,0 +1,6 @@
+# rag/: PDF ingestion + hybrid (BM25 + embeddings) search over the group's papers
+pymupdf>=1.24
+fastembed>=0.4
+numpy>=1.26
+# tests
+pytest>=8

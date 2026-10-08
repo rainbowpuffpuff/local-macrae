@@ -1,0 +1,64 @@
+name = "macrae"
+main = "index.js"
+compatibility_date = "2026-10-01"
+
+# The page in ../web. The worker runs first on every request to add security headers,
+# send /api/* to the backend container and answer /voice/signed-url.
+[assets]
+directory = "../web"
+binding = "ASSETS"
+run_worker_first = true
+not_found_handling = "single-page-application"
+
+# The backend (server/ + rag/ + tasks/ + agent_runner + Harbor CLI), built from deploy/Dockerfile with the repo
+# root as build context (deploy/Dockerfile.dockerignore applies). `wrangler deploy` builds it with the local Docker
+# and pushes it to Cloudflare's registry. One instance: runs and traces live in it (and in R2).
+# standard-1 = 1/2 vCPU, 4 GiB, 8 GB disk. Use standard-2 (1 vCPU, 6 GiB) if several runs at once feel slow.
+[[containers]]
+class_name = "MacraeBackend"
+image = "../deploy/Dockerfile"
+image_build_context = ".."
+instance_type = "standard-1"
+max_instances = 1
+
+[[durable_objects.bindings]]
+name = "BACKEND"
+class_name = "MacraeBackend"
+
+[exports.MacraeBackend]
+type = "durable-object"
+storage = "sqlite"
+
+# Runs, traces and the paper index survive container restarts here. The container reaches it through
+# http://r2.macrae (see index.js); deploy.sh creates the bucket and uploads index/.
+[[r2_buckets]]
+binding = "DATA"
+bucket_name = "macrae-data"
+
+# Per-IP limits on the two calls that cost money: starting a task (Modal) and a voice session (ElevenLabs).
+[[ratelimits]]
+name = "START_LIMIT"
+namespace_id = "7301"
+simple = { limit = 6, period = 60 }
+
+[[ratelimits]]
+name = "VOICE_LIMIT"
+namespace_id = "7302"
+simple = { limit = 10, period = 60 }
+
+[observability]
+enabled = true
+
+# `wrangler dev` (make web-dev) uses BACKEND_URL (your `make serve` backend) and doesn't need Docker.
+# To run the real container locally instead: npx wrangler dev --enable-containers (needs Docker).
+[dev]
+enable_containers = false
+
+# Secrets, never in this file (deploy/cloudflare.md; local dev: copy .dev.vars.example to .dev.vars):
+#   npx wrangler secret put MACRAE_TOOL_SECRET        shared with the ElevenLabs tools
+#   npx wrangler secret put MODAL_TOKEN_ID            Modal login for Harbor (agent steps)
+#   npx wrangler secret put MODAL_TOKEN_SECRET
+#   npx wrangler secret put AGENT_RUNNER_TOKEN_MAIN   one per Claude login (any <NAME>), and/or ANTHROPIC_API_KEY
+#   npx wrangler secret put ELEVENLABS_API_KEY
+#   npx wrangler secret put ELEVENLABS_AGENT_ID       printed by voice/setup_agent.py
+# BACKEND_URL is only an override (local dev). As a secret in production it would bypass the container.

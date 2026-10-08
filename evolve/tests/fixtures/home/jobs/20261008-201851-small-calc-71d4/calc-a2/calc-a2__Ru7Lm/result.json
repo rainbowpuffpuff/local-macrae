@@ -1,0 +1,22 @@
+{
+ "task_name": "calc-a2",
+ "trial_name": "calc-a2__Ru7Lm",
+ "started_at": "@ISO+525@",
+ "finished_at": "@ISO+1001@",
+ "agent_info": {
+  "name": "claude-code",
+  "version": "2.1.31",
+  "model_info": {
+   "name": "claude-opus-5-5",
+   "provider": "anthropic"
+  }
+ },
+ "agent_result": {
+  "n_input_tokens": 38410,
+  "n_cache_tokens": 790112,
+  "n_output_tokens": 16920,
+  "cost_usd": 0.96
+ },
+ "verifier_result": null,
+ "exception_info": null
+}

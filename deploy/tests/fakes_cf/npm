@@ -1,0 +1,2 @@
+#!/bin/sh
+echo "npm $*" >> "$FAKE_DIR/npm.log"

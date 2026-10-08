@@ -1,0 +1,22 @@
+{
+ "task_name": "fit-a2",
+ "trial_name": "fit-a2__Cd34E",
+ "started_at": "@ISO+1870@",
+ "finished_at": "@ISO+3330@",
+ "agent_info": {
+  "name": "claude-code",
+  "version": "2.1.31",
+  "model_info": {
+   "name": "claude-opus-5-5",
+   "provider": "anthropic"
+  }
+ },
+ "agent_result": {
+  "n_input_tokens": 49800,
+  "n_cache_tokens": 1250300,
+  "n_output_tokens": 20500,
+  "cost_usd": 1.62
+ },
+ "verifier_result": null,
+ "exception_info": null
+}

@@ -1,0 +1,13 @@
+{
+ "trial_name": "fit-a2__Cd34E",
+ "task": {
+  "path": "/app/local-macrae/evolve/tests/fixtures/home/jobs/20261008-223015-bff-charges-e1f0/fit-a2/task"
+ },
+ "agent": {
+  "name": "claude-code",
+  "model_name": "claude-opus-5-5"
+ },
+ "environment": {
+  "type": "modal"
+ }
+}

@@ -1,0 +1,7 @@
+{
+ "job_name": "fit-a1",
+ "n_attempts": 1,
+ "orchestrator": {
+  "type": "local"
+ }
+}

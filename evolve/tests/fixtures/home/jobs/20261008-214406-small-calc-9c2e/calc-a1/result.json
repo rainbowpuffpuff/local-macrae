@@ -1,0 +1,9 @@
+{
+ "started_at": "@ISO+28.4@",
+ "finished_at": "@ISO+466@",
+ "n_total_trials": 1,
+ "stats": {
+  "n_completed_trials": 1,
+  "n_errored_trials": 0
+ }
+}

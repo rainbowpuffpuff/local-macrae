@@ -1,0 +1,9 @@
+{
+ "run_id": "20261008-223015-bff-charges-e1f0",
+ "task_id": "bff-charges",
+ "title": "Bayesian charges for acetate (BFF)",
+ "inputs": {
+  "molecule": "acetate"
+ },
+ "started": "@E+0@"
+}

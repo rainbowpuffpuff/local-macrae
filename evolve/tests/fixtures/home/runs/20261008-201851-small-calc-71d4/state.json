@@ -1,0 +1,90 @@
+{
+ "id": "20261008-201851-small-calc-71d4",
+ "name": "small-calc",
+ "file": "@REPO@/tasks/flows/small-calc.yaml",
+ "status": "ok",
+ "started": "@E+0@",
+ "finished": "@E+1012.4@",
+ "pid": 4242,
+ "workdir": "@REPO@",
+ "jobs_dir": "@HOME@/jobs/20261008-201851-small-calc-71d4",
+ "vars": {
+  "ion": "Na+",
+  "environment": "modal",
+  "python": "/usr/bin/python3",
+  "task_id": "small-calc",
+  "task_title": "Ion–water binding",
+  "lessons": "",
+  "tools_dir": ""
+ },
+ "levels": [
+  [
+   "prepare"
+  ],
+  [
+   "calc"
+  ],
+  [
+   "collect"
+  ]
+ ],
+ "steps": {
+  "prepare": {
+   "key": "prepare",
+   "id": "prepare",
+   "kind": "run",
+   "status": "ok",
+   "item": null,
+   "queued": "@E+0.1@",
+   "attempt": 1,
+   "started": "@E+0.1@",
+   "finished": "@E+3@",
+   "error": "",
+   "reward": null,
+   "account": null,
+   "job_dir": null,
+   "cost_usd": null,
+   "output": "{\"dir\": \"@HOME@/runs/20261008-201851-small-calc-71d4/small-calc/calc\", \"ion\": \"Na+\", \"charge\": 1, \"element\": \"Na\", \"name\": \"sodium\", \"n_references\": 3, \"references_file\": \"@HOME@/runs/20261008-201851-small-calc-71d4/small-calc/references.json\", \"checker\": \"@REPO@/tasks/checks.py\", \"citations\": [{\"key\": \"[1]\", \"title\": \"Electronic continuum correction for ions\", \"doi\": \"10.1021/acs.jpcb.0c09009\", \"…"
+  },
+  "calc": {
+   "key": "calc",
+   "id": "calc",
+   "kind": "agent",
+   "status": "ok",
+   "item": null,
+   "queued": "@E+3.3@",
+   "attempt": 2,
+   "started": "@E+500@",
+   "finished": "@E+1006@",
+   "error": "",
+   "reward": 1.0,
+   "account": "main",
+   "job_dir": "@HOME@/jobs/20261008-201851-small-calc-71d4/calc-a2",
+   "cost_usd": 0.96,
+   "output": "Done: result.json, explanation.md, run_calc.py, output.log are in /app/calc.",
+   "environment": "modal"
+  },
+  "collect": {
+   "key": "collect",
+   "id": "collect",
+   "kind": "run",
+   "status": "ok",
+   "item": null,
+   "queued": "@E+1007@",
+   "attempt": 1,
+   "started": "@E+1007@",
+   "finished": "@E+1008@",
+   "error": "",
+   "reward": null,
+   "account": null,
+   "job_dir": null,
+   "cost_usd": null,
+   "output": "{\"summary\": \"Na+–water: E_int −23.6 kcal/mol at 2.2 Å\"}"
+  }
+ },
+ "order": [
+  "prepare",
+  "calc",
+  "collect"
+ ]
+}

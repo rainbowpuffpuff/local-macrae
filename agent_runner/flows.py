@@ -21,6 +21,7 @@ A flow is YAML:
         run: echo "{{ [f.error for f in fix if not f.ok] }}"
 
 Step kinds: `run:` (shell), `instruction:` (harbor exec), `task:`/`dataset:` (harbor run).
+Agent and task steps run in local Docker unless `environment: modal` (per step, at flow level, or in defaults).
 Dependencies come from `needs:` plus every step id mentioned in a {{ }} expression.
 Every result has: status ok failed skipped cancelled, ok, output, error, attempts, and for agent
 steps reward, rewards, account, job_dir, trials, artifacts (artifacts/app), files (the copied
@@ -54,7 +55,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent  # so `python -m agent_runner
 STEP_KEYS = {"id", "needs", "when", "foreach", "run", "instruction", "task", "dataset", "path", "paths",
              "agent", "model", "account", "attempts", "image", "workdir", "artifacts", "scan", "retry",
              "outputs", "always", "cwd", "timeout", "agent_kwargs", "skills", "tasks", "n_tasks", "env",
-             "concurrency", "description", "check"}
+             "concurrency", "description", "check", "environment"}
 
 
 DICT_METHODS = {n for n in dir(dict) if not n.startswith("_")}
@@ -533,6 +534,8 @@ class FlowRun:
         common = dict(agent=agent, model=model, jobs_dir=self.jobs, job_name=job_name,
                       attempts=int(s.get("attempts") or 1), agent_kwargs=render(s.get("agent_kwargs") or {}, ctx))
         paths: list[str] = []
+        environment = self._environment(s, ctx)
+        live_env = harbor.live_agent_env(self.dir, self.id, key)  # macrae live trace (tasks/common/ wrapper)
         if kind == "agent":
             instruction = str(render(s["instruction"], ctx))
             if prev is not None:
@@ -545,14 +548,21 @@ class FlowRun:
                 base = str(render(s.get("workdir") or "", ctx)) or "/app"
                 arts = [f"{base.rstrip('/')}/{Path(p).name}" for p in paths]
             image = str(render(s.get("image") or "", ctx))
-            if not image:
+            template = ""
+            if environment == "modal":
+                # the local agent image doesn't exist on Modal: a registry image, else Modal builds our Dockerfile
+                image = image or harbor.modal_image()
+                if not image:
+                    template = str(harbor.modal_template(self.dir / "modal-template"))
+            elif not image:
                 default_image = load_settings().get("agent_image") or ""
                 if default_image and harbor.image_exists(default_image):
                     image = default_image
             cmd = harbor.exec_cmd(paths=paths, instruction=instruction, image=image,
                                   workdir=str(render(s.get("workdir") or "", ctx)), scan=bool(s.get("scan")),
                                   artifacts=arts if isinstance(arts, list) else [arts],
-                                  agent_timeout=s.get("timeout"), **common)
+                                  agent_timeout=s.get("timeout"), environment=environment,
+                                  task_template=template, agent_env=live_env, **common)
         else:
             tp = render(s.get("task") or "", ctx)
             if tp:
@@ -561,13 +571,16 @@ class FlowRun:
             cmd = harbor.run_cmd(task_path=tp, dataset=str(render(s.get("dataset") or "", ctx)),
                                  task_names=render(s.get("tasks") or [], ctx), n_tasks=s.get("n_tasks"),
                                  n_concurrent=int(s.get("concurrency") or 1),
-                                 skills=render(s.get("skills") or [], ctx), **common)
+                                 skills=render(s.get("skills") or [], ctx), environment=environment,
+                                 agent_env=live_env, **common)
         env = harbor.harbor_env(agent, account)
+        if environment == "modal":
+            env = harbor.modal_env(env)
         log_path = self.logs / f"{_sanitize(key)}.log"
-        shown = [c if len(c) < 200 else c[:200] + "…" for c in cmd]
+        shown = [c if len(c) < 200 else c[:200] + "…" for c in harbor.mask_agent_env(cmd)]
         self.log(key, f"harbor ({account or 'no account'}): {' '.join(shown)}")
         job_dir = self.jobs / job_name
-        self.mark(key, job_dir=str(job_dir), account=account)
+        self.mark(key, job_dir=str(job_dir), account=account, environment=environment)
         t0 = _now()
         rc = await harbor.run_process(cmd, env, log_path, cwd=self.workdir)
         trials = harbor.read_trials(job_dir) if job_dir.is_dir() else []
@@ -603,6 +616,11 @@ class FlowRun:
             limit_hit=any(t.limit_hit for t in trials), auth_failed=any(t.auth_failed for t in trials),
             limit_reset=max((t.limit_reset or 0 for t in trials), default=0) or None,
             verifier=verifier, error=error, duration=_now() - t0)
+
+    def _environment(self, s: dict, ctx: dict) -> str:
+        """Where the container runs: step `environment:`, else flow `environment:`, else defaults, else docker."""
+        v = s.get("environment") or self.spec.get("environment") or self.defaults.get("environment") or "docker"
+        return str(render(v, ctx) or "docker").strip().lower()
 
     async def _check(self, s: dict, key: str, ctx: dict, files: str) -> tuple[float, str]:
         """`check:` runs on this machine inside the returned folder. Exit 0 → reward 1.0. Output = feedback."""

@@ -1,0 +1,1 @@
+{"result_dir": "@HOME@/runs/20261008-214406-small-calc-9c2e/result", "summary": "K+\u2013water: E_int \u221223.6 kcal/mol at 2.2 \u00c5"}

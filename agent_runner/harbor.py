@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import Any, Optional
 
 from . import tokens
-from .config import HOME
+from .config import HOME, load_settings
 
 HARBOR_BIN = shutil.which("harbor") or str(HOME / ".local/bin/harbor")
 
@@ -48,7 +48,9 @@ def _json(p: Path) -> Any:
 
 # ── launching ───────────────────────────────────────────────────────────────
 
-IMAGE_DIR = Path(__file__).resolve().parent.parent / "image"
+# the image folder sits next to this file in the vendored copy and one level up in the upstream checkout
+_HERE = Path(__file__).resolve().parent
+IMAGE_DIR = next((d for d in (_HERE / "image", _HERE.parent / "image") if (d / "Dockerfile").is_file()), _HERE / "image")
 _image_cache: dict[str, tuple[float, bool]] = {}
 
 
@@ -66,6 +68,73 @@ def build_image(tag: str) -> int:
     import subprocess
     return subprocess.run(["docker", "build", "--pull", "-t", tag, str(IMAGE_DIR)]).returncode
 
+
+
+# ── Modal ───────────────────────────────────────────────────────────────────
+# `environment: modal` runs the container on Modal instead of local Docker (`harbor … -e modal`). Modal can't see the
+# local agent-runner/agent-base image, so agent steps get `--image` when a registry image is configured (the step's
+# `image:`, AGENT_RUNNER_MODAL_IMAGE, settings.json `modal_image`; Modal pulls and caches it), else a task template
+# whose environment/Dockerfile is our image Dockerfile. Harbor 0.24's `exec -p …` still pins its default image
+# (ubuntu) over the template, so there Claude Code is installed at trial start: slower, but it works.
+
+DEFAULT_MODAL_PROFILE = "acalincarol"
+
+
+def modal_env(env: dict[str, str]) -> dict[str, str]:
+    """Harbor process env for Modal: MODAL_PROFILE from the environment (default acalincarol), unless the login
+    comes from MODAL_TOKEN_ID/MODAL_TOKEN_SECRET, which need no profile."""
+    env = dict(env)
+    if env.get("MODAL_PROFILE"):
+        return env
+    if env.get("MODAL_TOKEN_ID") and env.get("MODAL_TOKEN_SECRET"):
+        return env
+    env["MODAL_PROFILE"] = DEFAULT_MODAL_PROFILE
+    return env
+
+
+def modal_image() -> str:
+    return os.environ.get("AGENT_RUNNER_MODAL_IMAGE") or str(load_settings().get("modal_image") or "")
+
+
+def modal_template(dest: Path) -> Path:
+    """A Harbor task template whose environment/Dockerfile is the agent image's Dockerfile. Idempotent."""
+    env_dir = dest / "environment"
+    env_dir.mkdir(parents=True, exist_ok=True)
+    src = (IMAGE_DIR / "Dockerfile").read_text()
+    target = env_dir / "Dockerfile"
+    if not target.is_file() or target.read_text() != src:
+        target.write_text(src)
+    return dest
+
+
+# ── live trace forwarding (macrae) ──────────────────────────────────────────
+# The agent image's `claude` wrapper (tasks/common/) forwards Claude Code's stream-json to
+# POST {MACRAE_LIVE_URL}/api/live/{run}/{step} with the run's token. The server that started the run writes the token
+# (and, when it knows its public URL, the URL) into <run>/live/ before the engine starts; we pass them to the agent
+# with Harbor's `--ae`. No token or no URL: nothing is passed and the run is exactly as before.
+
+LIVE_ENV_NAMES = ("MACRAE_LIVE_URL", "MACRAE_LIVE_TOKEN", "MACRAE_RUN_ID", "MACRAE_STEP")
+
+
+def _read_small(p: Path) -> str:
+    try:
+        return p.read_text().strip()[:2000]
+    except OSError:
+        return ""
+
+
+def live_agent_env(run_dir: Path, run_id: str, step: str) -> dict[str, str]:
+    token = _read_small(run_dir / "live" / "token")
+    url = (os.environ.get("MACRAE_LIVE_URL") or "").strip() or _read_small(run_dir / "live" / "url")
+    if not token or not url.startswith(("http://", "https://")):
+        return {}
+    return {"MACRAE_LIVE_URL": url.rstrip("/"), "MACRAE_LIVE_TOKEN": token, "MACRAE_RUN_ID": run_id,
+            "MACRAE_STEP": step}
+
+
+def mask_agent_env(cmd: list[str]) -> list[str]:
+    """The command as logged: the live token is replaced by ***."""
+    return [re.sub(r"^(MACRAE_LIVE_TOKEN=).*", r"\1***", c, flags=re.S) for c in cmd]
 
 
 def harbor_env(agent: str, account: Optional[str]) -> dict[str, str]:
@@ -90,9 +159,15 @@ def harbor_env(agent: str, account: Optional[str]) -> dict[str, str]:
 def exec_cmd(*, paths: list[str], instruction: str, agent: str, model: str = "", jobs_dir: Path,
              job_name: str, attempts: int = 1, image: str = "", workdir: str = "",
              artifacts: Optional[list[str]] = None, scan: bool = False, agent_kwargs: Optional[dict] = None,
-             agent_timeout: Optional[float] = None, extra: Optional[list[str]] = None) -> list[str]:
+             agent_timeout: Optional[float] = None, extra: Optional[list[str]] = None,
+             environment: str = "", task_template: str = "",
+             agent_env: Optional[dict[str, str]] = None) -> list[str]:
     cmd = [HARBOR_BIN, "exec", "-a", agent, "--jobs-dir", str(jobs_dir), "--job-name", job_name,
            "-k", str(attempts), "-q", "-i", instruction]
+    if environment and environment != "docker":
+        cmd += ["-e", environment]
+    if task_template:
+        cmd += ["--task-template", task_template]
     for p in paths:
         cmd += ["-p", p]
     cmd.append("--scan" if scan else "--no-scan")
@@ -108,15 +183,20 @@ def exec_cmd(*, paths: list[str], instruction: str, agent: str, model: str = "",
         cmd += ["--ak", f"{k}={v}"]
     if agent_timeout:
         cmd += ["--agent-timeout", str(agent_timeout)]
+    for k, v in (agent_env or {}).items():
+        cmd += ["--ae", f"{k}={v}"]
     return cmd + list(extra or [])
 
 
 def run_cmd(*, task_path: str = "", dataset: str = "", agent: str, model: str = "", jobs_dir: Path,
             job_name: str, attempts: int = 1, n_concurrent: int = 1, task_names: Optional[list[str]] = None,
             n_tasks: Optional[int] = None, agent_kwargs: Optional[dict] = None,
-            skills: Optional[list[str]] = None, extra: Optional[list[str]] = None) -> list[str]:
+            skills: Optional[list[str]] = None, extra: Optional[list[str]] = None,
+            environment: str = "", agent_env: Optional[dict[str, str]] = None) -> list[str]:
     cmd = [HARBOR_BIN, "run", "-a", agent, "-o", str(jobs_dir), "--job-name", job_name,
            "-k", str(attempts), "-n", str(n_concurrent), "-q", "-y"]
+    if environment and environment != "docker":
+        cmd += ["-e", environment]
     if task_path:
         cmd += ["-p", task_path]
     if dataset:
@@ -131,6 +211,8 @@ def run_cmd(*, task_path: str = "", dataset: str = "", agent: str, model: str = 
         cmd += ["--ak", f"{k}={v}"]
     for s in skills or []:
         cmd += ["--skill", s]
+    for k, v in (agent_env or {}).items():
+        cmd += ["--ae", f"{k}={v}"]
     return cmd + list(extra or [])
 
 

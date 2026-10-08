@@ -1,0 +1,13 @@
+{
+ "trial_name": "calc-a1__Xk2pQ",
+ "task": {
+  "path": "/app/local-macrae/evolve/tests/fixtures/home/jobs/20261008-201851-small-calc-71d4/calc-a1/task"
+ },
+ "agent": {
+  "name": "claude-code",
+  "model_name": "claude-opus-5-5"
+ },
+ "environment": {
+  "type": "modal"
+ }
+}

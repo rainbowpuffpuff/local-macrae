@@ -1,0 +1,26 @@
+{
+ "task_name": "fit-a1",
+ "trial_name": "fit-a1__Ab12C",
+ "started_at": "@ISO+30@",
+ "finished_at": "@ISO+1835@",
+ "agent_info": {
+  "name": "claude-code",
+  "version": "2.1.31",
+  "model_info": {
+   "name": "claude-opus-5-5",
+   "provider": "anthropic"
+  }
+ },
+ "agent_result": {
+  "n_input_tokens": 52000,
+  "n_cache_tokens": 1302000,
+  "n_output_tokens": 21000,
+  "cost_usd": null
+ },
+ "verifier_result": null,
+ "exception_info": {
+  "exception_type": "AgentTimeoutError",
+  "exception_message": "Agent execution timed out after 1800.0 seconds",
+  "exception_traceback": "Traceback …\nharbor.trial.errors.AgentTimeoutError"
+ }
+}

@@ -1,0 +1,6 @@
+# Copy to .dev.vars (gitignored) for `npx wrangler dev` or `node dev/serve.mjs`.
+# BACKEND_URL overrides the backend container: /api/* goes to your local backend (`make serve`).
+BACKEND_URL=http://127.0.0.1:8080
+MACRAE_TOOL_SECRET=dev-secret
+ELEVENLABS_API_KEY=
+ELEVENLABS_AGENT_ID=

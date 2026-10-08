@@ -1,0 +1,7 @@
+# tasks/ + agent_runner (installed with `pip install -e .`)
+pyyaml>=6
+# Harbor runs the agent steps; the modal extra is required for `environment: modal` (the backend has no Docker).
+# Brings the `harbor` and `modal` CLIs (`modal token set` / MODAL_TOKEN_ID + MODAL_TOKEN_SECRET).
+# Harbor needs Python >= 3.12. On 3.11 (deploy/Dockerfile's interpreter) this line is skipped and the CLI comes from
+# `uv tool install --python 3.12 "harbor[modal]==0.24.0"` instead; nothing here imports harbor, only runs `harbor`.
+harbor[modal]>=0.24; python_version >= "3.12"

@@ -1,0 +1,5 @@
+#!/bin/sh
+# Fake npx: `npx --yes wrangler@4 …` → the fake wrangler next to this file.
+[ "$1" = "--yes" ] && shift
+case "$1" in wrangler*) shift; exec "$(dirname "$0")/wrangler" "$@" ;; esac
+echo "fake npx: unexpected $*" >&2; exit 2

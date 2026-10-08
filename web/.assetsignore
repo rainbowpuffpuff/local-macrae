@@ -1,0 +1,5 @@
+.assetsignore
+package.json
+tests
+*.md
+review/

@@ -1,0 +1,77 @@
+{
+ "id": "20261008-180522-methods-card-ab56",
+ "name": "methods-card",
+ "file": "@REPO@/tasks/flows/methods-card.yaml",
+ "status": "failed",
+ "started": "@E+0@",
+ "finished": "@E+4@",
+ "pid": 4242,
+ "workdir": "@REPO@",
+ "jobs_dir": "@HOME@/jobs/20261008-180522-methods-card-ab56",
+ "vars": {
+  "doi": "10.1021/acs.jctc.5c02051",
+  "environment": "modal",
+  "python": "/usr/bin/python3",
+  "task_id": "methods-card",
+  "task_title": "Methods card"
+ },
+ "levels": [
+  [
+   "sources"
+  ],
+  [
+   "card"
+  ],
+  [
+   "collect"
+  ]
+ ],
+ "steps": {
+  "sources": {
+   "key": "sources",
+   "id": "sources",
+   "kind": "run",
+   "status": "ok",
+   "item": null,
+   "queued": "@E+0.1@",
+   "attempt": 1,
+   "started": "@E+0.1@",
+   "finished": "@E+3.6@",
+   "error": "",
+   "reward": null,
+   "account": null,
+   "job_dir": null,
+   "cost_usd": null,
+   "output": "{\"dir\": \"…/paper\"}"
+  },
+  "card": {
+   "key": "card",
+   "id": "card",
+   "kind": "agent",
+   "status": "failed",
+   "item": null,
+   "queued": "@E+3.7@",
+   "attempt": 1,
+   "started": "@E+3.7@",
+   "finished": "@E+3.8@",
+   "error": "RuntimeError: no Claude login: `agent-runner accounts set NAME` (a token from `claude setup-token`) or ANTHROPIC_API_KEY",
+   "reward": null,
+   "account": null,
+   "job_dir": null,
+   "cost_usd": null,
+   "output": null
+  },
+  "collect": {
+   "key": "collect",
+   "id": "collect",
+   "kind": "run",
+   "status": "skipped",
+   "note": "upstream: card"
+  }
+ },
+ "order": [
+  "sources",
+  "card",
+  "collect"
+ ]
+}

@@ -1,0 +1,19 @@
+# HTTPS in front of the backend. MACRAE_DOMAIN comes from deploy/.env (aws_deploy.sh sets it to
+# <public-ip-with-dashes>.sslip.io unless you give your own domain). Caddy gets and renews the certificate.
+{$MACRAE_DOMAIN} {
+	encode zstd gzip
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options nosniff
+		Referrer-Policy no-referrer
+		-Server
+	}
+	reverse_proxy backend:8080 {
+		health_uri /api/health
+		health_interval 30s
+	}
+	log {
+		output stdout
+		format console
+	}
+}

@@ -1,0 +1,91 @@
+{
+ "id": "20261008-223015-bff-charges-e1f0",
+ "name": "bff-charges",
+ "file": "@REPO@/tasks/flows/bff-charges.yaml",
+ "status": "ok",
+ "started": "@E+0@",
+ "finished": "@E+3340@",
+ "pid": 4242,
+ "workdir": "@REPO@",
+ "jobs_dir": "@HOME@/jobs/20261008-223015-bff-charges-e1f0",
+ "vars": {
+  "molecule": "acetate",
+  "environment": "modal",
+  "python": "/usr/bin/python3",
+  "task_id": "bff-charges",
+  "task_title": "Bayesian charges (BFF)",
+  "hardware": "cpu-8",
+  "lessons": "",
+  "tools_dir": ""
+ },
+ "levels": [
+  [
+   "prepare"
+  ],
+  [
+   "fit"
+  ],
+  [
+   "collect"
+  ]
+ ],
+ "steps": {
+  "prepare": {
+   "key": "prepare",
+   "id": "prepare",
+   "kind": "run",
+   "status": "ok",
+   "item": null,
+   "queued": "@E+0.1@",
+   "attempt": 1,
+   "started": "@E+0.1@",
+   "finished": "@E+6.1@",
+   "error": "",
+   "reward": null,
+   "account": null,
+   "job_dir": null,
+   "cost_usd": null,
+   "output": "{\"dir\": \"@HOME@/runs/20261008-223015-bff-charges-e1f0/bff-charges/bff\", \"molecule\": \"acetate\", \"n_charges\": 4, \"net_charge\": -0.8, \"checker\": \"@REPO@/tasks/checks.py\"}"
+  },
+  "fit": {
+   "key": "fit",
+   "id": "fit",
+   "kind": "agent",
+   "status": "ok",
+   "item": null,
+   "queued": "@E+6.3@",
+   "attempt": 2,
+   "started": "@E+1840@",
+   "finished": "@E+3336@",
+   "error": "",
+   "reward": 1.0,
+   "account": "main",
+   "job_dir": "@HOME@/jobs/20261008-223015-bff-charges-e1f0/fit-a2",
+   "cost_usd": 1.62,
+   "output": "Done: posterior means O −0.61e …",
+   "environment": "modal"
+  },
+  "collect": {
+   "key": "collect",
+   "id": "collect",
+   "kind": "run",
+   "status": "ok",
+   "item": null,
+   "queued": "@E+3337@",
+   "attempt": 1,
+   "started": "@E+3337@",
+   "finished": "@E+3339@",
+   "error": "",
+   "reward": null,
+   "account": null,
+   "job_dir": null,
+   "cost_usd": null,
+   "output": "{\"summary\": \"acetate O −0.61e\"}"
+  }
+ },
+ "order": [
+  "prepare",
+  "fit",
+  "collect"
+ ]
+}
