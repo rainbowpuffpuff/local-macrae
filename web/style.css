@@ -416,6 +416,8 @@ details.p-sec > summary:hover h3, details.p-sec > summary:hover .chev { color: v
 .run-title { flex: 1; min-width: 0; font-size: 15px; font-weight: 650; line-height: 1.35; overflow-wrap: anywhere; }
 .run-meta { display: flex; gap: 10px; margin: 4px 0 10px; color: var(--text-3); min-width: 0; }
 .run-meta span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.run-links { display: flex; gap: 8px; margin: -4px 0 10px; }
+.run-links[hidden] { display: none; }
 .run-steps { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
 .run-steps:empty { display: none; }
 .step { display: inline-flex; align-items: center; gap: 6px; font: 11.5px var(--mono); border: 1px solid var(--border); border-radius: 999px; padding: 2px 9px; color: var(--text); }
