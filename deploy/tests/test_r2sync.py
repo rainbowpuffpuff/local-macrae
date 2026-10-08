@@ -249,3 +249,19 @@ def test_cli_status(tmp_path, data_server):
     r = subprocess.run(["python3", str(DEPLOY / "r2sync.py"), "push"], env={k: v for k, v in os.environ.items()
                        if k != "MACRAE_SYNC_URL"}, capture_output=True, text=True)
     assert r.returncode == 2 and "MACRAE_SYNC_URL" in r.stderr
+
+
+def test_what_macrae_learned_survives_a_new_container(tmp_path):
+    """Lessons and the capability registry (evolve's home) go to state/evolve/ and come back on the next start."""
+    remote = FakeRemote()
+    old = make_syncer(tmp_path, remote, "old")
+    ev = old.dirs["evolve"]
+    (ev / "capabilities" / "calc-image").mkdir(parents=True)
+    (ev / "lessons.jsonl").write_text('{"lesson": "use the pinned image"}\n')
+    (ev / "capabilities" / "calc-image" / "manifest.json").write_text('{"name": "calc-image"}')
+    old.push()
+    assert "state/evolve/lessons.jsonl" in remote.objects
+    new = make_syncer(tmp_path, remote, "new")
+    new.restore()
+    assert (new.dirs["evolve"] / "lessons.jsonl").read_text() == '{"lesson": "use the pinned image"}\n'
+    assert (new.dirs["evolve"] / "capabilities" / "calc-image" / "manifest.json").exists()

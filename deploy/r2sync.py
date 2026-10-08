@@ -15,6 +15,8 @@ What goes where:
     state/runs/…    ↔ $AGENT_RUNNER_HOME/runs                 agent_runner run records (state.json, logs, outputs)
     state/jobs/…    ↔ $AGENT_RUNNER_JOBS (…/jobs)             Harbor trial folders: the traces
     state/macrae/…  ↔ $MACRAE_SERVER_DATA (…/macrae)          the server's run→task sidecars and event logs
+    state/evolve/…  ↔ $MACRAE_EVOLVE_HOME (…/evolve)          what Macrae learned: lessons, tools, the capability
+                                                             registry and its ledger, dusk → dawn benchmarks
 
 state/ is restored on start (only files that don't exist locally) and pushed up incrementally: whenever a run's
 state.json changes (a step started or finished), every $MACRAE_SYNC_INTERVAL seconds (60), and once more when the
@@ -40,7 +42,7 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Callable, Optional
 
-STATE_PARTS = ("macrae", "runs", "jobs")  # restore order: event logs before the runs they describe
+STATE_PARTS = ("macrae", "runs", "jobs", "evolve")  # restore order: event logs before the runs they describe
 INDEX_PREFIXES = ("papers-", "chunks-", "emb-")
 DEFAULT_INTERVAL = 60.0
 POLL = 5.0
@@ -160,6 +162,7 @@ def state_dirs(env: dict) -> dict[str, Path]:
         "macrae": Path(env.get("MACRAE_SERVER_DATA") or home / "macrae").expanduser(),
         "runs": home / "runs",
         "jobs": Path(env.get("AGENT_RUNNER_JOBS") or home / "jobs").expanduser(),
+        "evolve": Path(env.get("MACRAE_EVOLVE_HOME") or home / "evolve").expanduser(),
     }
 
 

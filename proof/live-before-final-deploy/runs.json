@@ -1,0 +1,164 @@
+{
+    "runs": [
+        {
+            "run_id": "20261008-202740-forge-2742",
+            "task_id": "forge",
+            "title": "Forge capability: small-calc-env",
+            "status": "failed",
+            "started": 1791491261.1461544,
+            "finished": 1791491778.7365172,
+            "steps": [
+                {
+                    "key": "create",
+                    "kind": "agent",
+                    "status": "ok",
+                    "account": "api-key",
+                    "reward": 1.0,
+                    "attempt": 1,
+                    "error": "",
+                    "started": 1791491261.1506925,
+                    "finished": 1791491620.2327266,
+                    "note": "",
+                    "fanout": null
+                },
+                {
+                    "key": "package",
+                    "kind": "run",
+                    "status": "ok",
+                    "account": "",
+                    "reward": null,
+                    "attempt": 1,
+                    "error": "",
+                    "started": 1791491620.2337234,
+                    "finished": 1791491621.4275641,
+                    "note": "",
+                    "fanout": null
+                },
+                {
+                    "key": "test",
+                    "kind": "task",
+                    "status": "ok",
+                    "account": "",
+                    "reward": 0.0,
+                    "attempt": 1,
+                    "error": "",
+                    "started": 1791491621.4291356,
+                    "finished": 1791491777.845699,
+                    "note": "",
+                    "fanout": null
+                },
+                {
+                    "key": "install",
+                    "kind": "run",
+                    "status": "failed",
+                    "account": "",
+                    "reward": null,
+                    "attempt": 1,
+                    "error": "exit 1: rejected: the tests did not pass in a fresh sandbox (reward 0.0); failed in the fresh sandbox: static: pins, fragment, manifest\n",
+                    "started": 1791491777.8468268,
+                    "finished": 1791491778.7359495,
+                    "note": "",
+                    "fanout": null
+                }
+            ]
+        },
+        {
+            "run_id": "20261008-192909-small-calc-3935",
+            "task_id": "small-calc",
+            "title": "Ion\u2013water binding, computed live",
+            "status": "ok",
+            "started": 1791487749.9808605,
+            "finished": 1791488050.0151055,
+            "steps": [
+                {
+                    "key": "prepare",
+                    "kind": "run",
+                    "status": "ok",
+                    "account": "",
+                    "reward": null,
+                    "attempt": 1,
+                    "error": "",
+                    "started": 1791487749.9852903,
+                    "finished": 1791487750.8748162,
+                    "note": "",
+                    "fanout": null
+                },
+                {
+                    "key": "calc",
+                    "kind": "agent",
+                    "status": "ok",
+                    "account": "api-key",
+                    "reward": 1.0,
+                    "attempt": 1,
+                    "error": "",
+                    "started": 1791487750.875731,
+                    "finished": 1791488049.7875152,
+                    "note": "",
+                    "fanout": null
+                },
+                {
+                    "key": "collect",
+                    "kind": "run",
+                    "status": "ok",
+                    "account": "",
+                    "reward": null,
+                    "attempt": 1,
+                    "error": "",
+                    "started": 1791488049.788187,
+                    "finished": 1791488050.0146298,
+                    "note": "",
+                    "fanout": null
+                }
+            ]
+        },
+        {
+            "run_id": "20261008-190228-small-calc-229d",
+            "task_id": "small-calc",
+            "title": "Ion\u2013water binding, computed live",
+            "status": "ok",
+            "started": 1791486149.2200937,
+            "finished": 1791486504.002205,
+            "steps": [
+                {
+                    "key": "prepare",
+                    "kind": "run",
+                    "status": "ok",
+                    "account": "",
+                    "reward": null,
+                    "attempt": 1,
+                    "error": "",
+                    "started": 1791486149.2247663,
+                    "finished": 1791486150.303413,
+                    "note": "",
+                    "fanout": null
+                },
+                {
+                    "key": "calc",
+                    "kind": "agent",
+                    "status": "ok",
+                    "account": "api-key",
+                    "reward": 1.0,
+                    "attempt": 1,
+                    "error": "",
+                    "started": 1791486150.3041682,
+                    "finished": 1791486503.7146428,
+                    "note": "",
+                    "fanout": null
+                },
+                {
+                    "key": "collect",
+                    "kind": "run",
+                    "status": "ok",
+                    "account": "",
+                    "reward": null,
+                    "attempt": 1,
+                    "error": "",
+                    "started": 1791486503.7155406,
+                    "finished": 1791486504.001641,
+                    "note": "",
+                    "fanout": null
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,154 @@
+{
+    "capabilities": [],
+    "ledger": [
+        {
+            "t": 1791491260.035,
+            "event": "gap",
+            "name": "small-calc-env",
+            "run_id": "20261008-192909-small-calc-3935",
+            "step": "calc",
+            "kind": "image",
+            "why": "the agent spent 39 s installing packages (pyscf, numpy, 2>&1, tail) and module pyscf was not importable: bake them, pinned, into this task's sandbox image",
+            "task_id": "small-calc",
+            "source": "trace",
+            "iso": "2026-10-08T20:27:40.035000Z"
+        },
+        {
+            "t": 1791491269.786,
+            "event": "gap",
+            "name": "small-calc-env",
+            "run_id": "20261008-190228-small-calc-229d",
+            "step": "calc",
+            "kind": "image",
+            "why": "the agent spent 41 s installing packages (pyscf, numpy), 2>&1, python3.14-venv), numpy): bake them, pinned, into this task's sandbox image",
+            "task_id": "small-calc",
+            "source": "trace",
+            "iso": "2026-10-08T20:27:49.786000Z"
+        },
+        {
+            "t": 1791491621.351,
+            "event": "create",
+            "name": "small-calc-env",
+            "run_id": "20261008-202740-forge-2742",
+            "step": "create",
+            "kind": "image",
+            "sha256": "a83ba9b3cd6c6168cd8d5215a2ef2c9063bfb647ab3b84385493e42cb3fa5aaa",
+            "purpose": "Sandbox image with a ready venv at /opt/calc holding pinned numpy, scipy, h5py and pyscf, so small quantum-chemistry calculations run without pip installs.",
+            "iso": "2026-10-08T20:33:41.351000Z"
+        },
+        {
+            "t": 1791491778.717,
+            "event": "test",
+            "name": "small-calc-env",
+            "run_id": "20261008-202740-forge-2742",
+            "step": "test",
+            "sha256": "a83ba9b3cd6c6168cd8d5215a2ef2c9063bfb647ab3b84385493e42cb3fa5aaa",
+            "passed": false,
+            "n_tests": 3,
+            "n_passed": 2,
+            "seconds": 10.9,
+            "setup_s": 112.9,
+            "job": "test-a1",
+            "iso": "2026-10-08T20:36:18.717000Z"
+        },
+        {
+            "t": 1791491778.72,
+            "event": "rejected",
+            "name": "small-calc-env",
+            "run_id": "20261008-202740-forge-2742",
+            "step": "install",
+            "sha256": "a83ba9b3cd6c6168cd8d5215a2ef2c9063bfb647ab3b84385493e42cb3fa5aaa",
+            "reason": "the tests did not pass in a fresh sandbox (reward 0.0); failed in the fresh sandbox: static: pins, fragment, manifest",
+            "reasons": [
+                "the tests did not pass in a fresh sandbox (reward 0.0)",
+                "failed in the fresh sandbox: static: pins, fragment, manifest"
+            ],
+            "iso": "2026-10-08T20:36:18.720000Z"
+        }
+    ],
+    "dusk": "2026-10-08T20:27:40.035000Z",
+    "dawn": "2026-10-08T22:45:17.295803Z",
+    "window": {
+        "since": "2026-10-07T22:45:17.295473Z",
+        "events": 5
+    },
+    "authority": {
+        "runs_in": "harbor-sandbox",
+        "rules": [
+            "Capabilities run only inside the Harbor sandbox (Modal), never on the backend.",
+            "They get no secrets: only an allowlist of plain environment variables.",
+            "Tools get no network; image builds may reach only the package indexes on the policy list.",
+            "No capability can write the registry; only the installer adds to it, after its tests pass.",
+            "Each tool call is limited to 15 min, a test suite to 10 min, an image build to 20 min.",
+            "These limits are constants in the backend's code; no capability can change them."
+        ],
+        "env_allowlist": [
+            "CUDA_VISIBLE_DEVICES",
+            "GMX_MAXBACKUP",
+            "HOME",
+            "LANG",
+            "LC_ALL",
+            "MKL_NUM_THREADS",
+            "MPLBACKEND",
+            "MPLCONFIGDIR",
+            "NUMEXPR_MAX_THREADS",
+            "OMP_NUM_THREADS",
+            "OPENBLAS_NUM_THREADS",
+            "PATH",
+            "PWD",
+            "PYTHONHASHSEED",
+            "PYTHONPATH",
+            "PYTHONUNBUFFERED",
+            "TERM",
+            "TMPDIR",
+            "TZ",
+            "USER"
+        ],
+        "network": {
+            "tool": [],
+            "writing": [],
+            "image": [
+                "archive.ubuntu.com",
+                "conda-forge.org",
+                "conda.anaconda.org",
+                "deb.debian.org",
+                "files.pythonhosted.org",
+                "pypi.org",
+                "repo.anaconda.com",
+                "security.ubuntu.com"
+            ]
+        },
+        "registry_write": false,
+        "max_runtime_s": 900,
+        "max_test_runtime_s": 600,
+        "max_build_s": 1200,
+        "max_files": 24,
+        "max_file_bytes": 262144,
+        "max_total_bytes": 1048576,
+        "kinds": [
+            "image",
+            "tool",
+            "writing"
+        ],
+        "policy_sha256": "9f87477a128dc7fd4cd5183ca6381337faccd56744de9abd6e09ff33fc6a5eeb",
+        "source": "server/policy.py"
+    },
+    "forges": [
+        {
+            "name": "small-calc-env",
+            "run_id": "20261008-202740-forge-2742",
+            "t": 1791491260.0384114,
+            "kind": "image",
+            "gap_run": "20261008-192909-small-calc-3935",
+            "status": "failed"
+        }
+    ],
+    "counts": {
+        "gap": 2,
+        "create": 1,
+        "test": 1,
+        "install": 0,
+        "use": 0,
+        "rejected": 1
+    }
+}
