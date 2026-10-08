@@ -19,7 +19,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
-from . import bridges, catalog, config, costs, events, evolution, launch, live, planner, runs
+from . import bridges, capabilities, catalog, chat, config, costs, events, evolution, forge, launch, live, planner, rawtrace, runs
 from .classify import clip, first_sentence
 
 log = logging.getLogger("macrae.server")
@@ -50,6 +50,11 @@ class SearchBody(BaseModel):
     k: int = Field(6, ge=1, le=50)
 
 
+class ChatBody(BaseModel):
+    session: str = Field("anon", max_length=80)
+    message: str = Field(..., min_length=1, max_length=4000)
+
+
 class ToolSearchBody(BaseModel):
     query: str = ""
 
@@ -61,6 +66,14 @@ class ToolStartBody(BaseModel):
 
 class ToolStatusBody(BaseModel):
     run_id: str = ""
+
+
+class ForgeBody(BaseModel):
+    name: str = Field(..., min_length=2, max_length=60)
+    why: str = Field("", max_length=1000)
+    kind: str = ""
+    task_id: str = Field("", max_length=80)
+    force: bool = False
 
 
 # ── app ─────────────────────────────────────────────────────────────────────
@@ -104,6 +117,8 @@ def require_secret(x_macrae_secret: Optional[str] = Header(default=None)) -> Non
 
 
 auth = [Depends(require_secret)]
+# v3: raw traces (zip, Harbor jobs, trajectories), the manuscript edit stream, notes-to-self, figures
+app.include_router(rawtrace.router, dependencies=auth)
 
 
 @app.get("/api/health")
@@ -255,6 +270,86 @@ def evolution_metrics() -> dict:
     return data
 
 
+# ── capabilities (v3: CREATE / TEST / INSTALL / EVOLVE, authority fixed) ─────
+
+
+@app.get("/api/capabilities", dependencies=auth)
+def capability_ledger(window_h: Optional[float] = Query(None, gt=0, le=24 * 365), all: bool = False) -> dict:
+    """Installed capabilities, the ledger (gap → create → test → install → use, rejected) of the session window,
+    dusk (its first event) and dawn (now), and the fixed authority."""
+    try:
+        return capabilities.payload(window_h, all_events=all)
+    except bridges.Unavailable as e:
+        from . import policy
+        return {"capabilities": [], "ledger": [], "dusk": None, "dawn": None, "authority": policy.describe(),
+                "forges": [], "available": False, "detail": str(e)[:300]}
+
+
+@app.post("/api/capabilities/forge", dependencies=auth)
+def capability_forge(body: ForgeBody, request: Request) -> dict:
+    """Build a capability by hand (the same forge a gap starts). 409 when it is installed or being built."""
+    res = forge.start(body.name, body.why or f"requested by an operator for {body.task_id or 'any task'}",
+                      kind=body.kind, task_id=body.task_id, origin=request.headers.get("x-macrae-origin"),
+                      force=body.force)
+    if res["status"] in ("installed", "in-progress", "busy", "gave-up", "off"):
+        raise HTTPException(409, res)
+    if res["status"] == "invalid":
+        raise HTTPException(400, res)
+    return res
+
+
+def _benchmark() -> Any:
+    try:
+        return bridges._import("evolve.benchmark")
+    except bridges.Unavailable as e:
+        raise HTTPException(503, "the evolve package is not available on this server") from e
+
+
+@app.post("/api/benchmark/{mode}", dependencies=auth)
+def benchmark_start(mode: str) -> dict:
+    """Start the dusk (nothing learned) or dawn (everything installed) benchmark suite."""
+    if mode not in ("dusk", "dawn"):
+        raise HTTPException(404, "mode must be dusk or dawn")
+    if config.draining():
+        raise HTTPException(503, "the backend is restarting (an update or a restart); try again in a few minutes")
+    try:
+        rec = _benchmark().start(mode)
+    except ValueError as e:
+        raise HTTPException(400, str(e)) from e
+    rec["warnings"] = []
+    if mode == "dawn":
+        going = [f for f in capabilities.payload().get("forges", []) if f.get("status") == "running"]
+        if going:
+            rec["warnings"].append(f"{len(going)} forge run(s) still going: "
+                                   f"{', '.join(f['name'] for f in going)} won't be in this dawn")
+    return rec
+
+
+@app.get("/api/benchmark", dependencies=auth)
+def benchmark_list() -> dict:
+    b = _benchmark()
+    return {"benchmarks": [b.summary(r) for r in b.list_benchmarks()[:10]], "suite": b.suite()}
+
+
+@app.get("/api/benchmark/{bench_id}", dependencies=auth)
+def benchmark_get(bench_id: str) -> dict:
+    b = _benchmark()
+    rec = b.load(bench_id) if re.match(r"^[A-Za-z0-9._-]{1,120}$", bench_id) else None
+    if not rec:
+        raise HTTPException(404, f"no benchmark {bench_id!r}")
+    return b.summary(rec)
+
+
+@app.get("/api/dawn-report", dependencies=auth)
+def dawn_report(dusk: Optional[str] = None, dawn: Optional[str] = None) -> dict:
+    """{"dusk", "dawn", "delta", "capabilities_installed_between", "runs", "ready"}: the latest dusk benchmark
+    against the latest dawn after it (or the given ids)."""
+    for v in (dusk, dawn):
+        if v is not None and not re.match(r"^[A-Za-z0-9._-]{1,120}$", v):
+            raise HTTPException(400, "bad benchmark id")
+    return _benchmark().report(dusk, dawn)
+
+
 @app.get("/api/runs/{run_id}/events", dependencies=auth)
 def run_events(run_id: str, after: int = Query(0, ge=0)) -> dict:
     res = events.poll(run_id, after)
@@ -278,10 +373,25 @@ def search(body: SearchBody) -> dict:
         raise HTTPException(503, "paper search is not available on this server") from e
 
 
+# ── typed chat ──────────────────────────────────────────────────────────────
+
+
+@app.post("/api/chat", dependencies=auth)
+def chat_turn(body: ChatBody) -> dict:
+    session = re.sub(r"[^A-Za-z0-9_-]", "", body.session)[:80] or "anon"
+    if not chat.api_key():
+        raise HTTPException(503, "chat needs ANTHROPIC_API_KEY on the server")
+    try:
+        return chat.reply(session, body.message)
+    except Exception as e:
+        log.exception("chat failed")
+        raise HTTPException(502, f"Jarvis couldn't answer just now ({type(e).__name__}). Try again.") from e
+
+
 # ── ElevenLabs server tools ─────────────────────────────────────────────────
 
-NO_PAPERS = ("The group's paper index has nothing on this. Say that the papers available here don't cover it, "
-             "and don't answer from general knowledge.")
+NO_PAPERS = ("The group's papers don't cover this specifically. Answer helpfully from general knowledge, and if it "
+             "matters, mention briefly that this part isn't from the group's papers. Don't just say nothing was found.")
 
 
 @app.post("/api/tools/search_papers", dependencies=auth)

@@ -36,19 +36,16 @@ def test_truncate_and_tokens():
     assert approx_tokens("H2O 1.25 kcal/mol") > approx_tokens("water is wet")
 
 
-def test_running_headers_and_page_numbers_are_stripped():
-    from rag.pdf import _cut_references, _strip_running_lines
+def test_reference_list_is_dropped_but_an_early_mention_is_kept():
+    from rag.pdf import _drop_back_matter
 
-    words = ["alpha", "beta", "gamma", "delta", "epsilon", "zeta"]
-    pages = [f"J. Phys. Chem. B 2020\nPhysics of Water A PREPRINT\nBody {w} starts here.\nBody {w} ends at 1 K.\n"
-             f"{40 + i}\nPage {i} of 6" for i, w in enumerate(words, 1)]
-    out = _strip_running_lines(pages)
-    for w, page in zip(words, out):
-        assert "A PREPRINT" not in page and "Page " not in page and "J. Phys" not in page and "4" not in page
-        assert page == f"Body {w} starts here.\nBody {w} ends at 1 K."
-    short = _strip_running_lines(["Title\nBody 7\n3", "More\n12"])
-    assert short == ["Title\nBody 7", "More"]
+    body = [f"Body line {i} about ions at the air/water interface and charge scaling." for i in range(60)]
+    refs = ["References"] + [f"({n}) A. Author; B. Author. J. Phys. Chem. B 20{n:02d}, 1{n}, 100-110." for n in range(1, 30)]
+    pages = [body[:30], body[30:], refs]
+    out, notes = _drop_back_matter(pages)
+    assert out[0] == body[:30] and out[1] == body[30:]
+    assert out[2] == [] and any("references removed" in n for n in notes)
 
-    cut = _cut_references(["Intro", "Results\nREFERENCES\n1. A. B, J. Chem. 2001", "more refs"])
-    assert cut == ["Intro", "Results"]
-    assert _cut_references(["References\nfirst page mention", "body"]) == ["References\nfirst page mention", "body"]
+    early = [["References to earlier work are discussed below.", *body[:20]], body[20:]]
+    kept, notes2 = _drop_back_matter(early)
+    assert kept == early and notes2 == []
