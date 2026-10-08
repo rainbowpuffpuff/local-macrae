@@ -203,7 +203,7 @@ def summary_html(d: dict) -> str:
         _tile("Total cost", usd(c.get("total_usd")), "estimated from tokens" if c.get("estimated") else ""),
         _tile("LLM", usd(c.get("llm_usd"))),
         _tile("Compute", usd(c.get("compute_usd")), str(c.get("hardware_label") or c.get("hardware") or "")),
-        _tile("Tokens", f"{num(tk.get('in'))} in · {num(tk.get('out'))} out", f"{num(tk.get('cache'))} cached"),
+        _tile("Tokens out", num(tk.get("out")), f"{num(tk.get('in'))} in · {num(tk.get('cache'))} cached"),
         _tile("Wall time", dur(wall)),
         _tile("Events", num(len(d.get("events") or []))),
     ]
