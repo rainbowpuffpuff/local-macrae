@@ -77,12 +77,14 @@
 <button class="theme" onclick="toggleTheme()">◐ theme</button>
 <main>
   <h1>Macrae</h1>
-  <p class="dim" style="font-size:13px">Updated <span id="upd">2026-10-08 21:10</span> CEST (Central European Summer
-    Time) · status: live on Cloudflare · live traces, costs and "Frankenstein" in progress</p>
-  <p class="dim">A voice agent for the Jungwirth group at the IOCB (Institute of Organic Chemistry and Biochemistry of
-    the Czech Academy of Sciences, Prague). You chat with it, by voice or by typing, and it answers from the group's
-    papers with citations. When you start a task, it does real computational chemistry on cloud hardware and shows you
-    every paper it read and every calculation it ran.</p>
+  <p class="dim" style="font-size:13px">Updated <span id="upd">2026-10-09</span> · final state after wave 4 · all on
+    Cloudflare, agents on Modal, voice by ElevenLabs</p>
+  <p class="dim">A research agent for Pavel Jungwirth's group at the IOCB (Institute of Organic Chemistry and
+    Biochemistry of the Czech Academy of Sciences, Prague). You chat with Jarvis, by voice or by typing, and it answers
+    like a capable assistant, citing the group's papers whenever they are relevant. When you start a task, it plans
+    the run, does real computational chemistry in cloud sandboxes, writes a manuscript, and shows you every paper it
+    read, every calculation it ran and what it cost. It learns from its own traces: it notices a capability it lacks,
+    creates it, tests it, installs it and uses it again, while its authority stays fixed.</p>
 
   <!-- ───────────── 1 ───────────── -->
   <h2>1 · The pieces</h2>
@@ -92,10 +94,12 @@
     <b>Cloudflare Container</b>, owned by a <b>Durable Object</b>: a named Cloudflare object that keeps exactly
     one instance and decides when it sleeps. The backend answers paper questions from its own index and runs tasks
     as agent-runner flows. <b>Harbor</b> starts each agent step in a sandbox on <b>Modal</b> and keeps the full
-    trace. Runs, traces and the paper index are mirrored to <b>R2</b>, Cloudflare's object storage.</p>
+    trace; the sandbox also streams every step back while it works. Runs, traces, the capability registry and the
+    paper index are mirrored to <b>R2</b>, Cloudflare's object storage. The typed chat, the planner and the lesson
+    distiller call Claude through the Anthropic API from the container.</p>
   <p class="dim" style="font-size:13px">Abbreviations in the diagram: API = application programming interface ·
-    LLM = large language model · RAG = retrieval-augmented generation (search the papers first, answer only from what
-    was found) · BM25 = "Best Match 25", a keyword-ranking formula · vCPU = virtual processor core · GiB = gibibyte ·
+    LLM = large language model · RAG = retrieval-augmented generation (search the papers first, then answer with what
+    was found, citing it) · BM25 = "Best Match 25", a keyword-ranking formula · vCPU = virtual processor core · GiB = gibibyte ·
     CPU / GPU = central / graphics processing unit · PySCF = Python-based Simulations of Chemistry Framework ·
     BFF = BayesicForceFields (Bayesian force fields, the group's code) · GROMACS = GROningen MAchine for Chemical
     Simulations · ATIF = Agent Trajectory Interchange Format (Harbor's trace file).</p>
@@ -118,21 +122,23 @@
       <text class="t" x="38" y="74">Web page</text><text class="s" x="38" y="92">web/ · chat with Jarvis</text>
       <text x="38" y="120">• chat + mic button</text>
       <text x="38" y="142">• [n] → source cards</text>
-      <text x="38" y="164">• panel "Tasks &amp; runs"</text>
-      <text class="s" x="50" y="182">tasks · live run trace</text><text class="s" x="50" y="198">recent runs</text>
+      <text x="38" y="164">• panel tabs</text>
+      <text class="s" x="50" y="182">tasks · run · manuscript</text><text class="s" x="50" y="198">learned · capabilities</text>
       <text x="38" y="226">• icons per event</text>
       <text class="s" x="50" y="244">📄 🔎 🧮 ✍️ ✅ ⚠️</text>
+      <text x="38" y="270">• Dusk → Dawn view</text>
       <text class="s" x="38" y="296">still loads when the</text><text class="s" x="38" y="312">backend is asleep</text></g>
 
     <!-- ElevenLabs -->
     <g class="voice"><rect class="b" x="24" y="400" width="172" height="234"/>
       <text class="t" x="38" y="426">Voice agent</text><text class="s" x="38" y="444">"macrae" · voice "Jarvis"</text>
       <text class="s" x="38" y="460">LLM: Claude Sonnet 5.5</text>
-      <text x="38" y="490">server tools:</text>
-      <text class="s" x="50" y="508">search_papers</text><text class="s" x="50" y="524">start_task · run_status</text>
-      <text x="38" y="554">page tools:</text>
-      <text class="s" x="50" y="572">show_citations</text><text class="s" x="50" y="588">open_run</text>
-      <text class="s" x="38" y="618">answers only from [n]</text></g>
+      <text x="38" y="488">server tools:</text>
+      <text class="s" x="50" y="505">search_papers</text><text class="s" x="50" y="520">start_task · run_status</text>
+      <text class="s" x="50" y="535">get_costs · learnings</text>
+      <text x="38" y="560">page tools:</text>
+      <text class="s" x="50" y="577">show_citations</text><text class="s" x="50" y="592">open_run</text>
+      <text class="s" x="38" y="620">cites author · year · page</text></g>
 
     <!-- Worker -->
     <g class="ui"><rect class="b" x="242" y="48" width="226" height="300"/>
@@ -140,7 +146,7 @@
       <text x="258" y="120">• serves web/ (static files)</text>
       <text x="258" y="146">• /api/* → backend</text><text class="s" x="270" y="164">adds the secret header</text>
       <text x="258" y="190">• /voice/signed-url</text><text class="s" x="270" y="208">ElevenLabs key stays here</text>
-      <text x="258" y="234">• rate limits per visitor</text><text class="s" x="270" y="252">6 task starts, 10 voice / min</text>
+      <text x="258" y="234">• rate limits per visitor</text><text class="s" x="270" y="252">task starts · voice sessions</text>
       <text x="258" y="278">• secrets (names only)</text><text class="s" x="270" y="296">ElevenLabs · Anthropic</text>
       <text class="s" x="270" y="312">Modal token · tool secret</text>
       <text class="s" x="270" y="328">never sent to the browser</text></g>
@@ -154,11 +160,12 @@
     <!-- Container -->
     <g class="srv"><rect class="b" x="516" y="190" width="254" height="270"/>
       <text class="t" x="532" y="216">Container (standard-1)</text><text class="s" x="532" y="234">deploy/Dockerfile · ½ vCPU · 4 GiB</text>
-      <text x="532" y="262">• API (FastAPI) server/</text><text class="s" x="544" y="280">tasks · runs · events · tools</text>
+      <text x="532" y="262">• API (FastAPI) server/</text><text class="s" x="544" y="280">chat · runs · planner · costs</text>
       <text x="532" y="306">• RAG rag/: BM25 + vectors</text><text class="s" x="544" y="324">[n] citations with page</text>
       <text x="532" y="350">• agent-runner flows</text><text class="s" x="544" y="368">Harbor: 1 sandbox per step</text>
-      <text x="532" y="394">• disk: runs/ jobs/ index/</text><text class="s" x="544" y="412">temporary, mirrored to R2</text>
-      <text class="s" x="532" y="440">on restart: waits up to 14 min</text></g>
+      <text x="532" y="394">• evolve/: lessons, registry</text><text class="s" x="544" y="412">capabilities · dusk → dawn</text>
+      <text class="s" x="532" y="434">disk temporary, mirrored to R2</text>
+      <text class="s" x="532" y="450">on restart: waits up to 14 min</text></g>
 
     <!-- R2 -->
     <g class="data"><rect class="b" x="242" y="490" width="528" height="144"/>
@@ -168,7 +175,7 @@
       <text x="258" y="562">index/</text><text class="s" x="258" y="580">paper index (chunks, vectors)</text>
       <text x="258" y="604">state/runs/</text><text class="s" x="258" y="622">flow state.json, step logs</text>
       <text x="520" y="562">state/jobs/</text><text class="s" x="520" y="580">Harbor trial folders = traces</text>
-      <text x="520" y="604">state/macrae/</text><text class="s" x="520" y="622">page event logs, run → task</text></g>
+      <text x="520" y="604">state/macrae/ · state/evolve/</text><text class="s" x="520" y="622">event logs · lessons · capabilities</text></g>
 
     <!-- Modal -->
     <g class="ext"><rect class="b" x="818" y="48" width="236" height="262"/>
@@ -176,9 +183,10 @@
       <text x="834" y="120">Claude Code</text><text class="s" x="834" y="138">Claude Opus 5.5 · Sonnet 5.5</text>
       <text x="834" y="164">• reads paper excerpts</text>
       <text x="834" y="186">• runs PySCF, BFF, GROMACS</text>
-      <text x="834" y="208">• writes result.json</text><text class="s" x="846" y="226">+ a cited explanation</text>
-      <text class="s" x="834" y="254">CPU (up to 32 cores) or GPU</text>
-      <text class="s" x="834" y="276">v2: streams each step live</text><text class="s" x="834" y="292">(in progress)</text></g>
+      <text x="834" y="208">• writes manuscript.md</text><text class="s" x="846" y="226">math · figures · [n] citations</text>
+      <text x="834" y="250">• uses installed tools</text>
+      <text class="s" x="834" y="274">CPU (up to 32 cores) or GPU</text>
+      <text class="s" x="834" y="292">streams every step live (≤ 1 s)</text></g>
     <g class="data"><rect class="b" x="818" y="340" width="236" height="170"/>
       <text class="t" x="834" y="366">Harbor trial = the trace</text>
       <text x="834" y="394">agent/trajectory.json</text>
@@ -187,9 +195,9 @@
       <text class="s" x="834" y="496">+ reward from the check</text></g>
     <g class="ext"><rect class="b" x="818" y="540" width="236" height="94"/>
       <text class="t" x="834" y="566">Images (cached by Modal)</text>
-      <text class="s" x="834" y="586">agent: Claude Code + tools</text>
-      <text class="s" x="834" y="604">BFF: BFF + GROMACS (in progress)</text>
-      <text class="s" x="834" y="622">built once, then reused</text></g>
+      <text class="s" x="834" y="586">agent: Claude Code + live wrapper</text>
+      <text class="s" x="834" y="604">BFF: BFF + GROMACS preinstalled</text>
+      <text class="s" x="834" y="622">learned: a pinned calc image</text></g>
 
     <!-- arrows -->
     <path class="a" d="M196,100 H242"/>
@@ -216,47 +224,36 @@
 
   <!-- ───────────── 2 ───────────── -->
   <h2>2 · Status</h2>
-  <p>As of 2026-10-08, 21:10 CEST.</p>
+  <p>The final state after four waves of parallel work (2026-10-08 to 2026-10-09). "Live" means on the public site;
+    "built" means merged and tested, deployed with the last wave.</p>
   <div class="card"><table>
-    <tr><th>state</th><th>what</th><th>when</th></tr>
-    <tr><td><span class="pill ok">live</span></td><td><b>Site</b> on the Worker "macrae": the page, the <code>/api</code>
-      proxy and <code>/voice/signed-url</code>.</td><td class="when">2026-10-08</td></tr>
-    <tr><td><span class="pill ok">live</span></td><td><b>Page</b>: dark/light chat with Jarvis, the macrae orbit logo,
-      and a right panel "Tasks &amp; runs" (tasks, live run trace, recent runs).</td><td class="when">2026-10-08</td></tr>
-    <tr><td><span class="pill ok">live</span></td><td><b>Backend</b>: one Cloudflare Container (standard-1: ½ vCPU, 4 GiB).
-      It sleeps after 2 h unless a run is going, and syncs its state (runs, Harbor traces, paper index) to the R2 bucket
-      "macrae-data". Health: ok. Modal: connected.</td><td class="when">2026-10-08</td></tr>
+    <tr><th>state</th><th>what</th><th>wave</th></tr>
+    <tr><td><span class="pill ok">live</span></td><td><b>Site</b> on one Worker: the page, the <code>/api</code> proxy and
+      <code>/voice/signed-url</code>. The backend is one Cloudflare Container (standard-1: ½ vCPU, 4 GiB) that sleeps
+      after 2 h unless a run is going and mirrors its state to R2.</td><td class="when">v1</td></tr>
     <tr><td><span class="pill ok">live</span></td><td><b>Voice</b>: ElevenLabs agent "macrae", voice "Jarvis", Claude
-      Sonnet 5.5 through ElevenLabs. Server tools <code>search_papers</code>, <code>start_task</code> and
-      <code>run_status</code> are webhooks to the Worker. Page tools: <code>show_citations</code>,
-      <code>open_run</code>.</td><td class="when">2026-10-08</td></tr>
-    <tr><td><span class="pill ok">live</span></td><td><b>AWS</b> (Amazon Web Services) is no longer used: the Cloudflare
-      Container replaced it.</td><td class="when">2026-10-08</td></tr>
-    <tr><td><span class="pill ok">verified</span></td><td><b>A real Claude Code agent run on Modal through Harbor</b>
-      (local test). It computed the Na<sup>+</sup>–water binding energy with DFT (density functional theory) in PySCF:
-      B3LYP functional (Becke 3-parameter, Lee–Yang–Parr), def2-TZVP basis set (triple-zeta valence with polarisation), counterpoise correction. Result:
-      −25.5 kcal/mol at 2.2 Å, reward 1, 34 trace events (search, cite, read, calc, write, result).<br>
-      <span class="dim">It took 9 min: 170 s for the first image build on Modal, the agent installing PySCF itself, and a
-      4-min sleep. That is to be optimised.</span></td><td class="when">2026-10-08, 20:18</td></tr>
-    <tr><td><span class="pill ok">verified</span></td><td><b>Tests</b>: 277 Python tests and 57 Node tests pass. They
-      cover the Worker → container path, the R2 sync, and draining runs on restart.</td><td class="when">2026-10-08</td></tr>
-    <tr><td><span class="pill wip">in progress</span></td><td><b>First cloud run</b> (container → Modal): the K<sup>+</sup>
-      small calculation.</td><td class="when">started 21:02</td></tr>
-    <tr><td><span class="pill wip">in progress</span></td><td><b>Two BFF research tasks</b>, approved by the owner,
-      being turned into clickable tasks (<a href="#bff">section 6</a>).</td><td class="when">started 20:34</td></tr>
-    <tr><td><span class="pill wip">in progress</span></td><td><b>v2</b>: live traces (the sandbox streams each step),
-      costs in money (<a href="#costs">section 5</a>), a planner that decides what to run and where (shown first in the
-      trace), and "Evolution": lessons distilled from each trace feed the next run, plus a tools library and a
-      fine-tuning dataset export.</td><td class="when">started 20:43</td></tr>
-    <tr><td><span class="pill wip">in progress</span></td><td><b>Frankenstein (v3)</b>: a capability lifecycle
-      (create → test → install → use again) with fixed authority, and raw Harbor traces downloadable from the page
-      (<a href="#frankenstein">section 7</a>). Queued after v2.</td><td class="when">queued 21:08</td></tr>
-    <tr><td><span class="pill wip">in progress</span></td><td><b>Video</b>: a 90 s film celebrating Pavel Jungwirth's
-      research, plus a 20–25 s accelerated demo. ElevenLabs music and narration.</td><td class="when">started 21:07</td></tr>
-    <tr><td><span class="pill wait">waiting on owner</span></td><td><b>Paper PDFs</b> (Portable Document Format). Until
-      they arrive the RAG index is empty, and Jarvis says the papers here don't cover the question.</td><td class="when">open</td></tr>
-    <tr><td><span class="pill wait">waiting on owner</span></td><td><b>A fresh Claude API key</b> to replace the current
-      one.</td><td class="when">open</td></tr>
+      Sonnet 5.5 through ElevenLabs, server tools as webhooks to the Worker, page tools in the browser.</td><td class="when">v1</td></tr>
+    <tr><td><span class="pill ok">verified</span></td><td><b>Real agent runs on Modal through Harbor</b>. First the
+      Na<sup>+</sup>–water binding energy with DFT (density functional theory) in PySCF, B3LYP/def2-TZVP with
+      counterpoise correction: −25.5 kcal/mol at 2.2 Å, reward 1. Then the same task started from the cloud container
+      passed twice. The first run took 9 min (a 170 s image build, a PySCF reinstall, a 4-min sleep) and the second
+      hit a virtual environment without pip: the seed of what Macrae learned to fix.</td><td class="when">v1</td></tr>
+    <tr><td><span class="pill ok">built</span></td><td><b>Live traces</b> (the sandbox streams every step within about
+      1 s), <b>costs in money</b> (<a href="#costs">section 5</a>), a <b>planner</b> that decides hardware, stages and
+      budget before each run, and <b>lessons</b> distilled from every trace.</td><td class="when">v2</td></tr>
+    <tr><td><span class="pill ok">built</span></td><td><b>Frankenstein</b>: the capability lifecycle (gap → create →
+      test → install → use) with fixed authority, the dusk → dawn benchmark, the agent's manuscript as an edit stream,
+      and raw traces downloadable (<a href="#frankenstein">section 7</a>).</td><td class="when">v3</td></tr>
+    <tr><td><span class="pill ok">built</span></td><td><b>The group's papers</b> indexed for RAG (97 PDFs, with metadata
+      matched to the publication list and an evaluation set of real questions), and the <b>two BFF research
+      tasks</b> (<a href="#bff">section 6</a>).</td><td class="when">v3</td></tr>
+    <tr><td><span class="pill ok">built</span></td><td><b>Wave 4</b>: a real typed chat (streamed Claude answers that
+      cite papers when they help), trace zip and offline HTML report per run, costs per answer, run and session with
+      estimates before a run, many anonymous visitors at once (queue, caps), public-safety limits (rate limits, daily
+      spend cap, kill switch), a better voice agent, the dusk → dawn proof pack, end-to-end browser tests, design
+      polish and these docs.</td><td class="when">w4</td></tr>
+    <tr><td><span class="pill wait">owner</span></td><td><b>Paper PDFs</b> stay private: they are indexed on the server
+      and never published or committed.</td><td class="when">always</td></tr>
   </table></div>
 
   <!-- ───────────── 3 ───────────── -->
@@ -265,72 +262,84 @@
     <div class="card">
       <b>…ask a question</b>
       <ol class="flow">
-        <li><b>By voice:</b> the mic button asks the Worker for a signed URL (a short-lived link; URL = uniform resource locator), and the ElevenLabs session starts in the
-          browser. <b>Typed, outside a call:</b> the text goes straight to <code>POST /api/search</code>.</li>
-        <li>The voice agent calls <code>search_papers</code>. That webhook goes to the Worker, then through the Durable
-          Object to the container.</li>
+        <li><b>Typed:</b> the page sends the message, the anonymous session id and the recent history to
+          <code>POST /api/chat</code>. The backend searches the papers for every message and streams a Claude answer
+          back, word by word, with its cost.</li>
+        <li><b>By voice:</b> the mic button asks the Worker for a signed URL (a short-lived link; URL = uniform resource
+          locator) and the ElevenLabs session starts in the browser. The voice agent calls <code>search_papers</code>,
+          a webhook that goes to the Worker, then through the Durable Object to the container.</li>
         <li>RAG returns the best passages, numbered <code>[1] [2]</code>, each with title, authors, page and DOI (Digital
           Object Identifier).</li>
-        <li>Jarvis answers only from those passages and names the source ("Košťál 2026, page 3"). With no PDFs indexed
-          yet, it says the papers don't cover the question.</li>
-        <li><code>show_citations</code> adds numbered source chips under the answer. Clicking <code>[n]</code> opens
-          that source's card.</li>
+        <li>Jarvis chats normally and uses the passages when they help, naming the source ("Košťál 2026, page 3"). It
+          says which parts come from the papers and which from general knowledge, and never invents a citation.</li>
+        <li>Numbered source chips appear under the answer (<code>show_citations</code> during a call). Clicking
+          <code>[n]</code> opens that source's card.</li>
       </ol>
     </div>
     <div class="card">
       <b>…start a task (click Run, or ask)</b>
       <ol class="flow">
-        <li><code>POST /api/tasks/{id}/start</code> returns a <code>run_id</code>. Jarvis posts a run chip in the chat,
-          and the panel opens the live trace.</li>
-        <li><span class="pill wip">v2</span> A planner first decides what to run and on which hardware, and the page
-          shows that decision as the first card.</li>
-        <li>Script steps pull paper passages from RAG. Agent steps run in Modal sandboxes through Harbor.</li>
-        <li>The page polls <code>/api/runs/{id}/events</code> every 1–2 s. Each tool call becomes a timeline row
-          (📄 read, 🔎 search, 🧮 calc, ✍️ write, ✅ result).</li>
-        <li>A <code>check:</code> verifies the output (e.g. <code>result.json</code> has numbers) and gives a reward.
-          The container pushes the run's state to R2 at every step.</li>
-        <li>When the run ends, Jarvis posts the outcome with the papers it cited.</li>
+        <li>The page shows an estimate from past runs. <code>POST /api/tasks/{id}/start</code> returns a
+          <code>run_id</code> at once, or a place in the queue when the global cap on active runs is reached.</li>
+        <li>The planner (one Claude call, with the task, its inputs, the lessons and the installed capabilities)
+          decides the stages, the hardware and a budget. The page shows that decision as the first card.</li>
+        <li>Script steps pull paper passages from RAG. Agent steps run Claude Code in Modal sandboxes through Harbor,
+          with the installed capabilities mounted and the lessons in their instruction.</li>
+        <li>The sandbox streams each step back; the page polls <code>/api/runs/{id}/events</code> every 1–2 s, and each
+          tool call becomes a timeline row (📄 read, 🔎 search, 🧮 calc, ✍️ write, ✅ result). The cost meter and the
+          manuscript grow with it.</li>
+        <li>A <code>check:</code> verifies the output (numbers in <code>result.json</code>, a manuscript with math, a
+          figure and citations) and gives a reward; a failed check feeds a retry. The state goes to R2 at every step.</li>
+        <li>When the run ends, Jarvis posts the outcome, its cost and the papers it cited, and <code>evolve</code>
+          distills lessons from the trace for the next run.</li>
       </ol>
     </div>
   </div>
 
   <!-- ───────────── 4 ───────────── -->
   <h2>4 · Where the traces are</h2>
-  <p>A <b>trace</b> is everything one run did: every message, tool call and result. The same trace appears in three
-    places, from the most readable to the most raw.</p>
+  <p>A <b>trace</b> is everything one run did: the plan, every message, tool call and result, every file written,
+    every check, and what it cost. Anyone can read it on the page and download it; the owner also has the raw copy
+    in R2. The full guide is <code>docs/TRACES.md</code> in the repository.</p>
   <div class="card"><table>
     <tr><th>where</th><th>what you find</th><th>how to get it</th></tr>
     <tr><td><b>1 · The page timeline</b></td>
-      <td>One row per event (<code>status</code>, <code>read</code>, <code>search</code>, <code>calc</code>,
-        <code>write</code>, <code>think</code>, <code>cite</code>, <code>result</code>, <code>error</code>), with a short
-        human title, details, and source cards. The server builds it from the run's <code>state.json</code>, the step
-        logs and each Harbor trial. While a step is still running it reads the live <code>claude-code.txt</code>
-        instead.</td>
-      <td>Panel "Tasks &amp; runs" → a run; or <code>GET /api/runs/{id}/events</code></td></tr>
-    <tr><td><b>2 · R2 bucket <code>macrae-data</code></b></td>
-      <td><code>state/runs/&lt;run_id&gt;/</code>: the flow's <code>state.json</code>, step logs, outputs.<br>
-        <code>state/jobs/&lt;run_id&gt;/…</code>: Harbor trial folders, i.e. the full agent traces.<br>
+      <td>One row per event (<code>plan</code>, <code>status</code>, <code>read</code>, <code>search</code>,
+        <code>calc</code>, <code>write</code>, <code>think</code>, <code>cite</code>, <code>result</code>,
+        <code>error</code>, and the capability events <code>gap</code>, <code>create</code>, <code>test</code>,
+        <code>install</code>, <code>use</code>, <code>rejected</code>), with a short human title, details, cost and
+        source cards. The server builds it from the run's <code>state.json</code> and step logs, the lines the sandbox
+        streams while a step runs, and each Harbor trial when it ends, without repeating anything seen live. The
+        <b>Manuscript</b> tab replays the agent's edits to its manuscript.</td>
+      <td>Run view; <code>GET /api/runs/{id}/events</code>, <code>/manuscript</code></td></tr>
+    <tr><td><b>2 · Zip and report</b></td>
+      <td>A zip of every file behind the run: the flow's state, plan, costs, step logs, live stream lines, the Harbor
+        job folders with <code>trajectory.json</code>, the results and the manuscript. And a self-contained HTML report
+        that works offline: timeline, tool calls with their outputs, costs, manuscript, citations and checks.</td>
+      <td><b>Download trace</b> and <b>Open report</b> on each run; <code>GET /api/runs/{id}/trace.zip</code></td></tr>
+    <tr><td><b>3 · R2 bucket <code>macrae-data</code></b></td>
+      <td><code>state/runs/&lt;run_id&gt;/</code>: <code>state.json</code>, step logs, live lines, plan, costs, outputs.<br>
+        <code>state/jobs/&lt;run_id&gt;/…</code>: Harbor trial folders, i.e. the full agent traces
+        (<code>agent/trajectory.json</code> in ATIF, <code>agent/claude-code.txt</code>, the reward, the files the
+        agent changed).<br>
         <code>state/macrae/</code>: the server's event logs and run → task records.<br>
         <code>index/</code>: the paper index.<br>
         <span class="dim">The container pushes changes at every step and every 60 s, and restores them when it starts.
         At most about 60 s can be lost if a host dies without warning.</span></td>
-      <td>Cloudflare dashboard (owner only)</td></tr>
-    <tr><td><b>3 · Harbor <code>trajectory.json</code></b></td>
-      <td>Inside each trial folder: <code>agent/trajectory.json</code> in ATIF (steps with source, message, tool calls
-        and their outputs), <code>agent/claude-code.txt</code> (Claude Code's raw stream), the reward, and the files the
-        agent changed.</td>
-      <td>In R2 under <code>state/jobs/</code>.
-        <span class="pill wip">v3</span> "Download trace" (zip) and "Open raw trajectory" on each run.</td></tr>
+      <td>Cloudflare dashboard or <code>wrangler r2</code> (owner only)</td></tr>
   </table></div>
-  <p class="dim"><span class="pill wip">v2, in progress</span> A wrapper around Claude Code inside the sandbox
-    forwards each step to <code>POST /api/live/{run}/{step}</code>, at most 1 s late, with a per-run token. The server
-    stores these lines in <code>&lt;run&gt;/live/&lt;step&gt;.jsonl</code>, so the timeline fills in while the agent
-    works instead of when the step ends. Lines are de-duplicated against the final <code>trajectory.json</code>.</p>
+  <p class="dim">How the timeline fills in live: a wrapper around Claude Code inside the sandbox forwards each line of
+    its output to <code>POST /api/live/{run}/{step}</code>, at most about 1 s late, with a per-run token (never the
+    shared secret). The server stores these lines in <code>&lt;run&gt;/live/&lt;step&gt;.jsonl</code> and de-duplicates
+    them against the final <code>trajectory.json</code>. Traces also feed learning: lessons for the next run, and
+    <code>python -m evolve export</code> turns passing trajectories into a fine-tuning dataset.</p>
 
   <!-- ───────────── 5 ───────────── -->
-  <h2 id="costs">5 · Costs <span class="pill wip">in progress (v2)</span></h2>
-  <p>The page shows what each run costs in money, growing live while it runs. This is the design from the v2 addendum
-    of the build contract. It is being built and is not on the live site yet.</p>
+  <h2 id="costs">5 · Costs</h2>
+  <p>Every chat answer, run and step shows what it cost in money, split into LLM (large language model) dollars and
+    compute dollars, and how long it took. A run's meter grows live while it runs; the header keeps a total for your
+    session, with a small "what this cost" breakdown; and before you start a task the page estimates its cost and time
+    from past runs. The price and rate tables in <code>server/costs.py</code> cite their sources and dates.</p>
   <div class="card">
   <svg class="small" viewBox="0 0 1000 250" role="img" aria-label="How run cost is computed">
     <defs>
@@ -369,28 +378,37 @@
     <path class="a" style="marker-end:url(#arr2)" d="M606,186 C650,186 656,140 700,140"/>
   </svg>
   </div>
-  <p>Numbers known so far:</p>
+  <p>Typical numbers:</p>
   <ul class="flow">
-    <li><b>A BFF research run</b>: about 10–14 min and about $0.40 of Modal compute on a 32-CPU box (estimate).</li>
+    <li><b>A chat answer</b>: a fraction of a cent to a few cents, shown under the answer.</li>
+    <li><b>The ion–water calculation</b>: about 5 min of an agent on Modal; the cost meter shows the split.</li>
+    <li><b>A BFF research run</b>: about 10–14 min and about $0.40 of Modal compute on a 32-CPU box, plus the agent's
+      tokens.</li>
+    <li><b>Guard rails</b>: a global daily spend cap (LLM + Modal) with a clear message when it is reached, a cap on
+      runs active at once, and a budget per run set by the planner.</li>
     <li><b>Hosting</b>: standard-1 container about $29/month if it never sleeps, about $4–5/month at about 4 h/day. That
       is on top of the $5 Workers Paid plan. R2 stays in the free tier. An open, visible browser tab checks health
       every 20 s and keeps the container awake.</li>
     <li><b>Building Macrae itself</b>: see <a href="#built">section 10</a> ($23.90 API-equivalent for the first six
       modules).</li>
+    <li>With a Claude subscription login, LLM dollars are the API-equivalent cost of the same tokens, not a bill.</li>
   </ul>
 
   <!-- ───────────── 6 ───────────── -->
-  <h2 id="bff">6 · Research tasks with BFF <span class="pill wip">in progress</span></h2>
+  <h2 id="bff">6 · Research tasks with BFF</h2>
   <p><b>BFF</b> (BayesicForceFields) is the group's open-source code for <b>Bayesian learning of partial charges</b>
     (Košťál, Shanks, Jungwirth, Martinez-Seara, JCTC (Journal of Chemical Theory and Computation) 2026). It fits
     force-field charges to <i>ab initio</i> molecular dynamics (AIMD) references through a Gaussian-process surrogate
     and MCMC (Markov chain Monte Carlo) sampling. The result is a probability distribution of charges, not a single
     best guess. Agents scouted the group's papers and the BFF code, proposed ideas, and had them critiqued by a
-    simulated chemist and a compute engineer. The owner approved two, which are now being turned into clickable
-    tasks. Each one runs in Harbor on Modal, so every stage is traced.</p>
+    simulated chemist and a compute engineer. The owner approved two, which are now clickable tasks next to
+    "Methods card for a group paper" and "Ion–water binding, computed live" (DFT on Modal). Each runs in Harbor on
+    Modal, so every stage is traced, and each writes a manuscript as it goes: title, abstract, methods, results with
+    figures, discussion, math, and numbered citations to the group's papers, drafted early and revised as results
+    arrive.</p>
   <div class="grid">
     <div class="card">
-      <span class="pill wip">task A</span>
+      <span class="pill ok">task A</span>
       <h3>Is 0.8 the right charge-scaling factor? A Bayesian answer with BFF</h3>
       <p>The group scales ionic charges by about 0.8 with the ECC (electronic continuum correction), to account for
         electronic polarisation. Here BFF learns acetate's charges at several ECC factors between 0.70 and 0.90. It then
@@ -398,7 +416,7 @@
         other.</p>
     </div>
     <div class="card">
-      <span class="pill wip">task B</span>
+      <span class="pill ok">task B</span>
       <h3>Ca<sup>2+</sup>–acetate binding with error bars: from the BFF charge posterior to experiment</h3>
       <p>BFF gives a range of plausible charges (the posterior), not one set. This task carries that uncertainty through
         umbrella-sampling PMFs (potentials of mean force: the free-energy profile of calcium binding to acetate). That
@@ -406,16 +424,14 @@
     </div>
   </div>
   <p class="dim">Both: about 10–14 min and about $0.40 per run on a 32-CPU Modal box, with BFF and GROMACS
-    preinstalled in the image, so the agent never spends time installing. The agent is told to poll, not sleep. Until
-    they ship, the panel shows the two current tasks: "Methods card for a group paper" and "Ion–water binding,
-    computed live" (DFT on Modal).</p>
+    preinstalled in the image, so the agent never spends time installing. The agent is told to poll, not sleep.</p>
 
   <!-- ───────────── 7 ───────────── -->
-  <h2 id="frankenstein">7 · Frankenstein: an agent that builds itself <span class="pill wip">in progress (v3)</span></h2>
+  <h2 id="frankenstein">7 · Frankenstein: an agent that builds itself</h2>
   <p>The hackathon brief: "By dawn, show a creature that learned to do things it could not do at dusk." Macrae notices
     a capability it is missing, creates it, tests it, installs it, and uses it again in later runs. <b>Its capabilities
-    may evolve; its authority may not.</b> This is designed and queued behind v2. Nothing below is live yet. (SHA-256 = Secure Hash Algorithm, 256-bit: a
-    fingerprint that changes if a single byte of the tool changes.)</p>
+    may evolve; its authority may not.</b> (SHA-256 = Secure Hash Algorithm, 256-bit: a fingerprint that changes if a
+    single byte of the tool changes.)</p>
   <div class="card">
   <svg class="small" viewBox="0 0 1000 300" role="img" aria-label="Capability lifecycle: gap, create, test, install, use; authority fixed">
     <defs>
@@ -424,7 +440,7 @@
     <g class="ui"><rect class="b" x="14" y="30" width="170" height="104"/>
       <text class="t" x="30" y="56">1 · Gap</text>
       <text class="s" x="30" y="76">the agent needs a tool</text><text class="s" x="30" y="92">that isn't there and says</text>
-      <text class="s" x="30" y="108">CAPABILITY_GAP: name: why</text></g>
+      <text class="s" x="30" y="108">"CAPABILITY_GAP: …"</text></g>
     <g class="ext"><rect class="b" x="214" y="30" width="170" height="104"/>
       <text class="t" x="230" y="56">2 · Create</text>
       <text class="s" x="230" y="76">a sandbox step writes</text><text class="s" x="230" y="92">the tool and its tests</text>
@@ -460,49 +476,70 @@
   </div>
   <ul class="flow">
     <li><b>Capabilities</b> are versioned, tested tools with a manifest: name, purpose, inputs/outputs, tests,
-      SHA-256 fingerprint, the run that created it, created/tested/installed/last-used times and
-      a use count. The registry lives under <code>evolve/capabilities/</code> and is synced to R2 with the rest of the
-      state.</li>
-    <li><b>Dusk → dawn ledger</b>: <code>GET /api/capabilities</code> lists every event (gap, create, test, install,
-      use, rejected) since the session began. The page shows it as a timeline, with one card per capability and a fixed
-      "Authority" card.</li>
-    <li><b>Demo plan</b>: run 1 needs something it lacks, e.g. a radial distribution function, or a block-averaged
-      error bar from a molecular dynamics trajectory. It creates, tests and installs the tool. Run 2 uses it without
-      re-creating it. A manifest that asks for a secret is rejected.</li>
-    <li><b>Raw traces</b>: each run gets "Download trace" (a zip of its Harbor job folders, state and live logs) and
-      "Open raw trajectory".</li>
+      SHA-256 fingerprint, the run that created it, created/tested/installed/last-used times and a use count. The
+      registry lives under <code>evolve/capabilities/</code> in the backend's state.</li>
+    <li><b>Three kinds.</b> Tools (scripts, e.g. a radial distribution function or a block-averaged error bar from a
+      molecular dynamics trajectory); <b>environment capabilities</b> (a Dockerfile fragment with pinned packages,
+      created when the traces show slow installs or version breakage, tested by building it on Modal and running a
+      smoke command, then used as the task's image, with setup time recorded before and after); and writing
+      capabilities (style rules, templates).</li>
+    <li><b>Notes to self.</b> During a run the agent keeps <code>NOTES_TO_SELF.md</code>: what it tried, what was slow,
+      what to do differently. <code>evolve</code> reads it with the rest of the trace and writes lessons with
+      evidence links. The <b>What it learned</b> tab shows them, and this run against the previous run of the same task
+      (setup time, total time, cost, errors).</li>
+    <li><b>The ledger</b>: <code>GET /api/capabilities</code> lists the capabilities and every event (gap, create,
+      test, install, use, rejected) between dusk and dawn. The <b>Capabilities</b> view shows it as a timeline, with one
+      card per capability and the fixed "Authority" card.</li>
+    <li><b>Dusk → dawn benchmark, the proof.</b> A fixed suite (the ion–water calculation for Na<sup>+</sup> and
+      K<sup>+</sup> and a short variant of each BFF task) runs twice: at <i>dusk</i>, with nothing learned injected or
+      mounted, and at <i>dawn</i>, with every installed capability and lesson. Per task it records success, reward,
+      wall time, setup time, LLM $, compute $, errors and the capabilities used; a registry snapshot taken at dusk
+      keeps the report reproducible. <code>GET /api/dawn-report</code> holds the comparison. The <b>Dusk → Dawn</b>
+      view draws it as a sky clock: the macrae galaxy turns once from dusk to dawn, each benchmark run is a particle on
+      an orbit, and the central sun brightens from dim red to gold with each installed capability, followed by the
+      measured deltas.</li>
+    <li><b>Raw traces</b>: each run has "Download trace" (a zip) and "Open report" (offline HTML).</li>
   </ul>
 
   <!-- ───────────── 8 ───────────── -->
   <h2>8 · Code map</h2>
   <div class="card">
   <table>
-    <tr><th>folder</th><th>what's in it</th><th>status</th></tr>
-    <tr><td><code>data/</code>, <code>scripts/</code></td><td>479 group publications (titles, authors, DOIs) from the IOCB site</td><td><span class="pill ok">done</span></td></tr>
-    <tr><td><code>web/</code></td><td>Chat with Jarvis: a thread with mic and composer, <code>[n]</code> citations
-      opening source cards, typed questions that search the papers even without voice. Right panel "Tasks &amp;
-      runs": task cards, the live run timeline (📄🔎🧮✍️✅⚠️), counters, cited papers, recent runs. Offline state,
-      light/dark, a bottom sheet on phones.</td><td><span class="pill ok">live</span> <span class="pill wip">v2/v3 views</span></td></tr>
+    <tr><th>folder</th><th>what's in it</th></tr>
+    <tr><td><code>data/</code>, <code>scripts/</code></td><td>479 group publications (titles, authors, DOIs) from the IOCB site.</td></tr>
+    <tr><td><code>web/</code></td><td>Chat with Jarvis: a thread with mic and composer, streamed answers with
+      <code>[n]</code> citations opening source cards, a session cost total. Right panel with tabs: tasks (with cost
+      estimates), the current run (plan card, cost meter, live timeline 📄🔎🧮✍️✅⚠️, Download trace / Open report),
+      the manuscript replay (math, figures, citations), what it learned, and capabilities. The Dusk → Dawn view.
+      Offline state, dark mode first, a bottom sheet on phones. Plain HTML/CSS/JS, no build step.</td></tr>
     <tr><td><code>cloudflare/</code></td><td>Worker <code>macrae</code> (<code>index.js</code> + <code>worker.js</code>):
       serves the page, sends <code>/api</code> through the Durable Object to the container, ElevenLabs signed URL, rate
-      limits, admin status/restart, and the container's R2 endpoint. <code>wrangler.toml</code>, <code>deploy.sh</code>,
-      a local dev server and a mock backend.</td><td><span class="pill ok">live</span></td></tr>
+      limits, admin status/restart, the live-trace ingest route, and the container's R2 endpoint.
+      <code>wrangler.toml</code>, <code>deploy.sh</code>, a local dev server and a mock backend.</td></tr>
     <tr><td><code>server/</code></td><td>FastAPI (a Python web framework): tasks, runs, trace events (tool calls →
-      read / calc / write…), search, ElevenLabs tools, draining on restart.</td><td><span class="pill ok">live</span> <span class="pill wip">v2: live, costs, planner</span></td></tr>
+      read / calc / write…), live ingest, chat, search, ElevenLabs tools, costs, the planner, capabilities and the fixed
+      policy, manuscripts, trace downloads, queueing and limits, draining on restart.</td></tr>
     <tr><td><code>rag/</code></td><td>PDF → clean pages (headers, hyphenation and reference lists removed) → chunks;
       BM25 + bge-small embeddings (BAAI General Embedding, by the Beijing Academy of Artificial Intelligence), fused
-      ranking; <code>[n]</code> citations with page</td><td><span class="pill ok">built</span> <span class="pill wait">needs PDFs</span></td></tr>
-    <tr><td><code>tasks/</code></td><td>"Methods card for a group paper" and "Ion–water binding, computed live" (DFT
-      with PySCF on Modal), plus Modal support in agent-runner. The two BFF tasks are being added.</td><td><span class="pill ok">live</span> <span class="pill wip">BFF tasks</span></td></tr>
-    <tr><td><code>voice/</code></td><td>ElevenLabs agent "macrae" (voice "Jarvis", Claude Sonnet 5.5 through ElevenLabs,
-      cites every claim): three server tools and a setup script</td><td><span class="pill ok">live</span></td></tr>
+      ranking; <code>[n]</code> citations with page; an evaluation set of questions with their source pages.</td></tr>
+    <tr><td><code>tasks/</code></td><td>The four tasks and their flows (methods card, ion–water DFT, the two BFF tasks),
+      preparation and check scripts, and <code>tasks/common/</code>: the Modal agent image with the live wrapper.</td></tr>
+    <tr><td><code>evolve/</code></td><td>Lessons distilled from traces, the capability registry, the dusk → dawn
+      benchmark, run-over-run metrics, a fine-tuning dataset export.</td></tr>
+    <tr><td><code>agent_runner/</code></td><td>Runs flows of agent and script steps through Harbor (Docker or Modal), with
+      checks, retries and several Claude accounts.</td></tr>
+    <tr><td><code>voice/</code></td><td>ElevenLabs agent "macrae" (voice "Jarvis", Claude Sonnet 5.5 through ElevenLabs):
+      server tools, page tools, a setup script and a scripted test conversation.</td></tr>
     <tr><td><code>deploy/</code></td><td>Backend Dockerfile (Harbor uses Modal, so there is no Docker inside),
       <code>start.py</code> (supervises the server, drains runs on restart), <code>r2sync.py</code> (R2 mirror), the
-      secret checker, docs</td><td><span class="pill ok">live</span></td></tr>
-    <tr><td><code>evolve/</code></td><td>Lessons distilled from traces, a tools library, a fine-tuning dataset export,
-      then the capability registry</td><td><span class="pill wip">v2 → v3</span></td></tr>
+      secret checker, docs.</td></tr>
+    <tr><td><code>proof/</code></td><td>Drives the live site through a dusk and a dawn benchmark, downloads every trace and
+      builds the run-vs-run proof (Markdown, HTML and data for the film).</td></tr>
+    <tr><td><code>tests/</code></td><td>Cross-module tests: integration, browser end-to-end tests against the mock
+      backend (and, on request, the live site), and a load test.</td></tr>
     <tr><td><code>research/</code></td><td>Scouting notes on the group's papers and the BFF code, behind the two research
-      tasks</td><td><span class="pill ok">done</span></td></tr>
+      tasks.</td></tr>
+    <tr><td><code>docs/</code></td><td>This page, the presenter's demo script and the traces guide.</td></tr>
   </table>
   </div>
 
@@ -515,8 +552,14 @@
     baked into the image, and everything the backend writes is mirrored to <b>R2</b>. The container reaches R2 through
     the Worker at a private address (<code>r2.macrae</code>), so it needs no S3 (Simple Storage Service) keys. On a
     restart, task starts pause and running flows get up to 14 minutes to finish. Edits to the page alone don't restart
-    the backend. The heavy work (agents, calculations) runs in Modal sandboxes. AWS was the first plan and is no longer
-    used.</p>
+    the backend. The heavy work (agents, calculations) runs in Modal sandboxes. AWS (Amazon Web Services) was the first
+    plan and is no longer used.</p>
+  <p><b>Open to everyone, no login.</b> Each visitor gets an anonymous session id. Task starts go through a fair queue
+    with a global cap on runs active on Modal and a cap per session; the page says "queued, position N". Rate limits
+    apply per IP (Internet Protocol) address in the Worker and per session in the backend, a daily spend cap stops new
+    paid work when reached, and the owner has a secret-protected kill switch. Every route validates its input, task
+    inputs come from allowlists and never reach a shell, and paper text in tool outputs is handled as data, not as
+    instructions. No secret reaches the browser, and the sandbox gets only what its step needs.</p>
 
   <!-- ───────────── 10 ───────────── -->
   <h2 id="built">10 · How it was built</h2>
@@ -533,25 +576,36 @@
     <tr><td>deploy</td><td>15.7 min</td><td>$3.44</td></tr>
     <tr><td><b>total</b></td><td><b>~19 min wall clock</b></td><td><b>$23.90</b>, on Claude subscriptions</td></tr>
   </table></div>
-  <p class="dim">Later flows on 2026-10-08 used the same method (Claude Opus 5.5, high effort, through agent-runner
-    and Harbor): an integrator that fixed the seams and tested end to end; the move of the backend into a Cloudflare
-    Container with R2; the chat redesign; the BFF research ideas; and now v2, Frankenstein (v3) and the video.</p>
+  <p>The later waves used the same method (Claude Opus 5.5 through agent-runner and Harbor, one git branch or folder
+    per agent, then an integrator agent that merges, fixes the seams and tests end to end):</p>
+  <ul class="flow">
+    <li><b>Integration and Cloudflare</b>: the first integrator; the backend moved into a Cloudflare Container with R2;
+      the chat redesign.</li>
+    <li><b>Research</b>: agents scouted the group's papers and the BFF code, proposed ideas, a simulated chemist and a
+      compute engineer critiqued them, and the owner approved two.</li>
+    <li><b>v2</b>: live traces, costs, the planner, evolution. <b>v3</b>: Frankenstein (capabilities, fixed authority,
+      dusk → dawn, the manuscript), the RAG on the group's papers, the BFF tasks.</li>
+    <li><b>Wave 4</b>: ten agents in parallel on their own branches (chat answers, browser end-to-end tests,
+      concurrency, costs for users, trace downloads, voice, public safety, the proof pack, design polish, docs), merged
+      by an integrator with real three-way merges.</li>
+  </ul>
 
   <!-- ───────────── 11 ───────────── -->
   <h2>11 · What the owner provides</h2>
   <div class="card"><table>
-    <tr><th>item</th><th>status</th></tr>
-    <tr><td>ElevenLabs API key</td><td><span class="pill ok">provided</span> live</td></tr>
-    <tr><td>Claude login for the agents</td><td><span class="pill ok">provided</span> <span class="pill wait">waiting</span> a fresh key to replace it</td></tr>
-    <tr><td>Modal token (for the container)</td><td><span class="pill ok">provided</span> connected</td></tr>
-    <tr><td>Paper PDFs</td><td><span class="pill wait">waiting</span> indexed on the server, never published</td></tr>
-    <tr><td>Research tasks</td><td><span class="pill ok">approved</span> two BFF ideas, being built</td></tr>
-    <tr><td>Hosting</td><td><span class="pill ok">live</span> Cloudflare</td></tr>
+    <tr><th>item</th><th>where it lives</th></tr>
+    <tr><td>ElevenLabs API key and agent id</td><td>Worker secrets; never sent to the browser</td></tr>
+    <tr><td>Claude logins for the agents, and an Anthropic API key for chat, planner and distiller</td><td>Worker
+      secrets, passed to the container; rotate with <code>wrangler secret put</code> and a restart</td></tr>
+    <tr><td>Modal token</td><td>Worker secret, passed to the container</td></tr>
+    <tr><td>Paper PDFs</td><td>indexed on the server, never published or committed</td></tr>
+    <tr><td>Research questions</td><td>approved by the owner: the two BFF tasks</td></tr>
+    <tr><td>Hosting</td><td>Cloudflare (Workers Paid), Modal (per second), ElevenLabs</td></tr>
   </table></div>
 
   <h2>Glossary</h2>
   <div class="card"><table>
-    <tr><td><b>RAG</b></td><td>Retrieval-augmented generation: find the relevant passages first, answer only from them, cite them.</td></tr>
+    <tr><td><b>RAG</b></td><td>Retrieval-augmented generation: find the relevant passages first, give them to the model, and cite them in the answer.</td></tr>
     <tr><td><b>Worker</b></td><td>Small program on Cloudflare's network that serves the site and forwards API calls.</td></tr>
     <tr><td><b>Durable Object</b></td><td>A named Cloudflare object with its own storage. Here it owns the single backend container and decides when it sleeps.</td></tr>
     <tr><td><b>Container</b></td><td>The backend's Docker image, run by Cloudflare on demand.</td></tr>
@@ -563,6 +617,10 @@
     <tr><td><b>BFF</b></td><td>BayesicForceFields: Bayesian learning of force-field partial charges from reference simulations.</td></tr>
     <tr><td><b>ECC</b></td><td>Electronic continuum correction: scaling ionic charges (about 0.75–0.8) to mimic electronic polarisation.</td></tr>
     <tr><td><b>Capability</b></td><td>A tool the agent wrote, tested and installed for itself. Authority (what tools may do) stays fixed.</td></tr>
+    <tr><td><b>Dusk / dawn</b></td><td>Two states of the same benchmark: dusk with nothing learned, dawn with every installed capability and lesson.</td></tr>
+    <tr><td><b>Lesson</b></td><td>A short do/avoid/setting/tool rule distilled from a trace, with links to the evidence, given to the next run of the task.</td></tr>
+    <tr><td><b>Planner</b></td><td>One Claude call before each run that picks the stages, the hardware and a budget, and says why.</td></tr>
+    <tr><td><b>Manuscript</b></td><td>The paper a research run writes as it goes (<code>results/manuscript.md</code>), replayed edit by edit on the page.</td></tr>
   </table></div>
 </main>
 <script>
