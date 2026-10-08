@@ -1,0 +1,22 @@
+[project]
+name = "local-macrae"
+version = "0.1.0"
+description = "Literature chat for the Pavel Jungwirth group at IOCB Prague, plus agent-runner for traced multi-agent work through Harbor"
+requires-python = ">=3.10"
+dependencies = ["pyyaml>=6"]
+
+[project.optional-dependencies]
+test = ["pytest>=8"]
+
+[project.scripts]
+agent-runner = "agent_runner.cli:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["agent_runner"]
+
+[tool.setuptools.package-data]
+agent_runner = ["image/Dockerfile", "examples/*.yaml", "examples/sandbox/*", "*.md"]

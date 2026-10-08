@@ -21,6 +21,20 @@ Notes on the data:
 
 Run: `python3 scripts/fetch_group_pubs.py`
 
+## agent-runner
+
+`agent_runner/` runs agents as traced flows through Harbor, spread over Claude accounts: agent steps run Claude Code
+in Docker containers, script steps run here, steps run in parallel, pass results on and retry until a check passes.
+Docs: [`agent_runner/README.md`](agent_runner/README.md).
+
+- `examples/group-papers.yaml`: newest group papers → abstracts from OpenAlex → one agent per paper writes a card
+  (summary, methods, key result, open questions) in parallel → merged into one file.
+- Claude Code in this repo picks up `.claude/skills/agent-runner` and can launch and follow flows itself.
+
+Run: `pip install -e .` then `agent-runner flow run examples/group-papers.yaml --var n=5`
+(needs Docker, [Harbor](https://github.com/harbor-framework/harbor) and a Claude login: `claude setup-token`,
+then `agent-runner accounts set NAME`, or `ANTHROPIC_API_KEY`).
+
 ## Next
 
 - References of each paper via OpenAlex (by DOI).

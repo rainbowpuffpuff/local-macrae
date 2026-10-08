@@ -1,0 +1,8 @@
+# Smallest real run: one agent in a Harbor container on any account with a login.
+#   agent-runner flow run agent_runner/examples/hello.yaml
+name: hello
+steps:
+  - id: hello
+    instruction: Create sandbox/hello.md with a two-line haiku about molecular dynamics.
+    path: sandbox                       # copied into the container; the changed copy comes back as hello.files
+    check: test -s hello.md             # runs in the returned folder; exit 0 = reward 1

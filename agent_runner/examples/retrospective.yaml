@@ -1,0 +1,49 @@
+# Retrospective: how was the runner used, what went wrong, what to change.
+# gather (script) → 4 lenses in parallel (agents) → merge (script) → synthesis (agent).
+#   agent-runner flow run agent_runner/examples/retrospective.yaml --var days=3
+name: retrospective
+concurrency: 4
+vars:
+  days: 7
+  lenses:
+    reliability: "failed steps, retries, crashes, auth/limit problems, anything that broke or misled"
+    usability: "what the user did and said in their sessions, confusing moments, error messages, missing features"
+    speed_and_cost: "where wall-clock time and usage went, idle waiting, wasted attempts, concurrency"
+    coordination: "how flows were designed and how agents passed work to each other; what the flow format makes hard"
+steps:
+  - id: gather
+    run: python3 -m agent_runner retro gather --out "$FLOW_RUN_DIR/retro" --days {{ vars.days }}
+    outputs: text
+
+  - id: lens
+    foreach: "{{ list(vars.lenses.items()) }}"
+    path: "{{ gather.output }}"
+    instruction: >
+      You are reviewing "agent-runner", a tool that runs many coding agents through Harbor.
+      Everything about how it was used is in retro/input: SUMMARY.md first, then runs/, events.jsonl,
+      sessions/ (conversations while building and using it) and source/ (its code).
+      Your lens: {{ item[0] }} — {{ item[1] }}.
+      Write retro/findings/{{ item[0] }}.md with at most 8 findings, most important first. For each:
+      what happened (cite run id / step / event / session quote), why it matters, and one concrete change
+      (file + function in source/). No generic advice; only what the evidence shows.
+    check: test -s findings/{{ item[0] }}.md
+    retry: {max: 1, until: "reward >= 1"}
+
+  - id: merge
+    needs: [lens]
+    always: true
+    run: >
+      python3 -c "import json,os,shutil; ctx=json.load(open(os.environ['FLOW_CONTEXT']));
+      dst=os.environ['FLOW_RUN_DIR']+'/merged/retro'; shutil.copytree('{{ gather.output }}', dst, dirs_exist_ok=True);
+      [shutil.copytree(l['files'], dst, dirs_exist_ok=True) for l in ctx['lens'] if l.get('files')]; print(dst)"
+    outputs: text
+
+  - id: synthesize
+    when: "{{ any(l.ok for l in lens) }}"
+    path: "{{ merge.output }}"
+    instruction: >
+      Read every file in retro/findings/ (check claims against retro/input when they conflict).
+      Write retro/IMPROVEMENTS.md: the 10 most valuable changes, deduplicated across lenses, ranked by
+      impact ÷ effort, each with evidence, change (file/function), effort (S/M/L) and risk. Push back on
+      findings the evidence doesn't support. End with "Try next": one experiment for the next session.
+    check: test -s IMPROVEMENTS.md

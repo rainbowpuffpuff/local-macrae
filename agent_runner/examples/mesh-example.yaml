@@ -1,0 +1,34 @@
+# A small mesh: a script plans, agents write in parallel (retry with feedback, escalate the model),
+# a script merges every agent's copy, an agent summarizes only if everything passed.
+name: mesh-example
+concurrency: 6
+vars:
+  topics: [queues, backpressure, retries]
+steps:
+  - id: plan
+    run: python3 -c 'import json; print(json.dumps({{ vars.topics }}))'
+    outputs: json
+
+  - id: write
+    foreach: "{{ plan.output }}"
+    path: sandbox
+    instruction: >
+      Write sandbox/{{ item }}.md: a 10-line explainer of {{ item }} in async systems,
+      ending with one runnable Python asyncio snippet.
+    check: test -s {{ item }}.md && grep -q "asyncio" {{ item }}.md
+    retry: {max: 2, until: "reward >= 1", escalate: [{model: claude-opus-5-5}]}
+
+  - id: merge
+    needs: [write]                      # it reads write's results from $FLOW_CONTEXT, so say so
+    always: true
+    run: >
+      python3 -c "import json,os,shutil; ctx=json.load(open(os.environ['FLOW_CONTEXT']));
+      dst=os.environ['FLOW_RUN_DIR']+'/merged/sandbox';
+      [shutil.copytree(w['files'], dst, dirs_exist_ok=True) for w in ctx['write'] if w.get('files')]; print(dst)"
+    outputs: text
+
+  - id: summary
+    when: "{{ all(w.ok for w in write) }}"
+    path: "{{ merge.output }}"
+    instruction: Read every file in sandbox/ and write sandbox/INDEX.md linking them with one sentence each.
+    check: test -s INDEX.md

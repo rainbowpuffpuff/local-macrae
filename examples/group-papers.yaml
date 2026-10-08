@@ -1,0 +1,36 @@
+# Paper cards for the Jungwirth group: newest papers (with P. Jungwirth as author) → abstracts from OpenAlex
+# (script, runs here) → one agent per paper writes a card (in parallel) → cards merged into one file.
+#   agent-runner flow run examples/group-papers.yaml --var n=5
+name: group-papers
+workdir: ..                             # repo root, so data/ is reachable
+concurrency: 6
+vars:
+  n: 3
+  author: Jungwirth
+steps:
+  - id: fetch
+    run: python3 examples/scripts/paper_inputs.py --n {{ vars.n }} --author {{ vars.author }}
+    outputs: json                       # [{"doi", "title", "dir"}], one folder per paper with paper.json
+
+  - id: card
+    foreach: "{{ fetch.output }}"
+    path: "{{ item.dir }}"
+    instruction: >
+      Read paper/paper.json (title, authors, journal, year, abstract, OpenAlex topics and reference count) for
+      "{{ item.title }}". Write paper/card.md for a new student joining the group, with exactly these sections:
+      "## In one paragraph" (plain language), "## Methods" (simulation/experimental methods, force fields or
+      levels of theory, systems studied, as far as the abstract tells), "## Key result", "## Why it matters for the
+      group", "## Open questions". Say "not stated in the abstract" rather than guessing.
+    check: >
+      test -s card.md && grep -q "^## Methods" card.md && grep -q "^## Key result" card.md
+    retry: {max: 1, until: "reward >= 1"}
+
+  - id: collect
+    needs: [card]
+    always: true
+    run: >
+      python3 -c "import json,os; ctx=json.load(open(os.environ['FLOW_CONTEXT']));
+      out=os.environ['FLOW_RUN_DIR']+'/paper-cards.md';
+      parts=[open(c['files']+'/card.md').read() for c in ctx['card'] if c.get('ok')];
+      open(out,'w').write('\n\n---\n\n'.join(parts)); print(out)"
+    outputs: text
