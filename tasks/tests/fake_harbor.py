@@ -9,6 +9,8 @@ FAKE_HARBOR_MODE  what the "agent" writes into the returned folder:
                   calc-no-math | calc-shell | calc-once   the same with one research rule broken: no LaTeX math, the
                                                  manuscript written from the shell, or written once and never revised
                   calc-legacy                    v1 outputs only (result.json + explanation.md, no manuscript)
+                  limit                          a methods card, but the agent hit the session limit: the trial has
+                                                 exception_info (ApiRateLimitError) and still a verifier reward of 1
 
 For other fakes (evolve's): `write_research_files(folder)` writes the reference run's outputs, and RESEARCH_CALLS
 are the (tool, arguments, output) Write/Edit calls that wrote the manuscript and notebook, for the fake's trajectory
@@ -137,7 +139,7 @@ def main():
     for p in opt(argv, "-p", many=True):
         dest = trial / "artifacts" / "app" / Path(p).name
         shutil.copytree(p, dest)
-        if mode == "card":
+        if mode in ("card", "limit"):
             (dest / "methods-card.md").write_text(GOOD_CARD)
         elif mode == "bad-card":
             (dest / "methods-card.md").write_text(BAD_CARD)
@@ -166,7 +168,9 @@ def main():
     (trial / "result.json").write_text(json.dumps({
         "task_name": job.name, "started_at": t0, "finished_at": now(),
         "agent_info": {"name": opt(argv, "-a"), "model_info": {"name": "fake"}},
-        "verifier_result": {"rewards": {"reward": 1.0}}}))
+        "verifier_result": {"rewards": {"reward": 1.0}},
+        **({"exception_info": {"exception_type": "ApiRateLimitError",
+                               "exception_message": "You've hit your session limit"}} if mode == "limit" else {})}))
     (job / "result.json").write_text(json.dumps({"started_at": t0, "finished_at": now(), "n_total_trials": 1,
                                                   "stats": {"n_completed_trials": 1}}))
     return 0

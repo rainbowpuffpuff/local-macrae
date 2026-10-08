@@ -420,7 +420,9 @@ class FlowRun:
             passed = res.ok
             if until and res.status not in ("cancelled",):
                 try:
-                    passed = bool(evaluate(until, self.ctx(this=res, item=_wrap(item), index=index, **res)))
+                    # `until` only adds a requirement: an attempt that errored (agent exception such as a rate or
+                    # session limit, harbor exit, no trials) never passes, even if its partial work scored a reward
+                    passed = res.ok and bool(evaluate(until, self.ctx(this=res, item=_wrap(item), index=index, **res)))
                 except Exception as e:
                     self.log(key, f"until {until!r} raised {e}")
                     passed = False

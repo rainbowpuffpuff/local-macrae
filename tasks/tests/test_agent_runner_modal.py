@@ -123,3 +123,24 @@ def test_registry_image_replaces_the_template(tmp_path, fake_harbor):
 
 def _i(argv, name):
     return argv.index(name) + 1
+
+
+def test_a_rate_limited_attempt_never_passes_its_until(tmp_path, fake_harbor):
+    """The w4 bug: an agent that hit the session limit left partial work that scored reward 1, and `until: reward >= 1`
+    marked the step ok. An attempt that errored must stay failed, whatever `until` says."""
+    env, log = fake_harbor
+    env = dict(env, FAKE_HARBOR_MODE="limit")
+    (tmp_path / "in").mkdir()
+    flow = tmp_path / "f.yaml"
+    flow.write_text(textwrap.dedent(f"""
+        name: limit-test
+        steps:
+          - id: build
+            path: {tmp_path / 'in'}
+            instruction: write things
+            retry: {{max: 1, until: "reward >= 1"}}
+    """))
+    r, state = _run_flow(env, flow)
+    assert r.stdout.strip().endswith("failed"), r.stdout + r.stderr
+    st = state["steps"]["build"]
+    assert st["status"] == "failed" and st["attempt"] == 2 and "ApiRateLimitError" in st["error"]

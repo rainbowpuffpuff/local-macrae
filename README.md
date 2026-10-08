@@ -50,22 +50,23 @@ Checked on the live site on 2026-10-09 (UTC+2) after the last deploy, unless a l
 | ❌ not built | The two BFF research tasks (Bayesian charge scaling for acetate; Ca²⁺–acetate binding with error bars) | scouted in `research/scout/`, ideas approved, not built |
 
 Tests: `make test` runs every module's pytest, the Worker's and the page's node tests. At the final commit:
-**Python 513 passed, 3 skipped · Worker 44 passed · page 87 passed** (Harbor, Modal and Claude are faked in tests;
+**Python 514 passed, 3 skipped · Worker 44 passed · page 87 passed** (Harbor, Modal and Claude are faked in tests;
 the live runs are the real check).
 
 ### Known gaps
 
 - **The BFF tasks** were designed but not built; only the two tasks above are on the site.
-- **agent-runner marks an agent step `ok` when Claude hits a rate or session limit and the step has no strict
-  check.** That is how parts of the v3 and w4 waves were silently dropped (see [How it was built](#how-it-was-built));
-  their work was recovered by hand from the Harbor artifacts and merged. The fix is to treat an agent exception as a
-  failed attempt; not done yet.
+- **agent-runner marked an agent step `ok` when Claude hit a rate or session limit** but the partial work still
+  scored (`until: reward >= 1` rescued an attempt that had errored). That is how parts of the v3 and w4 waves were
+  silently dropped (see [How it was built](#how-it-was-built)). Fixed in the final integration: `until` can only add a
+  requirement (`agent_runner/flows.py`, test `test_a_rate_limited_attempt_never_passes_its_until`); the standalone
+  agent-runner repo still needs the same fix.
 - Lessons and capabilities are kept in R2 since this deploy (`state/evolve/`); the lessons learned before it were
   lost when the container restarted, and are kept as a snapshot in `proof/live-before-final-deploy/`.
 - The manuscript is shown when a run has finished; it is not replayed edit by edit while the run goes, although
   the API serves the full edit stream (`GET /api/runs/{id}/manuscript`).
 - The gap recogniser that reads traces sometimes lists shell fragments as package names (`2>&1`, `tail` in the
-  ledger above); the decision it leads to (bake the packages into a pinned image) is right.
+  saved ledger); the decision it leads to (bake the packages into a pinned image) is right.
 - The ElevenLabs agent's prompt in `voice/agent.json` ("chat naturally") is in the repo; pushing it to ElevenLabs
   needs `make voice-setup` with the ElevenLabs key.
 
@@ -181,7 +182,7 @@ agent that merged and tested. 28 flows ran on 2026-10-08 (the flow files are in 
 | Oct 9, 00:20 → | final integration | by hand with Claude Code, see below |
 
 What went wrong, and how it was found. Many agent steps in v3 and w4 hit the Claude rate or session limit
-("You've hit your session limit"), and agent-runner still marked them `ok` (see [Known gaps](#known-gaps)). The
+("You've hit your session limit"), and agent-runner still marked them `ok` (fixed now, see [Known gaps](#known-gaps)). The
 integrators then applied partial results. Reading the test failures and diffing against the Harbor artifacts of
 each step showed three losses:
 
