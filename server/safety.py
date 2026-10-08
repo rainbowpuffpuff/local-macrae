@@ -67,6 +67,7 @@ OFF = ("off", "0", "false", "no", "none")
 LIMITS: dict[str, tuple[int, int]] = {
     "api_ip": (300, 60),             # any /api request (except health and the sandbox's live posts)
     "search_ip": (30, 60),           # POST /api/search (embeddings + BM25 on the backend's CPU)
+    "chat_ip": (20, 60),             # POST /api/chat (one Claude call each)
     "tools": (120, 60),              # /api/tools/* in total: the ElevenLabs agent, all conversations together
     "start_ip": (5, 600),            # task starts from one address…
     "start_ip_day": (20, 86400),
@@ -683,6 +684,8 @@ class SafetyMiddleware:
                 rules = [("api_ip", who["ip"])]
                 if path == "/api/search":
                     rules.append(("search_ip", who["ip"]))
+                if path == "/api/chat":
+                    rules.append(("chat_ip", who["ip"]))
                 if who["voice"]:
                     rules = [("tools", "voice")]
                 hit = limiter.hit(rules)

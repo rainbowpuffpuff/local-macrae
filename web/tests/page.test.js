@@ -36,8 +36,8 @@ test("the page starts its health check before it opens a run", () => {
 test("API calls are exactly the contract's", () => {
   const calls = new Set([...app.matchAll(/\bapi\(\s*[`"]([^`"]+)[`"]/g)].map((m) => m[1].replace(/\$\{[^}]+\}/g, "{}")));
   assert.ok(calls.size >= 6, [...calls].join(" "));
-  // v1 routes, plus GET /api/evolution from the v2 addendum
-  const allowed = ["/api/health", "/api/tasks", "/api/tasks/{}/start", "/api/runs", "/api/runs/{}", "/api/runs/{}/events{}", "/api/search", "/api/evolution"];
+  // v1 routes, GET /api/evolution (v2) and POST /api/chat (typed chat with Jarvis)
+  const allowed = ["/api/health", "/api/tasks", "/api/tasks/{}/start", "/api/runs", "/api/runs/{}", "/api/runs/{}/events{}", "/api/search", "/api/evolution", "/api/chat"];
   for (const c of calls) assert.ok(allowed.includes(c), `unexpected API call ${c}`);
   assert.doesNotMatch(app, /\/api\/tools\//, "the browser never calls the agent's tools");
 });

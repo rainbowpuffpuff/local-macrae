@@ -14,7 +14,7 @@ import time
 from collections import OrderedDict
 from typing import Any
 
-from . import bridges, costs
+from . import bridges, costs, safety
 
 log = logging.getLogger("macrae.chat")
 
@@ -85,8 +85,8 @@ def reply(session: str, message: str) -> dict[str, Any]:
     message = message.strip()[:4000]
     ctx, cits = _passages(message)
     if ctx:
-        user = (f"Passages from the group's papers (cite with their markers only if relevant):\n\n{ctx}\n\n"
-                f"---\nUser message:\n{message}")
+        user = (f"Passages from the group's papers (cite with their markers only if relevant):\n\n"
+                f"{safety.fence(ctx)}\n\n---\nUser message:\n{message}")
     else:
         user = f"(No passages from the group's papers matched this message.)\n\nUser message:\n{message}"
     msgs = _history(session) + [{"role": "user", "content": user}]
@@ -101,12 +101,11 @@ def reply(session: str, message: str) -> dict[str, Any]:
     if not answer:
         answer = "Sorry, I lost my train of thought there. Could you say that again?"
     usage = resp.usage.to_dict() if hasattr(resp.usage, "to_dict") else dict(resp.usage or {})
-    tokens = costs.norm_usage(usage)
     used = str(resp.model or model)
-    usd = costs.llm_usd(used, tokens)
     _remember(session, message, answer)
     # only return the sources the answer actually cites, in their original numbering
     cited = [c for c in cits if c.get("key") and c["key"] in answer]
+    secs = time.time() - t0
     return {"answer": answer, "citations": cited, "model": used,
-            "cost": {"usd": round(usd, 6), "tokens": costs.public_tokens(tokens)},
-            "seconds": round(time.time() - t0, 2)}
+            "cost": costs.answer_cost(secs, used, usage),  # {llm_usd, compute_usd, total_usd, seconds, tokens}
+            "seconds": round(secs, 2)}

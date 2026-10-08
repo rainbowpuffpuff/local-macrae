@@ -89,7 +89,7 @@ def test_middleware_prices_llm_usage_and_keeps_a_cost_the_route_set(env, client)
     from server.app import app
     from server.cost_api import CHAT_PATHS
 
-    @app.post("/api/chat")
+    @app.post("/api/ask")  # a priced path with no real route (/api/chat has one)
     def chat(body: dict) -> dict:
         if body.get("own"):
             return {"answer": "x", "cost": {"total_usd": 1.23}}
@@ -97,12 +97,12 @@ def test_middleware_prices_llm_usage_and_keeps_a_cost_the_route_set(env, client)
                 "usage": {"input_tokens": 1000, "output_tokens": 100}}
 
     try:
-        assert "/api/chat" in CHAT_PATHS
-        c = client.post("/api/chat", json={}).json()["cost"]
+        assert {"/api/chat", "/api/ask"} <= CHAT_PATHS
+        c = client.post("/api/ask", json={}).json()["cost"]
         assert c["model"] == "claude-opus-5-5" and c["llm_usd"] == pytest.approx((1000 * 4 + 100 * 20) / 1e6)
-        assert client.post("/api/chat", json={"own": True}).json()["cost"] == {"total_usd": 1.23}
+        assert client.post("/api/ask", json={"own": True}).json()["cost"] == {"total_usd": 1.23}
     finally:
-        app.router.routes[:] = [r for r in app.router.routes if getattr(r, "path", "") != "/api/chat"]
+        app.router.routes[:] = [r for r in app.router.routes if getattr(r, "path", "") != "/api/ask"]
     # errors and other routes pass through untouched
     assert "cost" not in client.post("/api/search", json={"query": "x", "k": 0}).json()
     assert "cost" not in client.get("/api/tasks").json()

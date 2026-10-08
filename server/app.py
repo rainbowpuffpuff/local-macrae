@@ -20,8 +20,8 @@ from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from pydantic import BaseModel, Field
 from starlette.background import BackgroundTask
 
-from . import (bridges, capabilities, catalog, config, costs, events, evolution, forge, launch, live, planner,
-               rawtrace, runs, safety, traces)
+from . import (bridges, capabilities, catalog, chat, config, costs, events, evolution, forge, launch, live,
+               planner, rawtrace, runs, safety, traces)
 from .classify import clip, first_sentence
 
 log = logging.getLogger("macrae.server")
@@ -52,6 +52,11 @@ class SearchBody(BaseModel):
     k: int = Field(6, ge=1, le=50)
 
 
+class ChatBody(BaseModel):
+    session: str = Field("anon", max_length=80)
+    message: str = Field(..., min_length=1, max_length=4000)
+
+
 class ToolSearchBody(BaseModel):
     query: str = Field("", max_length=4000)
 
@@ -63,6 +68,14 @@ class ToolStartBody(BaseModel):
 
 class ToolStatusBody(BaseModel):
     run_id: str = Field("", max_length=200)
+
+
+class ForgeBody(BaseModel):
+    name: str = Field(..., min_length=2, max_length=60)
+    why: str = Field("", max_length=1000)
+    kind: str = ""
+    task_id: str = Field("", max_length=80)
+    force: bool = False
 
 
 class ForgeBody(BaseModel):
@@ -412,10 +425,28 @@ def search(body: SearchBody) -> dict:
         raise HTTPException(503, "paper search is not available on this server") from e
 
 
+# ── typed chat ──────────────────────────────────────────────────────────────
+
+
+@app.post("/api/chat", dependencies=auth)
+def chat_turn(body: ChatBody) -> dict:
+    session = re.sub(r"[^A-Za-z0-9_-]", "", body.session)[:80] or "anon"
+    if not chat.api_key():
+        raise HTTPException(503, "chat needs ANTHROPIC_API_KEY on the server")
+    blocked = safety.llm_block_reason()  # kill switch or today's spend cap: no Claude calls
+    if blocked:
+        raise HTTPException(503, f"Jarvis can't answer right now: {blocked}.")
+    try:
+        return chat.reply(session, body.message)
+    except Exception as e:
+        log.exception("chat failed")
+        raise HTTPException(502, f"Jarvis couldn't answer just now ({type(e).__name__}). Try again.") from e
+
+
 # ── ElevenLabs server tools ─────────────────────────────────────────────────
 
-NO_PAPERS = ("The group's paper index has nothing on this. Say that the papers available here don't cover it, "
-             "and don't answer from general knowledge.")
+NO_PAPERS = ("The group's papers don't cover this specifically. Answer helpfully from general knowledge, and if it "
+             "matters, mention briefly that this part isn't from the group's papers. Don't just say nothing was found.")
 
 
 @app.post("/api/tools/search_papers", dependencies=auth)
